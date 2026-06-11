@@ -33,6 +33,11 @@
 
 {@render children()}
 
+<footer class="site-footer">
+  <p>© 2006 Eva Eichinger</p>
+  <p>Design by Zora Design</p>
+</footer>
+
 <style>
   :global(body) {
     margin: 0;
@@ -52,7 +57,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: transparent;
+    background: rgba(247, 246, 244, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .logo {
@@ -94,6 +101,29 @@
     opacity: 1;
   }
 
+  .site-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 64px;
+    box-sizing: border-box;
+    color: #6f6b68;
+    font-size: 18px;
+    background: rgba(247, 246, 244, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+
+  .site-footer p {
+    margin: 0;
+  }
+
   @media (max-width: 700px) {
     .site-header {
       padding: 20px 24px;
@@ -113,6 +143,15 @@
 
     .main-nav a {
       font-size: 1rem;
+    }
+
+    .site-footer {
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      font-size: 14px;
+      flex-direction: column;
+      gap: 8px;
     }
   }
 </style>

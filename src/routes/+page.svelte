@@ -89,11 +89,6 @@
       </div>
     {/if}
   </section>
-
-  <footer class="site-footer">
-    <p>© 2006 Eva Eichinger</p>
-    <p>Design by Zora Design</p>
-  </footer>
 </main>
 
 <style>
@@ -254,22 +249,6 @@
     transform: translateY(-50%);
   }
 
-  .site-footer {
-    position: fixed;
-    left: 64px;
-    right: 64px;
-    bottom: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #6f6b68;
-    font-size: 18px;
-  }
-
-  .site-footer p {
-    margin: 0;
-  }
-
   @media (max-width: 900px) {
     .hero-slider {
       width: 78vw;
@@ -299,13 +278,6 @@
 
     .side-text {
       display: none;
-    }
-
-    .site-footer {
-      left: 24px;
-      right: 24px;
-      bottom: 24px;
-      font-size: 14px;
     }
   }
 
@@ -343,11 +315,6 @@
 
     .discover-link span {
       width: 50px;
-    }
-
-    .site-footer {
-      flex-direction: column;
-      gap: 8px;
     }
   }
 </style>

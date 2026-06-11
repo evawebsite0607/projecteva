@@ -15,17 +15,27 @@
 
   onMount(() => {
     const header = document.querySelector(".site-header");
+    const footer = document.querySelector(".site-footer");
 
     if (header) {
       header.style.display = "none";
+    }
+
+    if (footer) {
+      footer.style.display = "none";
     }
   });
 
   onDestroy(() => {
     const header = document.querySelector(".site-header");
+    const footer = document.querySelector(".site-footer");
 
     if (header) {
       header.style.display = "";
+    }
+
+    if (footer) {
+      footer.style.display = "";
     }
   });
 
