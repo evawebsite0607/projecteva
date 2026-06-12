@@ -110,7 +110,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-top: 120px;
+    padding-top: 100px;
     padding-bottom: 100px;
     box-sizing: border-box;
     overflow: hidden;

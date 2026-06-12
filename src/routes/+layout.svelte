@@ -110,10 +110,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 64px;
+    padding: 18px 58px;
     box-sizing: border-box;
     color: #6f6b68;
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: 300;
+
     background: rgba(247, 246, 244, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
