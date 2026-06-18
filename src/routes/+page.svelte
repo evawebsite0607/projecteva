@@ -80,10 +80,7 @@
           {/each}
         </div>
 
-        <a href="/exhibitions/2026" class="discover-link">
-          View Works
-          <span></span>
-        </a>
+        <a href="/exhibitions/2026" class="discover-link"> View Works </a>
       </div>
     {/if}
   </section>
@@ -94,7 +91,7 @@
     margin: 0;
     overflow-x: hidden;
     font-family: Georgia, "Times New Roman", serif;
-    background: #f7f6f4;
+    background: #ffffff;
     color: #6f6b68;
   }
 
@@ -108,7 +105,7 @@
     padding-bottom: 100px;
     box-sizing: border-box;
     overflow: hidden;
-    background: radial-gradient(circle at center, #ffffff 0%, #f7f6f4 65%);
+    background: #ffffff;
   }
 
   .hero-slider {
@@ -210,22 +207,19 @@
   }
 
   .discover-link {
-    display: flex;
-    align-items: center;
-    gap: 28px;
     color: #6f6b68;
-    text-decoration: none;
-    font-size: clamp(36px, 4vw, 54px);
-    font-style: italic;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    font-size: clamp(20px, 2vw, 28px);
+    font-style: normal;
+    font-weight: 400;
     line-height: 1;
     white-space: nowrap;
+    justify-self: end;
   }
 
-  .discover-link span {
-    display: block;
-    width: 70px;
-    height: 1px;
-    background: #6f6b68;
+  .discover-link:hover {
+    opacity: 0.7;
   }
 
   @media (max-width: 900px) {
@@ -285,11 +279,7 @@
     }
 
     .discover-link {
-      font-size: 36px;
-    }
-
-    .discover-link span {
-      width: 50px;
+      font-size: 22px;
     }
   }
 </style>
