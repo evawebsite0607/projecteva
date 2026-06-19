@@ -118,8 +118,9 @@
     box-sizing: border-box;
     background: #ffffff;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
   }
 
   .event-feature {
@@ -374,16 +375,22 @@
     }
 
     .event-grid {
-      grid-template-columns: 1fr;
-      gap: 38px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px 16px;
     }
 
     .event-content h2 {
-      font-size: 19px;
+      font-size: 16px;
     }
 
     .event-image {
       aspect-ratio: 4 / 5;
+    }
+    .event-date,
+    .event-meta,
+    .event-location,
+    .event-address {
+      font-size: 10px;
     }
   }
 </style>

@@ -932,14 +932,25 @@
     }
 
     .exhibitions-scroll-area {
+      width: 100%;
+      max-width: 100%;
       overflow-x: auto;
       overflow-y: hidden;
       padding-right: 0;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .exhibitions-scroll-area::-webkit-scrollbar {
+      display: none;
     }
 
     .section-links {
       width: max-content;
+      min-width: max-content;
+      display: flex;
       flex-direction: row;
       gap: 22px;
       padding-bottom: 4px;
@@ -947,20 +958,28 @@
 
     .selected-year-links {
       width: max-content;
+      min-width: max-content;
+      display: flex;
       flex-direction: row;
-      gap: 18px;
+      gap: 22px;
       margin-top: 18px;
       padding-bottom: 4px;
     }
 
+    .section-button,
+    .selected-year-button {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: none;
+      white-space: nowrap;
+    }
+
     .section-button {
       font-size: 14px;
-      white-space: nowrap;
     }
 
     .selected-year-button {
       font-size: 14px;
-      white-space: nowrap;
     }
 
     .exhibitions-content-column {

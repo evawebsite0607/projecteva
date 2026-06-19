@@ -649,13 +649,20 @@
     }
 
     .painting-scroll-area {
+      width: 100%;
+      max-width: 100%;
       min-height: auto;
       overflow-x: auto;
       overflow-y: hidden;
       padding-right: 0;
+      padding-bottom: 8px;
       scrollbar-width: none;
       -ms-overflow-style: none;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .painting-scroll-area::-webkit-scrollbar {
+      display: none;
     }
 
     .mobile-helper {
@@ -670,6 +677,7 @@
 
     .painting-year-links {
       width: max-content;
+      min-width: max-content;
       display: flex;
       flex-direction: row;
       gap: 22px;
@@ -677,6 +685,9 @@
     }
 
     .painting-year-button {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: none;
       font-size: 15px;
       white-space: nowrap;
     }
@@ -687,6 +698,7 @@
       min-height: 0;
       align-items: stretch;
     }
+
     .painting-grid-frame {
       width: 100%;
       height: 100%;
