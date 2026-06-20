@@ -182,7 +182,7 @@
       (exhibition) => exhibition.id === data.requestedPostId,
     ) || data.selectedExhibitions?.[0];
 
-  let activeSectionId = $state(data.requestedPostId ? "selected" : "solo");
+  let activeSectionId = $state("selected");
   let selectedYearSlug = $state(initialExhibition?.yearSlug || "");
   let selectedImageIndex = $state(null);
 
@@ -453,7 +453,7 @@
   .exhibitions-page {
     width: 100%;
     min-height: 100vh;
-    padding: 116px 40px 92px;
+    padding: 116px clamp(28px, 5vw, 72px) 92px;
     box-sizing: border-box;
     background: #ffffff;
     display: flex;
@@ -463,16 +463,17 @@
 
   .exhibitions-feature {
     width: 100%;
+    max-width: 1500px;
     display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: clamp(34px, 5vw, 82px);
+    grid-template-columns: 20% minmax(0, 80%);
+    gap: clamp(14px, 2vw, 32px);
     align-items: center;
+    background: #ffffff;
   }
 
   .exhibitions-list-column {
     width: 100%;
-    max-width: 260px;
-    height: min(66vh, 720px);
+    height: min(76vh, 820px);
     justify-self: start;
     display: flex;
     flex-direction: column;
@@ -580,7 +581,7 @@
   .exhibitions-content-column {
     width: 100%;
     min-width: 0;
-    height: min(82vh, 880px);
+    height: min(76vh, 820px);
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
@@ -648,7 +649,8 @@
   }
 
   .selected-info {
-    max-width: 760px;
+    width: 100%;
+    max-width: none;
     margin-bottom: 34px;
   }
 

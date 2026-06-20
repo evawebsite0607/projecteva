@@ -271,7 +271,7 @@
 
       <section class="mobile-slider" aria-label="Mobile works slider">
         <p class="mobile-rabbit-text">
-          when going down the rabbit hole prepare to chill with lions.
+          "When going down the rabbit hole, prepare to chill with lions." — Eva
         </p>
 
         <div class="mobile-top-controls">
@@ -696,6 +696,8 @@
       align-items: center;
       justify-content: flex-start;
       gap: 22px;
+      margin: 0;
+      padding: 0;
       background: #ffffff;
     }
 

@@ -37,16 +37,6 @@
         <div class="event-grid">
           {#each data.events as event}
             <article class="event-card">
-              {#if event.image}
-                <div class="event-image-wrap">
-                  <img
-                    class="event-image"
-                    src={event.image}
-                    alt={event.title}
-                  />
-                </div>
-              {/if}
-
               <div class="event-content">
                 <span class="event-date">
                   {#if event.date}
@@ -114,7 +104,7 @@
   .event-page {
     width: 100%;
     min-height: 100vh;
-    padding: 116px 40px 110px;
+    padding: 116px clamp(28px, 5vw, 72px) 110px;
     box-sizing: border-box;
     background: #ffffff;
     display: flex;
@@ -125,15 +115,16 @@
 
   .event-feature {
     width: 100%;
+    max-width: 1500px;
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: clamp(34px, 5vw, 82px);
+    grid-template-columns: 20% minmax(0, 80%);
+    gap: clamp(14px, 2vw, 32px);
     align-items: start;
+    background: #ffffff;
   }
 
   .event-intro-column {
     width: 100%;
-    max-width: 220px;
     justify-self: start;
   }
 
@@ -184,27 +175,6 @@
 
   .event-card {
     background: transparent;
-  }
-
-  .event-image-wrap {
-    overflow: hidden;
-    background: #f8f6f4;
-  }
-
-  .event-image {
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    display: block;
-    object-fit: cover;
-    object-position: center;
-    transition:
-      transform 0.45s ease,
-      opacity 0.3s ease;
-  }
-
-  .event-card:hover .event-image {
-    transform: scale(1.025);
-    opacity: 0.94;
   }
 
   .event-content {
@@ -383,9 +353,6 @@
       font-size: 16px;
     }
 
-    .event-image {
-      aspect-ratio: 4 / 5;
-    }
     .event-date,
     .event-meta,
     .event-location,

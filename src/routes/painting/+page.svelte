@@ -227,7 +227,7 @@
   .painting-page {
     width: 100%;
     min-height: 100vh;
-    padding: 116px 40px 92px;
+    padding: 116px clamp(28px, 5vw, 72px) 92px;
     box-sizing: border-box;
     background: #ffffff;
     display: flex;
@@ -237,16 +237,17 @@
 
   .painting-feature {
     width: 100%;
+    max-width: 1500px;
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    gap: clamp(34px, 5vw, 82px);
+    grid-template-columns: 20% minmax(0, 80%);
+    gap: clamp(14px, 2vw, 32px);
     align-items: center;
+    background: #ffffff;
   }
 
   .painting-list-column {
     width: 100%;
-    max-width: 220px;
-    height: min(58vh, 620px);
+    height: min(76vh, 820px);
     justify-self: start;
     display: flex;
     flex-direction: column;
@@ -341,7 +342,7 @@
 
   .painting-grid-frame {
     width: 100%;
-    height: min(82vh, 880px);
+    height: min(76vh, 820px);
     overflow-y: auto;
     overflow-x: hidden;
     background: #ffffff;
@@ -354,7 +355,8 @@
   }
 
   .painting-info {
-    max-width: 760px;
+    width: 100%;
+    max-width: none;
     margin-bottom: 34px;
   }
 
