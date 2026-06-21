@@ -50,6 +50,43 @@ function getYearCategory(post, categoriesMap) {
 }
 
 export async function load({ fetch }) {
+  
+
+  
+
+  const aboutMenuItems = [
+  {
+    id: 1,
+    label: "About Eva",
+    href: "/about",
+    featuredImage: "",
+  },
+  {
+    id: 2,
+    label: "Buy my arts",
+    href: "/about",
+    featuredImage: "",
+  },
+  {
+    id: 3,
+    label: "Studio",
+    href: "/about",
+    featuredImage: "",
+  },
+  {
+    id: 4,
+    label: "Press",
+    href: "/about",
+    featuredImage: "",
+  },
+  {
+    id: 5,
+    label: "Contact",
+    href: "/about",
+    featuredImage: "",
+  },
+];
+
   const postsResponse = await fetch(
     `${PUBLIC_WP_API_URL}/posts?_embed&per_page=100`,
   );
@@ -92,13 +129,12 @@ export async function load({ fetch }) {
       href: isExhibitionPost
         ? `/exhibitions?post=${post.id}`
         : yearSlug
-          ? "/painting"
+          ? `/painting?post=${post.id}`
           : "#",
     };
   });
 
   const paintingMenuItems = works.filter((work) => !work.isExhibitionPost);
-
   const exhibitionMenuItems = works.filter((work) => work.isExhibitionPost);
 
   const eventsResponse = await fetch(
@@ -118,6 +154,7 @@ export async function load({ fetch }) {
   }));
 
   return {
+    aboutMenuItems,
     paintingMenuItems,
     exhibitionMenuItems,
     eventMenuItems,

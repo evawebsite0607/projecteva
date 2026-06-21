@@ -53,6 +53,14 @@
         <h1 class="about-label">{data.pageTitle}</h1>
       </div>
 
+      {#if data.featuredImage}
+        <img
+          class="about-left-image"
+          src={data.featuredImage}
+          alt={data.pageTitle}
+        />
+      {/if}
+
       <div class="about-scroll-area">
         <div class="about-links">
           {#each aboutSections as section}
@@ -124,7 +132,7 @@
   }
 
   .about-heading {
-    margin-bottom: 34px;
+    margin-bottom: 24px;
   }
 
   .about-label {
@@ -135,6 +143,16 @@
     line-height: 1.15;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .about-left-image {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    display: block;
+    margin: 0 0 34px;
+    object-fit: cover;
+    object-position: center;
   }
 
   .about-scroll-area {
@@ -280,6 +298,10 @@
       height: min(62vh, 620px);
     }
 
+    .about-left-image {
+      max-width: 160px;
+    }
+
     .about-content-column {
       height: min(76vh, 760px);
     }
@@ -323,6 +345,11 @@
 
     .about-label {
       font-size: 18px;
+    }
+
+    .about-left-image {
+      max-width: 120px;
+      margin-bottom: 18px;
     }
 
     .about-scroll-area {
@@ -372,11 +399,9 @@
       font-size: 20px;
     }
 
-    @media (max-width: 700px) {
-      .about-section-text p {
-        font-size: 14px;
-        line-height: 1.7;
-      }
+    .about-section-text p {
+      font-size: 14px;
+      line-height: 1.7;
     }
   }
 </style>

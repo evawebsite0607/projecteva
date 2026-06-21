@@ -3,6 +3,7 @@
 
   let menuOpen = $state(false);
 
+  const aboutItems = data?.aboutMenuItems || [];
   const paintingItems = data?.paintingMenuItems || [];
   const exhibitionItems = data?.exhibitionMenuItems || [];
   const eventItems = data?.eventMenuItems || [];
@@ -11,7 +12,7 @@
     {
       label: "About",
       href: "/about",
-      children: [],
+      children: aboutItems,
     },
     {
       label: "Paintings",
@@ -186,7 +187,7 @@
 
   @media (min-width: 1025px) {
     .menu-toggle {
-      transform: translateX(-32px);
+      transform: translateX(0px);
     }
   }
 
@@ -308,8 +309,7 @@
 
   .submenu-link {
     width: 100%;
-    display: grid;
-    grid-template-columns: 34px minmax(0, 1fr);
+    display: flex;
     align-items: center;
     gap: 12px;
     color: #77716d;
@@ -319,6 +319,10 @@
     letter-spacing: 0.09em;
     text-transform: uppercase;
     opacity: 0.72;
+  }
+
+  .submenu-link span {
+    min-width: 0;
   }
 
   .submenu-link:hover,

@@ -4,22 +4,27 @@
 
   let { data } = $props();
 
-  let selectedYearSlug = $state(data.years?.[0]?.yearSlug || "");
+  const initialPainting =
+    data.paintings?.find((painting) => painting.id === data.requestedPostId) ||
+    data.paintings?.[0];
+
+  let selectedPaintingSlug = $state(initialPainting?.postSlug || "");
   let selectedImageIndex = $state(null);
 
-  let selectedYear = $derived(
-    data.years?.find((year) => year.yearSlug === selectedYearSlug) ||
-      data.years?.[0],
+  let selectedPainting = $derived(
+    data.paintings?.find(
+      (painting) => painting.postSlug === selectedPaintingSlug,
+    ) || data.paintings?.[0],
   );
 
-  let selectedImages = $derived(selectedYear?.images || []);
+  let selectedImages = $derived(selectedPainting?.images || []);
 
   let selectedImage = $derived(
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
-  function selectYear(year) {
-    selectedYearSlug = year.yearSlug;
+  function selectPainting(painting) {
+    selectedPaintingSlug = painting.postSlug;
     selectedImageIndex = null;
   }
 
@@ -85,34 +90,31 @@
 <svelte:head>
   <title>Painting | Eva Eichinger</title>
 
-  <meta
-    name="description"
-    content="Explore painting works by Eva Eichinger, arranged by year."
-  />
+  <meta name="description" content="Explore painting works by Eva Eichinger." />
 </svelte:head>
 
 <main class="painting-page">
-  {#if data.years && data.years.length > 0}
-    <section class="painting-feature" aria-label="Painting works by year">
-      <aside class="painting-list-column" aria-label="Painting years">
+  {#if data.paintings && data.paintings.length > 0}
+    <section class="painting-feature" aria-label="Painting works">
+      <aside class="painting-list-column" aria-label="Painting posts">
         <div class="painting-heading">
           <h1 class="painting-label">Painting</h1>
         </div>
 
         <div class="painting-scroll-area">
-          <p class="mobile-helper">Tap year to preview works</p>
+          <p class="mobile-helper">Tap work to preview</p>
 
-          <div class="painting-year-links">
-            {#each data.years as year}
+          <div class="painting-post-links">
+            {#each data.paintings as painting}
               <button
                 type="button"
-                class="painting-year-button"
-                class:active={selectedYear?.yearSlug === year.yearSlug}
-                onmouseenter={() => selectYear(year)}
-                onfocus={() => selectYear(year)}
-                onclick={() => selectYear(year)}
+                class="painting-post-button"
+                class:active={selectedPainting?.postSlug === painting.postSlug}
+                onmouseenter={() => selectPainting(painting)}
+                onfocus={() => selectPainting(painting)}
+                onclick={() => selectPainting(painting)}
               >
-                {year.year}
+                {painting.title}
               </button>
             {/each}
           </div>
@@ -122,28 +124,31 @@
       <div class="painting-image-column">
         <div class="painting-grid-frame">
           <div class="painting-info">
-            <span>{selectedYear?.year}</span>
+            <span>{selectedPainting?.year}</span>
 
-            {#if selectedYear?.title}
-              <h2>{selectedYear.title}</h2>
+            {#if selectedPainting?.title}
+              <h2>{selectedPainting.title}</h2>
             {/if}
 
-            {#if selectedYear?.info}
-              <p>{selectedYear.info}</p>
+            {#if selectedPainting?.info}
+              <p>{selectedPainting.info}</p>
             {/if}
           </div>
 
-          {#if selectedYear?.images?.length}
-            {#key selectedYear.yearSlug}
+          {#if selectedPainting?.images?.length}
+            {#key selectedPainting.postSlug}
               <div class="painting-grid">
-                {#each selectedYear.images as image, index}
+                {#each selectedPainting.images as image, index}
                   <button
                     type="button"
                     class="painting-card"
                     onclick={() => openLightbox(index)}
-                    aria-label={`Open ${image.alt || selectedYear.year}`}
+                    aria-label={`Open ${image.alt || selectedPainting.title}`}
                   >
-                    <img src={image.src} alt={image.alt || selectedYear.year} />
+                    <img
+                      src={image.src}
+                      alt={image.alt || selectedPainting.title}
+                    />
 
                     {#if image.alt}
                       <span>{image.alt}</span>
@@ -153,13 +158,13 @@
               </div>
             {/key}
           {:else}
-            <p class="empty-message">No images found for this year.</p>
+            <p class="empty-message">No images found for this painting.</p>
           {/if}
         </div>
       </div>
     </section>
   {:else}
-    <p class="empty-message">No painting years found.</p>
+    <p class="empty-message">No painting posts found.</p>
   {/if}
 
   {#if selectedImage}
@@ -185,7 +190,7 @@
       <div class="lightbox-content">
         <img
           src={selectedImage.src}
-          alt={selectedImage.alt || selectedYear.year}
+          alt={selectedImage.alt || selectedPainting.title}
         />
 
         <div class="lightbox-meta">
@@ -198,7 +203,7 @@
           {#if selectedImage.alt}
             <p>{selectedImage.alt}</p>
           {:else}
-            <p>{selectedYear.year}</p>
+            <p>{selectedPainting.title}</p>
           {/if}
         </div>
       </div>
@@ -283,13 +288,13 @@
     display: none;
   }
 
-  .painting-year-links {
+  .painting-post-links {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
 
-  .painting-year-button {
+  .painting-post-button {
     width: fit-content;
     max-width: 100%;
     display: inline-block;
@@ -298,7 +303,7 @@
     background: transparent;
     color: #77716d;
     font-family: inherit;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 300;
     line-height: 1.25;
     letter-spacing: 0.08em;
@@ -310,7 +315,7 @@
       opacity 0.35s ease;
   }
 
-  .painting-year-button::after {
+  .painting-post-button::after {
     content: "";
     display: block;
     width: 0;
@@ -320,15 +325,15 @@
     transition: width 0.5s ease;
   }
 
-  .painting-year-button:hover,
-  .painting-year-button:focus,
-  .painting-year-button.active {
+  .painting-post-button:hover,
+  .painting-post-button:focus,
+  .painting-post-button.active {
     color: #1f1f1f;
   }
 
-  .painting-year-button:hover::after,
-  .painting-year-button:focus::after,
-  .painting-year-button.active::after {
+  .painting-post-button:hover::after,
+  .painting-post-button:focus::after,
+  .painting-post-button.active::after {
     width: 100%;
   }
 
@@ -677,7 +682,7 @@
       text-transform: uppercase;
     }
 
-    .painting-year-links {
+    .painting-post-links {
       width: max-content;
       min-width: max-content;
       display: flex;
@@ -686,7 +691,7 @@
       padding-bottom: 4px;
     }
 
-    .painting-year-button {
+    .painting-post-button {
       flex: 0 0 auto;
       width: auto;
       max-width: none;

@@ -40,7 +40,7 @@ function extractGalleryImages(post) {
     if (src && !images.some((image) => image.src === src)) {
       images.push({
         src,
-        alt
+        alt,
       });
     }
   }
@@ -76,13 +76,13 @@ function getYearCategory(post, categoriesMap, paintingCategory) {
   return null;
 }
 
-export async function load({ fetch }) {
+export async function load({ fetch, url }) {
   const postsResponse = await fetch(
-    `${PUBLIC_WP_API_URL}/posts?_embed&per_page=100`
+    `${PUBLIC_WP_API_URL}/posts?_embed&per_page=100`,
   );
 
   const categoriesResponse = await fetch(
-    `${PUBLIC_WP_API_URL}/categories?per_page=100`
+    `${PUBLIC_WP_API_URL}/categories?per_page=100`,
   );
 
   const posts = await postsResponse.json();
@@ -95,44 +95,34 @@ export async function load({ fetch }) {
   });
 
   const paintingCategory = categories.find(
-    (category) => category.slug === "painting"
+    (category) => category.slug === "painting",
   );
 
-  const yearsMap = {};
+  const paintings = posts
+    .map((post) => {
+      const yearCategory = getYearCategory(post, categoriesMap, paintingCategory);
 
-  posts.forEach((post) => {
-    const yearCategory = getYearCategory(post, categoriesMap, paintingCategory);
+      if (!yearCategory) return null;
 
-    if (!yearCategory) return;
+      const year = decodeHtml(yearCategory.name);
+      const title = decodeHtml(stripHtml(post.title?.rendered));
+      const info = getFirstH2(post);
+      const images = extractGalleryImages(post);
 
-    const year = decodeHtml(yearCategory.name);
-    const yearSlug = yearCategory.slug;
-    const postTitle = decodeHtml(stripHtml(post.title?.rendered));
-    const postInfo = getFirstH2(post);
-    const galleryImages = extractGalleryImages(post);
-
-    if (!yearsMap[yearSlug]) {
-      yearsMap[yearSlug] = {
+      return {
+        id: post.id,
         year,
-        yearSlug,
-        title: postTitle,
-        info: postInfo,
-        images: []
+        postSlug: String(post.id),
+        title,
+        info,
+        images,
       };
-    }
-
-    galleryImages.forEach((image) => {
-      if (!yearsMap[yearSlug].images.some((item) => item.src === image.src)) {
-        yearsMap[yearSlug].images.push(image);
-      }
-    });
-  });
-
-  const years = Object.values(yearsMap).sort((a, b) => {
-    return Number(b.year) - Number(a.year);
-  });
+    })
+    .filter(Boolean)
+    .sort((a, b) => Number(b.year) - Number(a.year));
 
   return {
-    years
+    paintings,
+    requestedPostId: Number(url.searchParams.get("post")) || null,
   };
 }
