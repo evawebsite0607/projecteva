@@ -680,13 +680,12 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      gap: 0;
     }
 
     .left-column {
       position: relative;
       top: auto;
-      left: auto;
-      right: auto;
       z-index: 20;
       height: auto;
       min-height: 0;
@@ -703,18 +702,29 @@
       width: 100%;
       display: grid;
       grid-template-rows: auto auto;
-      align-content: start;
-      gap: 8px;
-      margin: 0 0 18px;
-      padding: 0;
+      gap: 12px;
+      margin: 0 0 20px;
+      padding: 0 0 18px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     }
 
     .section-links {
       width: 100%;
-      align-items: flex-end;
+      display: block;
       margin: 0;
       padding: 0;
-      text-align: right;
+      text-align: left;
+    }
+
+    .section-button {
+      display: block;
+      width: 100%;
+      min-height: 20px;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 15px;
+      line-height: 1.1;
     }
 
     .selected-painting-links {
@@ -722,35 +732,39 @@
       max-height: none;
       overflow: visible;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      column-gap: 6px;
-      row-gap: 3px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 18px;
+      row-gap: 7px;
       align-items: start;
       justify-items: stretch;
       margin: 0;
       padding: 0;
-      text-align: right;
+      text-align: left;
     }
 
-    .section-button {
-      display: block;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      text-align: right;
-      font-size: 13px;
-      line-height: 1.05;
-    }
     .selected-painting-button {
       display: block;
       width: 100%;
-      max-width: none;
+      min-width: 0;
+      min-height: 19px;
       margin: 0;
       padding: 0;
-      text-align: right;
-      font-size: 11px;
-      line-height: 1.03;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.08;
       white-space: normal;
+      word-break: normal;
+      overflow-wrap: anywhere;
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .selected-painting-button.active,
+    .selected-painting-button:hover,
+    .selected-painting-button:focus {
+      color: #000000;
+      transform: none;
+      letter-spacing: 0;
     }
 
     .painting-preview {
@@ -847,14 +861,6 @@
       background: transparent;
     }
 
-    .image-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .image-grid::-webkit-scrollbar-thumb {
-      background: transparent;
-    }
-
     .image-card {
       min-height: auto;
       overflow: visible;
@@ -920,15 +926,27 @@
     .navigation-area {
       display: grid;
       grid-template-rows: auto auto;
-      align-content: start;
-      gap: 7px;
+      gap: 10px;
       margin: 0 0 16px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .section-links {
       width: 100%;
-      align-items: flex-end;
-      text-align: right;
+      display: block;
+      text-align: left;
+    }
+
+    .section-button {
+      display: block;
+      width: 100%;
+      min-height: 20px;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.1;
+      text-align: left;
     }
 
     .selected-painting-links {
@@ -936,36 +954,37 @@
       max-height: none;
       overflow: visible;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      column-gap: 5px;
-      row-gap: 2px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 14px;
+      row-gap: 6px;
       align-items: start;
       justify-items: stretch;
       margin: 0;
       padding: 0;
-      text-align: right;
-    }
-
-    .section-button {
-      display: block;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      font-size: 11px;
-      line-height: 1.03;
-      text-align: right;
+      text-align: left;
     }
 
     .selected-painting-button {
       display: block;
       width: 100%;
-      max-width: none;
+      min-width: 0;
+      min-height: 18px;
       margin: 0;
       padding: 0;
-      font-size: 9px;
-      line-height: 1.02;
-      text-align: right;
+      font-size: 12px;
+      line-height: 1.08;
+      text-align: left;
       white-space: normal;
+      overflow-wrap: anywhere;
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .selected-painting-button.active,
+    .selected-painting-button:hover,
+    .selected-painting-button:focus {
+      transform: none;
+      letter-spacing: 0;
     }
 
     .painting-preview h1,
@@ -1079,8 +1098,14 @@
       font-size: clamp(14px, 4vw, 18px);
     }
 
+    .selected-painting-links {
+      column-gap: 12px;
+      row-gap: 5px;
+    }
+
     .selected-painting-button {
-      font-size: 8.5px;
+      font-size: 11px;
+      min-height: 17px;
     }
 
     .image-card figure {
