@@ -4,27 +4,15 @@
 
   let { data } = $props();
 
-  const sections = [
-    {
-      id: "selected",
-      label: "Selected Paintings",
-      heading: "Selected Paintings",
-      entries: [],
-    },
-  ];
-
   const initialPainting =
     data.paintings?.find((painting) => painting.id === data.requestedPostId) ||
     data.paintings?.[0];
 
-  let activeSectionId = $state("selected");
   let selectedPaintingSlug = $state(initialPainting?.postSlug || "");
   let selectedImageIndex = $state(null);
   let hoveredImageIndex = $state(null);
-
-  let activeSection = $derived(
-    sections.find((section) => section.id === activeSectionId) || sections[0],
-  );
+  let paintingGridElement = $state(null);
+  let infoExpanded = $state(false);
 
   let selectedPainting = $derived(
     data.paintings?.find(
@@ -38,16 +26,22 @@
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
-  function selectSection(sectionId) {
-    activeSectionId = sectionId;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-  }
+  let shouldShowInfoToggle = $derived(
+    (selectedPainting?.info || "").length > 200,
+  );
 
   function selectPainting(painting) {
     selectedPaintingSlug = painting.postSlug;
     selectedImageIndex = null;
     hoveredImageIndex = null;
+    infoExpanded = false;
+
+    if (paintingGridElement) {
+      paintingGridElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   }
 
   function setHoveredImage(index) {
@@ -88,6 +82,15 @@
         : selectedImageIndex + 1;
   }
 
+  function scrollBackToTop() {
+    if (paintingGridElement) {
+      paintingGridElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }
+
   function handleKeydown(event) {
     if (selectedImageIndex === null) return;
 
@@ -115,63 +118,58 @@
 </svelte:head>
 
 <main class="paintings-page">
-  <section class="paintings-layout" aria-label="Paintings">
-    <aside class="left-column" aria-label="Painting navigation">
-      <div class="section-links">
-        {#each sections as section}
-          <button
-            type="button"
-            class="section-button"
-            class:active={activeSectionId === section.id}
-            onclick={() => selectSection(section.id)}
-          >
-            {section.label}
+  {#if data.paintings && data.paintings.length > 0}
+    <section class="paintings-layout" aria-label="Paintings">
+      <aside class="left-column" aria-label="Painting navigation">
+        <div class="section-links">
+          <button type="button" class="section-button active">
+            Selected Paintings
           </button>
-        {/each}
-      </div>
+        </div>
 
-      <div class="painting-preview">
-        {#if selectedPainting}
-          <h1>{selectedPainting.title}</h1>
+        <div class="painting-preview">
+          {#if selectedPainting}
+            <h1>{selectedPainting.title}</h1>
 
-          <div class="preview-bottom">
-            <div class="preview-info">
-              {#if selectedPainting.year}
-                <strong>{selectedPainting.year}</strong>
-              {:else}
-                <strong>PAINTINGS</strong>
-              {/if}
+            <div class="preview-bottom">
+              <div class="preview-info">
+                {#if selectedPainting.year}
+                  <strong>{selectedPainting.year}</strong>
+                {:else}
+                  <strong>PAINTINGS</strong>
+                {/if}
 
-              {#if selectedPainting.info}
-                <p>{selectedPainting.info}</p>
-              {:else}
-                <p>Selected painting images and documentation.</p>
-              {/if}
+                {#if selectedPainting.info}
+                  <div
+                    class="painting-description"
+                    class:expanded={infoExpanded}
+                  >
+                    <p>{selectedPainting.info}</p>
+                  </div>
+
+                  {#if shouldShowInfoToggle}
+                    <button
+                      type="button"
+                      class="info-toggle"
+                      onclick={() => (infoExpanded = !infoExpanded)}
+                    >
+                      {infoExpanded ? "Less −" : "More +"}
+                    </button>
+                  {/if}
+                {:else}
+                  <p>Selected painting images and documentation.</p>
+                {/if}
+              </div>
+
+              <div class="case-count">
+                IMAGES({selectedImages.length})
+              </div>
             </div>
+          {/if}
+        </div>
+      </aside>
 
-            <div class="case-count">
-              IMAGES({selectedImages.length})
-            </div>
-          </div>
-        {:else}
-          <h1>{activeSection.heading}</h1>
-
-          <div class="preview-bottom">
-            <div class="preview-info">
-              <strong>PAINTINGS</strong>
-              <p>Selected paintings and visual works.</p>
-            </div>
-
-            <div class="case-count">
-              WORKS({data.paintings?.length || 0})
-            </div>
-          </div>
-        {/if}
-      </div>
-    </aside>
-
-    <section class="right-column" aria-label="Painting content">
-      {#if data.paintings?.length}
+      <section class="right-column" aria-label="Painting content">
         <div class="selected-painting-links">
           {#each data.paintings as painting}
             <button
@@ -184,38 +182,48 @@
             </button>
           {/each}
         </div>
-      {/if}
 
-      {#if selectedPainting?.images?.length}
-        {#key selectedPainting.postSlug}
-          <div class="image-grid">
-            {#each selectedPainting.images as image, index}
+        {#if selectedPainting?.images?.length}
+          {#key selectedPainting.postSlug}
+            <div class="image-grid" bind:this={paintingGridElement}>
+              {#each selectedPainting.images as image, index}
+                <button
+                  type="button"
+                  class="image-card"
+                  class:active={hoveredImageIndex === index}
+                  onmouseenter={() => setHoveredImage(index)}
+                  onfocus={() => setHoveredImage(index)}
+                  onclick={() => openLightbox(index)}
+                  aria-label={`Open ${image.alt || selectedPainting.title}`}
+                >
+                  <figure>
+                    <img
+                      src={image.src}
+                      alt={image.alt || selectedPainting.title}
+                    />
+                  </figure>
+
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                </button>
+              {/each}
+
               <button
                 type="button"
-                class="image-card"
-                class:active={hoveredImageIndex === index}
-                onmouseenter={() => setHoveredImage(index)}
-                onfocus={() => setHoveredImage(index)}
-                onclick={() => openLightbox(index)}
-                aria-label={`Open ${image.alt || selectedPainting.title}`}
+                class="back-to-top"
+                onclick={scrollBackToTop}
               >
-                <figure>
-                  <img
-                    src={image.src}
-                    alt={image.alt || selectedPainting.title}
-                  />
-                </figure>
-
-                <span>{String(index + 1).padStart(2, "0")}</span>
+                BACK TO TOP
               </button>
-            {/each}
-          </div>
-        {/key}
-      {:else}
-        <p class="empty-message">No images found for this painting.</p>
-      {/if}
+            </div>
+          {/key}
+        {:else}
+          <p class="empty-message">No images found for this painting.</p>
+        {/if}
+      </section>
     </section>
-  </section>
+  {:else}
+    <p class="empty-message">No painting posts found.</p>
+  {/if}
 
   {#if selectedImage}
     <div class="painting-lightbox" role="dialog" aria-modal="true">
@@ -308,7 +316,8 @@
     justify-content: space-between;
   }
 
-  .section-links {
+  .section-links,
+  .selected-painting-links {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -383,6 +392,24 @@
     line-height: 1.2;
   }
 
+  .painting-description p {
+    margin: 0;
+  }
+
+  .info-toggle {
+    display: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
   .case-count {
     color: #000000;
     font-size: 14px;
@@ -397,9 +424,6 @@
   }
 
   .selected-painting-links {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
     margin-bottom: 34px;
   }
 
@@ -480,6 +504,23 @@
   .image-card:hover span,
   .image-card.active span {
     opacity: 1;
+  }
+
+  .back-to-top {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin: 48px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
   }
 
   .empty-message {
@@ -586,87 +627,194 @@
   }
 
   @media (max-width: 1024px) {
+    :global(html),
+    :global(body) {
+      height: 100%;
+      overflow: hidden;
+    }
+
     .paintings-page {
-      padding: 118px 24px 110px;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 118px 24px 0;
     }
 
     .paintings-layout {
-      display: block;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .left-column {
       position: relative;
       top: auto;
+      left: auto;
+      right: auto;
+      z-index: 20;
       height: auto;
       min-height: 0;
+      flex: 0 0 auto;
       display: block;
-      margin-bottom: 34px;
+      margin: 0;
+      padding-top: 44px;
+      padding-bottom: 22px;
+      background: #ffffff;
     }
 
     .section-links {
-      margin-bottom: 28px;
+      position: fixed;
+      top: 118px;
+      left: 24px;
+      right: 24px;
+      z-index: 40;
+      width: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      text-align: right;
+      background: #ffffff;
     }
 
-    .painting-preview h1 {
-      max-width: 640px;
-      margin: 0 0 28px;
-      font-size: clamp(29px, 5.6vw, 50px);
-    }
-
-    .preview-info {
-      margin-bottom: 10px;
-    }
-
-    .selected-painting-links {
-      margin-bottom: 28px;
-    }
-
-    .image-grid {
-      padding-bottom: 40px;
-    }
-
-    .image-card,
-    .image-card img {
-      min-height: 440px;
-    }
-
-    .image-grid:hover .image-card:hover img,
-    .image-grid:hover .image-card.active img {
-      width: 92%;
-      height: 92%;
-      min-height: 0;
-      object-fit: contain;
-    }
-  }
-
-  @media (max-width: 700px) {
-    .paintings-page {
-      padding: 108px 24px 120px;
-    }
-
-    .section-button,
-    .selected-painting-button {
+    .section-button {
+      display: block;
+      width: auto;
+      margin: 0;
+      padding: 0;
+      text-align: right;
       font-size: 14px;
     }
 
+    .painting-preview {
+      width: 100%;
+      max-width: none;
+      display: block;
+      text-align: left;
+    }
+
     .painting-preview h1 {
-      font-size: clamp(27px, 8vw, 40px);
+      width: 100%;
+      max-width: none;
+      margin: 0 0 10px;
+      font-size: clamp(18px, 3.2vw, 25px);
+      text-align: left;
+    }
+
+    .preview-bottom {
+      width: 100%;
+      max-width: none;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .preview-info {
+      width: 100%;
+      max-width: none;
+      margin-bottom: 0;
+      text-align: left;
     }
 
     .preview-info strong,
     .preview-info p,
     .case-count {
       font-size: 14px;
+      text-align: left;
+    }
+
+    .painting-description {
+      width: 100%;
+      max-width: none;
+      max-height: 80px;
+      overflow: hidden;
+    }
+    .preview-info {
+      width: 100%;
+      max-width: none;
+      margin-bottom: 0;
+      text-align: left;
+    }
+
+    .painting-description.expanded {
+      max-height: none;
+    }
+
+    .info-toggle {
+      display: block;
+      margin-top: 8px;
+    }
+
+    .right-column {
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .selected-painting-links {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 20px;
+    }
+
+    .selected-painting-button {
+      font-size: 14px;
     }
 
     .image-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+      gap: 18px 12px;
+      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
+      scrollbar-width: none;
+      scrollbar-color: transparent transparent;
+      -ms-overflow-style: none;
+      overscroll-behavior: contain;
     }
 
-    .image-card,
+    .image-grid::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
+    }
+
+    .image-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .image-grid::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    .image-card {
+      min-height: auto;
+      overflow: visible;
+      background: transparent;
+    }
+
+    .image-card figure {
+      height: 440px;
+      background: #eeeeee;
+      overflow: hidden;
+    }
+
     .image-card img {
-      min-height: 420px;
+      min-height: 440px;
     }
 
     .image-grid:hover .image-card img {
@@ -678,12 +826,122 @@
     .image-grid:hover .image-card.active img {
       width: 100%;
       height: 100%;
-      min-height: 420px;
+      min-height: 440px;
       object-fit: cover;
     }
 
     .image-card span {
+      position: static;
+      display: block;
+      margin-top: 8px;
       opacity: 1;
+      font-size: 14px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin: 44px 0 0;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .paintings-page {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 108px 16px 0;
+    }
+
+    .left-column {
+      padding-top: 38px;
+      padding-bottom: 20px;
+    }
+
+    .section-links {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
+      align-items: flex-end;
+      text-align: right;
+      background: #ffffff;
+    }
+
+    .section-button {
+      font-size: 12px;
+      line-height: 1.08;
+      text-align: right;
+    }
+
+    .painting-preview h1 {
+      max-width: 100%;
+      margin: 0 0 8px;
+      font-size: clamp(15px, 4.2vw, 20px);
+      text-align: left;
+    }
+
+    .preview-info {
+      max-width: 100%;
+    }
+
+    .preview-info strong,
+    .preview-info p,
+    .case-count {
+      font-size: 12px;
+    }
+
+    .painting-description {
+      max-height: 60px;
+    }
+
+    .info-toggle {
+      font-size: 11px;
+    }
+
+    .selected-painting-links {
+      margin-bottom: 18px;
+    }
+
+    .selected-painting-button {
+      font-size: 12px;
+    }
+
+    .image-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 10px;
+      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+    }
+
+    .image-card figure {
+      height: 260px;
+    }
+
+    .image-card img {
+      min-height: 260px;
+    }
+
+    .image-grid:hover .image-card:hover img,
+    .image-grid:hover .image-card.active img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+    }
+
+    .image-card span {
+      font-size: 12px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin-top: 38px;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 12px;
     }
 
     .painting-lightbox {
@@ -716,6 +974,30 @@
     .lightbox-close {
       top: 24px;
       right: 24px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .left-column {
+      padding-top: 36px;
+      padding-bottom: 18px;
+    }
+
+    .painting-preview h1 {
+      font-size: clamp(14px, 4vw, 18px);
+    }
+
+    .image-card figure {
+      height: 220px;
+    }
+
+    .image-card img {
+      min-height: 220px;
+    }
+
+    .image-grid:hover .image-card:hover img,
+    .image-grid:hover .image-card.active img {
+      min-height: 220px;
     }
   }
 </style>
