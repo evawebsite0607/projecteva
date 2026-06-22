@@ -121,10 +121,25 @@
   {#if data.paintings && data.paintings.length > 0}
     <section class="paintings-layout" aria-label="Paintings">
       <aside class="left-column" aria-label="Painting navigation">
-        <div class="section-links">
-          <button type="button" class="section-button active">
-            Selected Paintings
-          </button>
+        <div class="navigation-area">
+          <div class="section-links">
+            <button type="button" class="section-button active">
+              Selected Paintings
+            </button>
+          </div>
+
+          <div class="selected-painting-links">
+            {#each data.paintings as painting}
+              <button
+                type="button"
+                class="selected-painting-button"
+                class:active={selectedPainting?.postSlug === painting.postSlug}
+                onclick={() => selectPainting(painting)}
+              >
+                {painting.title}
+              </button>
+            {/each}
+          </div>
         </div>
 
         <div class="painting-preview">
@@ -160,29 +175,12 @@
                   <p>Selected painting images and documentation.</p>
                 {/if}
               </div>
-
-              <div class="case-count">
-                IMAGES({selectedImages.length})
-              </div>
             </div>
           {/if}
         </div>
       </aside>
 
       <section class="right-column" aria-label="Painting content">
-        <div class="selected-painting-links">
-          {#each data.paintings as painting}
-            <button
-              type="button"
-              class="selected-painting-button"
-              class:active={selectedPainting?.postSlug === painting.postSlug}
-              onclick={() => selectPainting(painting)}
-            >
-              {painting.title}
-            </button>
-          {/each}
-        </div>
-
         {#if selectedPainting?.images?.length}
           {#key selectedPainting.postSlug}
             <div class="image-grid" bind:this={paintingGridElement}>
@@ -311,21 +309,52 @@
     top: 96px;
     height: calc(100vh - 186px);
     min-height: 620px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+  }
+
+  .navigation-area {
+    width: 100%;
+    display: grid;
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
   }
 
   .section-links,
   .selected-painting-links {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 7px;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  .selected-painting-links {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .selected-painting-links::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   .section-button,
   .selected-painting-button {
+    display: block;
+    width: auto;
+    margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
@@ -351,11 +380,13 @@
 
   .painting-preview {
     width: 100%;
+    align-self: end;
+    min-height: 0;
   }
 
   .painting-preview h1 {
     max-width: 340px;
-    margin: 0 0 72px;
+    margin: 0 0 46px;
     color: #000000;
     font-size: clamp(27px, 2.55vw, 45px);
     font-weight: 400;
@@ -392,6 +423,20 @@
     line-height: 1.2;
   }
 
+  .painting-description {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .painting-description::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
   .painting-description p {
     margin: 0;
   }
@@ -410,21 +455,9 @@
     cursor: pointer;
   }
 
-  .case-count {
-    color: #000000;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
   .right-column {
     width: 100%;
     min-width: 0;
-  }
-
-  .selected-painting-links {
-    margin-bottom: 34px;
   }
 
   .image-grid {
@@ -433,7 +466,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 12px;
     row-gap: 12px;
-    padding: 0 0 68px;
+    padding: 0;
   }
 
   .image-card {
@@ -658,42 +691,72 @@
       height: auto;
       min-height: 0;
       flex: 0 0 auto;
-      display: block;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
       margin: 0;
-      padding-top: 44px;
       padding-bottom: 22px;
       background: #ffffff;
     }
 
+    .navigation-area {
+      width: 100%;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 0;
+    }
+
     .section-links {
-      position: fixed;
-      top: 118px;
-      left: 24px;
-      right: 24px;
-      z-index: 40;
-      width: auto;
-      display: flex;
-      flex-direction: column;
+      width: 100%;
       align-items: flex-end;
-      gap: 7px;
       margin: 0;
       padding: 0;
       text-align: right;
-      background: #ffffff;
+    }
+
+    .selected-painting-links {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 6px;
+      row-gap: 3px;
+      align-items: start;
+      justify-items: stretch;
+      margin: 0;
+      padding: 0;
+      text-align: right;
     }
 
     .section-button {
       display: block;
-      width: auto;
+      width: 100%;
       margin: 0;
       padding: 0;
       text-align: right;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.05;
+    }
+    .selected-painting-button {
+      display: block;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.03;
+      white-space: normal;
     }
 
     .painting-preview {
       width: 100%;
       max-width: none;
+      align-self: start;
       display: block;
       text-align: left;
     }
@@ -721,8 +784,7 @@
     }
 
     .preview-info strong,
-    .preview-info p,
-    .case-count {
+    .preview-info p {
       font-size: 14px;
       text-align: left;
     }
@@ -733,15 +795,19 @@
       max-height: 80px;
       overflow: hidden;
     }
-    .preview-info {
-      width: 100%;
-      max-width: none;
-      margin-bottom: 0;
-      text-align: left;
-    }
 
     .painting-description.expanded {
-      max-height: none;
+      max-height: 22vh;
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .painting-description.expanded::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
 
     .info-toggle {
@@ -750,29 +816,17 @@
     }
 
     .right-column {
+      height: 100%;
       min-height: 0;
       flex: 1 1 auto;
-      display: flex;
-      flex-direction: column;
+      display: block;
       overflow: hidden;
-    }
-
-    .selected-painting-links {
-      flex: 0 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-bottom: 20px;
-    }
-
-    .selected-painting-button {
-      font-size: 14px;
     }
 
     .image-grid {
       width: 100%;
+      height: 100%;
       min-height: 0;
-      flex: 1 1 auto;
       overflow-y: auto;
       overflow-x: hidden;
       display: grid;
@@ -857,41 +911,77 @@
     }
 
     .left-column {
-      padding-top: 38px;
-      padding-bottom: 20px;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      padding-bottom: 18px;
+    }
+
+    .navigation-area {
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      gap: 7px;
+      margin: 0 0 16px;
     }
 
     .section-links {
-      position: fixed;
-      top: 108px;
-      left: 16px;
-      right: 16px;
-      z-index: 40;
+      width: 100%;
       align-items: flex-end;
       text-align: right;
-      background: #ffffff;
+    }
+
+    .selected-painting-links {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 5px;
+      row-gap: 2px;
+      align-items: start;
+      justify-items: stretch;
+      margin: 0;
+      padding: 0;
+      text-align: right;
     }
 
     .section-button {
-      font-size: 12px;
-      line-height: 1.08;
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      font-size: 11px;
+      line-height: 1.03;
       text-align: right;
     }
 
-    .painting-preview h1 {
-      max-width: 100%;
-      margin: 0 0 8px;
-      font-size: clamp(15px, 4.2vw, 20px);
-      text-align: left;
+    .selected-painting-button {
+      display: block;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      font-size: 9px;
+      line-height: 1.02;
+      text-align: right;
+      white-space: normal;
     }
 
-    .preview-info {
-      max-width: 100%;
+    .painting-preview h1,
+    .preview-bottom,
+    .preview-info,
+    .painting-description {
+      width: 100%;
+      max-width: none;
+    }
+
+    .painting-preview h1 {
+      font-size: clamp(15px, 4.2vw, 20px);
     }
 
     .preview-info strong,
-    .preview-info p,
-    .case-count {
+    .preview-info p {
       font-size: 12px;
     }
 
@@ -899,16 +989,19 @@
       max-height: 60px;
     }
 
+    .painting-description.expanded {
+      max-height: 20vh;
+      overflow-y: auto;
+    }
+
     .info-toggle {
       font-size: 11px;
     }
 
-    .selected-painting-links {
-      margin-bottom: 18px;
-    }
-
-    .selected-painting-button {
-      font-size: 12px;
+    .right-column {
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .image-grid {
@@ -979,12 +1072,15 @@
 
   @media (max-width: 420px) {
     .left-column {
-      padding-top: 36px;
-      padding-bottom: 18px;
+      padding-bottom: 16px;
     }
 
     .painting-preview h1 {
       font-size: clamp(14px, 4vw, 18px);
+    }
+
+    .selected-painting-button {
+      font-size: 8.5px;
     }
 
     .image-card figure {
