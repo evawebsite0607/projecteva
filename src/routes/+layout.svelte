@@ -11,41 +11,13 @@
   const eventItems = data?.eventMenuItems || [];
 
   const menuItems = [
-    {
-      label: "Home",
-      href: "/",
-      children: [],
-    },
-    {
-      label: "About",
-      href: "/about",
-      children: aboutItems,
-    },
-    {
-      label: "Paintings",
-      href: "/painting",
-      children: paintingItems,
-    },
-    {
-      label: "Exhibitions",
-      href: "/exhibitions",
-      children: exhibitionItems,
-    },
-    {
-      label: "Events",
-      href: "/event",
-      children: eventItems,
-    },
-    {
-      label: "Contact",
-      href: "/contact",
-      children: [],
-    },
-    {
-      label: "Archive",
-      href: "/archive",
-      children: [],
-    },
+    { label: "Home", href: "/", children: [] },
+    { label: "About", href: "/about", children: aboutItems },
+    { label: "Paintings", href: "/painting", children: paintingItems },
+    { label: "Exhibitions", href: "/exhibitions", children: exhibitionItems },
+    { label: "Events", href: "/event", children: eventItems },
+    { label: "Contact", href: "/contact", children: [] },
+    { label: "Archive", href: "/archive", children: [] },
   ];
 
   let menuImages = $derived(() => {
@@ -96,7 +68,7 @@
   </div>
 
   <button
-    class="desktop-menu-text"
+    class="desktop-side-label desktop-menu-text"
     type="button"
     aria-label={menuOpen ? "Close menu" : "Open menu"}
     aria-expanded={menuOpen}
@@ -105,9 +77,13 @@
     {menuOpen ? "Close" : "Menu"}
   </button>
 
-  <a href="/archive" class="desktop-archive-fixed" onclick={closeMenu}
-    >Archive</a
+  <a
+    href="/archive"
+    class="desktop-side-label desktop-archive-fixed"
+    onclick={closeMenu}
   >
+    Archive
+  </a>
 
   <button
     class="menu-toggle"
@@ -118,11 +94,23 @@
   >
     <span></span>
     <span></span>
-    <span></span>
   </button>
 
   <nav class:open={menuOpen} class="main-nav" aria-label="Main navigation">
-    <div class="desktop-menu-brand">Eva Eichinger</div>
+    <div class="desktop-menu-brand-block">
+      <div class="desktop-menu-brand">Eva Eichinger</div>
+
+      <div class="desktop-menu-address">
+        <address>
+          Westbahnstraße 27-29<br />
+          1070 Vienna
+        </address>
+
+        <a href="mailto:info@evaeichinger.com">
+          Email: info@evaeichinger.com
+        </a>
+      </div>
+    </div>
 
     <div class="desktop-menu-images" aria-hidden="true">
       {#if menuImages().length > 0}
@@ -175,6 +163,8 @@
       </div>
     </div>
 
+    <div class="desktop-menu-credit">Website by Zora Design</div>
+
     <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
 
     <div class="mobile-menu-extra">
@@ -200,20 +190,17 @@
         </a>
 
         <address>
-          St. Ulrichs-Platz 6,<br />
-          1070 Wien
+          Westbahnstraße 27-29<br />
+          1070 Vienna
         </address>
       </div>
     </div>
+
+    <div class="mobile-design-credit">Designed by zoraDesign</div>
   </nav>
 </header>
 
 {@render children()}
-
-<footer class="site-footer">
-  <p>© 2006 Eva Eichinger</p>
-  <p>Design by Zora Design</p>
-</footer>
 
 <style>
   .site-header {
@@ -248,41 +235,72 @@
     opacity: 0.7;
   }
 
+  .desktop-side-label {
+    position: fixed;
+    right: -22px;
+    z-index: 105;
+    width: 110px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2f2d2b;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    transform: rotate(-90deg);
+    transform-origin: center center;
+    transition:
+      color 0.25s ease,
+      opacity 0.25s ease;
+  }
+
   .desktop-page-label {
     position: fixed;
     top: 32px;
     right: 28px;
     z-index: 105;
-    color: #8e8781;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1;
-    text-transform: uppercase;
-    pointer-events: none;
-    transition: color 0.25s ease;
-  }
 
-  .desktop-menu-text {
-    position: fixed;
-    top: 50%;
-    right: 28px;
-    z-index: 105;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #000000;
+    color: #2f2d2b;
+
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
-    font-weight: 900;
+    font-size: 22px;
+    font-weight: 600;
     line-height: 1;
-    text-transform: uppercase;
-    cursor: pointer;
-    transform: translateY(-50%);
-    pointer-events: auto;
+    letter-spacing: -0.04em;
+
+    text-decoration: none;
+
+    width: auto;
+    height: auto;
+
+    transform: none;
+    transform-origin: initial;
+
+    pointer-events: none;
+
     transition:
       color 0.25s ease,
       opacity 0.25s ease;
+  }
+
+  .desktop-menu-text,
+  .desktop-archive-fixed {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+
+  .desktop-menu-text {
+    top: 50%;
+    margin-top: -14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
   }
 
   .desktop-menu-text:hover {
@@ -290,21 +308,8 @@
   }
 
   .desktop-archive-fixed {
-    position: fixed;
-    right: 28px;
-    bottom: 52px;
-    z-index: 105;
-    color: #000000;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
-    font-weight: 900;
-    line-height: 1;
-    text-transform: uppercase;
-    text-decoration: none;
+    bottom: 120px;
     pointer-events: auto;
-    transition:
-      color 0.25s ease,
-      opacity 0.25s ease;
   }
 
   .desktop-archive-fixed:hover {
@@ -312,9 +317,18 @@
   }
 
   .site-header.menu-is-open .desktop-page-label,
-  .site-header.menu-is-open .desktop-menu-text,
-  .site-header.menu-is-open .desktop-archive-fixed {
+  .site-header.menu-is-open .desktop-archive-fixed,
+  .site-header.menu-is-open .logo {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .site-header.menu-is-open .desktop-menu-text {
     color: #ffffff;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .menu-toggle {
@@ -328,33 +342,14 @@
     width: 100%;
     height: 100dvh;
     overflow: hidden;
-
     background-color: #000000;
-    background-image: none;
-
     color: #ffffff;
     opacity: 0;
     pointer-events: none;
     transform: translateY(100%);
-
     transition:
       transform 0.55s cubic-bezier(0.77, 0, 0.175, 1),
       opacity 0.4s ease;
-  }
-
-  .site-header.menu-is-open .logo,
-  .site-header.menu-is-open .desktop-page-label,
-  .site-header.menu-is-open .desktop-archive-fixed {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .site-header.menu-is-open .desktop-menu-text {
-    color: #ffffff;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
   }
 
   .main-nav.open {
@@ -363,16 +358,40 @@
     transform: translateY(0);
   }
 
-  .desktop-menu-brand {
+  .desktop-menu-brand-block {
     position: absolute;
     left: 28px;
     bottom: 45%;
+    color: #ffffff;
+  }
+
+  .desktop-menu-brand {
     color: #ffffff;
     font-family: Arial, Helvetica, sans-serif;
     font-size: clamp(30px, 3vw, 44px);
     font-weight: 400;
     line-height: 1;
     letter-spacing: -0.055em;
+  }
+
+  .desktop-menu-address {
+    margin-top: 18px;
+    color: rgba(255, 255, 255, 0.72);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+  }
+
+  .desktop-menu-address address {
+    margin: 0 0 7px;
+    font-style: normal;
+  }
+
+  .desktop-menu-address a {
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
   }
 
   .desktop-menu-images {
@@ -472,6 +491,17 @@
     text-transform: uppercase;
   }
 
+  .desktop-menu-credit {
+    position: absolute;
+    left: 28px;
+    bottom: 28px;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .desktop-menu-rights {
     position: absolute;
     right: 28px;
@@ -483,59 +513,40 @@
     line-height: 1;
   }
 
-  .mobile-menu-extra {
+  .mobile-menu-extra,
+  .mobile-design-credit {
     display: none;
-  }
-
-  .site-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 28px;
-    box-sizing: border-box;
-    color: #8e8781;
-    font-size: 14px;
-    font-weight: 300;
-    background: #ffffff;
-    pointer-events: none;
-  }
-
-  .site-footer p {
-    margin: 0;
   }
 
   @media (max-width: 1024px) {
     .logo {
       top: 22px;
       left: 24px;
+      color: #2f2d2b;
       font-family: Georgia, "Times New Roman", serif;
       font-size: 1.45rem;
       letter-spacing: 0.055em;
-    }
-
-    .logo::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 1px;
-      margin-top: 7px;
-      background: currentColor;
-      opacity: 0.55;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 7px;
     }
 
     .desktop-page-label,
     .desktop-menu-text,
     .desktop-archive-fixed,
-    .desktop-menu-brand,
+    .desktop-menu-brand-block,
     .desktop-menu-images,
     .desktop-social-links,
-    .desktop-menu-rights {
+    .desktop-menu-rights,
+    .desktop-menu-credit {
       display: none;
+    }
+
+    .site-header.menu-is-open .logo {
+      color: #ffffff;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     .menu-toggle {
@@ -544,8 +555,8 @@
       right: 24px;
       z-index: 105;
       display: flex;
-      width: 34px;
-      height: 26px;
+      width: 38px;
+      height: 16px;
       padding: 0;
       border: none;
       background: transparent;
@@ -562,37 +573,37 @@
       background: #2f2d2b;
       transition:
         transform 0.25s ease,
-        opacity 0.25s ease,
         background 0.25s ease;
     }
 
     .menu-toggle[aria-expanded="true"] span {
-      background: #2f2d2b;
+      background: #ffffff;
     }
 
     .menu-toggle[aria-expanded="true"] span:nth-child(1) {
-      transform: translateY(12.5px) rotate(45deg);
+      transform: translateY(7.5px) rotate(45deg);
     }
 
     .menu-toggle[aria-expanded="true"] span:nth-child(2) {
-      opacity: 0;
-    }
-
-    .menu-toggle[aria-expanded="true"] span:nth-child(3) {
-      transform: translateY(-12.5px) rotate(-45deg);
+      transform: translateY(-7.5px) rotate(-45deg);
     }
 
     .main-nav {
       height: 100dvh;
-      padding: 120px 24px 40px;
+      padding: 120px 24px 64px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      gap: 34px;
+      gap: 38px;
       overflow-y: auto;
-      background: #ffffff;
-      color: #4d4a47;
+      background: radial-gradient(
+          circle at top right,
+          rgba(255, 255, 255, 0.12),
+          transparent 34%
+        ),
+        linear-gradient(180deg, #050505 0%, #000000 100%);
+      color: #ffffff;
       transform: translateX(100%);
     }
 
@@ -608,27 +619,27 @@
     .menu-grid {
       display: flex;
       flex-direction: column;
-      gap: 26px;
+      gap: 24px;
       overflow: visible;
     }
 
     .main-nav a {
-      color: #6f6b68;
+      color: #ffffff;
       font-family: Georgia, "Times New Roman", serif;
     }
 
     .main-menu-link {
-      color: #2f2d2b;
-      font-size: 1.25rem;
+      color: #ffffff;
+      font-size: 1.35rem;
       font-weight: 300;
       line-height: 1;
-      letter-spacing: 0.055em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .main-menu-link:hover,
     .main-menu-link:focus {
-      opacity: 0.7;
+      opacity: 0.65;
       transform: none;
     }
 
@@ -638,50 +649,50 @@
 
     .mobile-menu-extra {
       display: block;
-      padding-top: 10px;
-      border-top: 1px solid rgba(47, 45, 43, 0.18);
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
     }
 
     .mobile-social-icons {
       display: flex;
       flex-wrap: wrap;
       gap: 18px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
     .mobile-social-icons a {
-      color: #2f2d2b;
-      font-size: 1rem;
+      color: #ffffff;
+      font-size: 0.9rem;
       font-weight: 300;
-      letter-spacing: normal;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
-      opacity: 1;
+      opacity: 0.82;
     }
 
     .mobile-contact-info {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      color: #6f6b68;
-      font-size: 1rem;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.95rem;
       font-weight: 300;
-      line-height: 1.35;
+      line-height: 1.45;
       text-align: left;
     }
 
     .mobile-contact-info p {
       margin: 0;
-      color: #2f2d2b;
-      font-size: 1.1rem;
+      color: #ffffff;
+      font-size: 1rem;
       font-weight: 400;
-      letter-spacing: normal;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
     .mobile-contact-info a {
-      color: #6f6b68;
-      font-size: 1rem;
-      line-height: 1.35;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.95rem;
+      line-height: 1.45;
     }
 
     .mobile-contact-info address {
@@ -689,26 +700,30 @@
       font-style: normal;
     }
 
-    .site-footer {
-      padding: 16px 24px;
+    .mobile-design-credit {
+      display: block;
+      margin-top: auto;
+      padding-top: 34px;
+      color: rgba(255, 255, 255, 0.65);
+      font-family: Arial, Helvetica, sans-serif;
       font-size: 13px;
-      flex-direction: column;
-      gap: 7px;
-      align-items: flex-start;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0.04em;
     }
   }
 
   @media (max-width: 600px) {
     .main-nav {
-      padding: 110px 24px 40px;
+      padding: 112px 24px 56px;
     }
 
     .menu-grid {
-      gap: 28px;
+      gap: 26px;
     }
 
     .main-menu-link {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
     }
   }
 </style>
