@@ -4,40 +4,41 @@
 
   let { data } = $props();
 
-  const initialPainting =
-    data.paintings?.find((painting) => painting.id === data.requestedPostId) ||
-    data.paintings?.[0];
+  const initialPerformance =
+    data.performances?.find(
+      (performance) => performance.id === data.requestedPostId,
+    ) || data.performances?.[0];
 
-  let selectedPaintingSlug = $state(initialPainting?.postSlug || "");
+  let selectedPerformanceSlug = $state(initialPerformance?.postSlug || "");
   let selectedImageIndex = $state(null);
   let hoveredImageIndex = $state(null);
-  let paintingGridElement = $state(null);
+  let performanceGridElement = $state(null);
   let infoExpanded = $state(false);
 
-  let selectedPainting = $derived(
-    data.paintings?.find(
-      (painting) => painting.postSlug === selectedPaintingSlug,
-    ) || data.paintings?.[0],
+  let selectedPerformance = $derived(
+    data.performances?.find(
+      (performance) => performance.postSlug === selectedPerformanceSlug,
+    ) || data.performances?.[0],
   );
 
-  let selectedImages = $derived(selectedPainting?.images || []);
+  let selectedImages = $derived(selectedPerformance?.images || []);
 
   let selectedImage = $derived(
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
   let shouldShowInfoToggle = $derived(
-    (selectedPainting?.info || "").length > 200,
+    (selectedPerformance?.info || "").length > 200,
   );
 
-  function selectPainting(painting) {
-    selectedPaintingSlug = painting.postSlug;
+  function selectPerformance(performance) {
+    selectedPerformanceSlug = performance.postSlug;
     selectedImageIndex = null;
     hoveredImageIndex = null;
     infoExpanded = false;
 
-    if (paintingGridElement) {
-      paintingGridElement.scrollTo({
+    if (performanceGridElement) {
+      performanceGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
@@ -82,15 +83,6 @@
         : selectedImageIndex + 1;
   }
 
-  function scrollBackToTop() {
-    if (paintingGridElement) {
-      paintingGridElement.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  }
-
   function handleKeydown(event) {
     if (selectedImageIndex === null) return;
 
@@ -109,55 +101,56 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-  <title>Paintings | Eva Eichinger</title>
+  <title>Performances | Eva Eichinger</title>
 
   <meta
     name="description"
-    content="Explore selected paintings, visual works, image galleries, and contemporary art projects by Eva Eichinger."
+    content="Explore selected performances, image galleries, documentation, and contemporary art projects by Eva Eichinger."
   />
 </svelte:head>
 
-<main class="paintings-page">
-  {#if data.paintings && data.paintings.length > 0}
-    <section class="paintings-layout" aria-label="Paintings">
-      <aside class="left-column" aria-label="Painting navigation">
+<main class="performances-page">
+  {#if data.performances && data.performances.length > 0}
+    <section class="performances-layout" aria-label="Performances">
+      <aside class="left-column" aria-label="Performance navigation">
         <div class="navigation-area">
           <div class="section-links">
             <button type="button" class="section-button active">
-              Selected Paintings
+              Selected Performances
             </button>
           </div>
 
-          <div class="selected-painting-links">
-            {#each data.paintings as painting, index}
+          <div class="selected-performance-links">
+            {#each data.performances as performance, index}
               <button
                 type="button"
-                class="selected-painting-button"
-                class:active={selectedPainting?.postSlug === painting.postSlug}
-                onclick={() => selectPainting(painting)}
+                class="selected-performance-button"
+                class:active={selectedPerformance?.postSlug ===
+                  performance.postSlug}
+                onclick={() => selectPerformance(performance)}
               >
-                <span class="painting-list-number">
+                <span class="performance-list-number">
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
-                <span>{painting.title}</span>
+                <span>{performance.title}</span>
               </button>
             {/each}
           </div>
         </div>
 
-        <div class="painting-preview">
-          {#if selectedPainting}
-            <h1>{selectedPainting.title}</h1>
+        <div class="performance-preview">
+          {#if selectedPerformance}
+            <h1>{selectedPerformance.title}</h1>
 
             <div class="preview-bottom">
               <div class="preview-info">
-                {#if selectedPainting.info}
+                {#if selectedPerformance.info}
                   <div
-                    class="painting-description"
+                    class="performance-description"
                     class:expanded={infoExpanded}
                   >
-                    <p>{selectedPainting.info}</p>
+                    <p>{selectedPerformance.info}</p>
                   </div>
 
                   {#if shouldShowInfoToggle}
@@ -170,7 +163,7 @@
                     </button>
                   {/if}
                 {:else}
-                  <p>Selected painting images and documentation.</p>
+                  <p>Selected performance images and documentation.</p>
                 {/if}
               </div>
             </div>
@@ -178,11 +171,11 @@
         </div>
       </aside>
 
-      <section class="right-column" aria-label="Painting content">
-        {#if selectedPainting?.images?.length}
-          {#key selectedPainting.postSlug}
-            <div class="image-grid" bind:this={paintingGridElement}>
-              {#each selectedPainting.images as image, index}
+      <section class="right-column" aria-label="Performance content">
+        {#if selectedPerformance?.images?.length}
+          {#key selectedPerformance.postSlug}
+            <div class="image-grid" bind:this={performanceGridElement}>
+              {#each selectedPerformance.images as image, index}
                 <button
                   type="button"
                   class="image-card"
@@ -190,37 +183,29 @@
                   onmouseenter={() => setHoveredImage(index)}
                   onfocus={() => setHoveredImage(index)}
                   onclick={() => openLightbox(index)}
-                  aria-label={`Open ${image.alt || selectedPainting.title}`}
+                  aria-label={`Open ${image.alt || selectedPerformance.title}`}
                 >
                   <figure>
                     <img
                       src={image.src}
-                      alt={image.alt || selectedPainting.title}
+                      alt={image.alt || selectedPerformance.title}
                     />
                   </figure>
                 </button>
               {/each}
-
-              <button
-                type="button"
-                class="back-to-top"
-                onclick={scrollBackToTop}
-              >
-                BACK TO TOP
-              </button>
             </div>
           {/key}
         {:else}
-          <p class="empty-message">No images found for this painting.</p>
+          <p class="empty-message">No images found for this performance.</p>
         {/if}
       </section>
     </section>
   {:else}
-    <p class="empty-message">No painting posts found.</p>
+    <p class="empty-message">No performance posts found.</p>
   {/if}
 
   {#if selectedImage}
-    <div class="painting-lightbox" role="dialog" aria-modal="true">
+    <div class="performance-lightbox" role="dialog" aria-modal="true">
       <button
         class="lightbox-close"
         type="button"
@@ -242,14 +227,14 @@
       <div class="lightbox-content">
         <img
           src={selectedImage.src}
-          alt={selectedImage.alt || selectedPainting.title}
+          alt={selectedImage.alt || selectedPerformance.title}
         />
 
         <div class="lightbox-meta">
           {#if selectedImage.alt}
             <p>{selectedImage.alt}</p>
           {:else}
-            <p>{selectedPainting.title}</p>
+            <p>{selectedPerformance.title}</p>
           {/if}
         </div>
       </div>
@@ -279,14 +264,14 @@
     box-sizing: border-box;
   }
 
-  .paintings-page {
+  .performances-page {
     width: 100%;
     min-height: 100vh;
     padding: 96px 90px 90px 28px;
     background: #ffffff;
   }
 
-  .paintings-layout {
+  .performances-layout {
     width: 100%;
     display: grid;
     grid-template-columns: 19% 81%;
@@ -315,7 +300,7 @@
   }
 
   .section-links,
-  .selected-painting-links {
+  .selected-performance-links {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -326,7 +311,7 @@
     text-align: left;
   }
 
-  .selected-painting-links {
+  .selected-performance-links {
     max-height: 220px;
     overflow-y: auto;
     padding-right: 4px;
@@ -334,14 +319,14 @@
     -ms-overflow-style: none;
   }
 
-  .selected-painting-links::-webkit-scrollbar {
+  .selected-performance-links::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
 
   .section-button,
-  .selected-painting-button {
+  .selected-performance-button {
     display: block;
     width: auto;
     margin: 0;
@@ -359,13 +344,13 @@
     transition: color 0.3s ease;
   }
 
-  .selected-painting-button {
+  .selected-performance-button {
     display: flex;
     align-items: baseline;
     gap: 8px;
   }
 
-  .painting-list-number {
+  .performance-list-number {
     min-width: 20px;
     display: inline-block;
   }
@@ -373,25 +358,25 @@
   .section-button.active,
   .section-button:hover,
   .section-button:focus,
-  .selected-painting-button.active,
-  .selected-painting-button:hover,
-  .selected-painting-button:focus {
+  .selected-performance-button.active,
+  .selected-performance-button:hover,
+  .selected-performance-button:focus {
     color: #000000;
   }
 
-  .painting-preview {
+  .performance-preview {
     width: 100%;
     align-self: end;
     min-height: 0;
   }
 
-  .painting-preview h1 {
+  .performance-preview h1 {
     max-width: 340px;
     margin: 0 0 46px;
     color: #000000;
     font-size: clamp(24px, 2vw, 30px);
     font-weight: 400;
-    line-height: 0.5;
+    line-height: 1;
     letter-spacing: -0.055em;
   }
 
@@ -414,7 +399,7 @@
     line-height: 1.2;
   }
 
-  .painting-description {
+  .performance-description {
     max-height: 120px;
     overflow-y: auto;
     padding-right: 6px;
@@ -422,13 +407,13 @@
     -ms-overflow-style: none;
   }
 
-  .painting-description::-webkit-scrollbar {
+  .performance-description::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
 
-  .painting-description p {
+  .performance-description p {
     margin: 0;
   }
 
@@ -512,23 +497,6 @@
     filter: none;
   }
 
-  .back-to-top {
-    display: none;
-    grid-column: 1 / -1;
-    justify-self: center;
-    margin: 48px 0 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #000000;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-
   .empty-message {
     margin: 0;
     color: #000000;
@@ -537,7 +505,7 @@
     text-transform: uppercase;
   }
 
-  .painting-lightbox {
+  .performance-lightbox {
     position: fixed;
     inset: 0;
     z-index: 9999;
@@ -614,15 +582,15 @@
   }
 
   @media (max-width: 1280px) {
-    .paintings-page {
+    .performances-page {
       padding: 96px 80px 90px 28px;
     }
 
-    .paintings-layout {
+    .performances-layout {
       grid-template-columns: 21% 79%;
     }
 
-    .painting-preview h1 {
+    .performance-preview h1 {
       font-size: clamp(24px, 2vw, 30px);
     }
 
@@ -639,7 +607,7 @@
       overflow: hidden;
     }
 
-    .paintings-page {
+    .performances-page {
       height: 100vh;
       height: 100dvh;
       min-height: 100vh;
@@ -648,7 +616,7 @@
       padding: 118px 24px 0;
     }
 
-    .paintings-layout {
+    .performances-layout {
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -700,7 +668,7 @@
       line-height: 1.1;
     }
 
-    .selected-painting-links {
+    .selected-performance-links {
       width: 100%;
       max-height: none;
       overflow: visible;
@@ -715,7 +683,7 @@
       text-align: left;
     }
 
-    .selected-painting-button {
+    .selected-performance-button {
       display: flex;
       width: 100%;
       min-width: 0;
@@ -732,15 +700,15 @@
       letter-spacing: 0;
     }
 
-    .selected-painting-button.active,
-    .selected-painting-button:hover,
-    .selected-painting-button:focus {
+    .selected-performance-button.active,
+    .selected-performance-button:hover,
+    .selected-performance-button:focus {
       color: #000000;
       transform: none;
       letter-spacing: 0;
     }
 
-    .painting-preview {
+    .performance-preview {
       width: 100%;
       max-width: none;
       align-self: start;
@@ -748,7 +716,7 @@
       text-align: left;
     }
 
-    .painting-preview h1 {
+    .performance-preview h1 {
       width: 100%;
       max-width: none;
       margin: 0 0 10px;
@@ -770,14 +738,14 @@
       text-align: left;
     }
 
-    .painting-description {
+    .performance-description {
       width: 100%;
       max-width: none;
       max-height: 80px;
       overflow: hidden;
     }
 
-    .painting-description.expanded {
+    .performance-description.expanded {
       max-height: 22vh;
       overflow-y: auto;
       padding-right: 8px;
@@ -785,7 +753,7 @@
       -ms-overflow-style: none;
     }
 
-    .painting-description.expanded::-webkit-scrollbar {
+    .performance-description.expanded::-webkit-scrollbar {
       display: none;
       width: 0;
       height: 0;
@@ -856,17 +824,10 @@
       min-height: 440px;
       object-fit: cover;
     }
-
-    .back-to-top {
-      display: block;
-      margin: 44px 0 0;
-      padding-bottom: calc(64px + env(safe-area-inset-bottom));
-      font-size: 14px;
-    }
   }
 
   @media (max-width: 700px) {
-    .paintings-page {
+    .performances-page {
       height: 100vh;
       height: 100dvh;
       min-height: 100vh;
@@ -908,7 +869,7 @@
       text-align: left;
     }
 
-    .selected-painting-links {
+    .selected-performance-links {
       width: 100%;
       max-height: none;
       overflow: visible;
@@ -923,7 +884,7 @@
       text-align: left;
     }
 
-    .selected-painting-button {
+    .selected-performance-button {
       display: flex;
       width: 100%;
       min-width: 0;
@@ -939,34 +900,34 @@
       letter-spacing: 0;
     }
 
-    .painting-list-number {
+    .performance-list-number {
       min-width: 18px;
     }
 
-    .selected-painting-button.active,
-    .selected-painting-button:hover,
-    .selected-painting-button:focus {
+    .selected-performance-button.active,
+    .selected-performance-button:hover,
+    .selected-performance-button:focus {
       transform: none;
       letter-spacing: 0;
     }
 
-    .painting-preview h1,
+    .performance-preview h1,
     .preview-bottom,
     .preview-info,
-    .painting-description {
+    .performance-description {
       width: 100%;
       max-width: none;
     }
 
-    .painting-preview h1 {
+    .performance-preview h1 {
       font-size: clamp(15px, 4.2vw, 20px);
     }
 
-    .painting-description {
+    .performance-description {
       max-height: 60px;
     }
 
-    .painting-description.expanded {
+    .performance-description.expanded {
       max-height: 20vh;
       overflow-y: auto;
     }
@@ -1003,14 +964,7 @@
       object-fit: cover;
     }
 
-    .back-to-top {
-      display: block;
-      margin-top: 38px;
-      padding-bottom: calc(64px + env(safe-area-inset-bottom));
-      font-size: 12px;
-    }
-
-    .painting-lightbox {
+    .performance-lightbox {
       grid-template-columns: 1fr 1fr;
       grid-template-areas:
         "image image"
@@ -1048,21 +1002,21 @@
       padding-bottom: 16px;
     }
 
-    .painting-preview h1 {
+    .performance-preview h1 {
       font-size: clamp(14px, 4vw, 18px);
     }
 
-    .selected-painting-links {
+    .selected-performance-links {
       column-gap: 12px;
       row-gap: 5px;
     }
 
-    .selected-painting-button {
+    .selected-performance-button {
       font-size: 11px;
       min-height: 17px;
     }
 
-    .painting-list-number {
+    .performance-list-number {
       min-width: 17px;
     }
 

@@ -8,6 +8,7 @@
   const aboutItems = data?.aboutMenuItems || [];
   const paintingItems = data?.paintingMenuItems || [];
   const exhibitionItems = data?.exhibitionMenuItems || [];
+  const performanceItems = data?.performanceMenuItems || [];
   const eventItems = data?.eventMenuItems || [];
 
   const menuItems = [
@@ -15,6 +16,11 @@
     { label: "About", href: "/about", children: aboutItems },
     { label: "Paintings", href: "/painting", children: paintingItems },
     { label: "Exhibitions", href: "/exhibitions", children: exhibitionItems },
+    {
+      label: "Performances",
+      href: "/performances",
+      children: performanceItems,
+    },
     { label: "Events", href: "/event", children: eventItems },
     { label: "Contact", href: "/contact", children: [] },
     { label: "Archive", href: "/archive", children: [] },
@@ -263,11 +269,11 @@
     right: 28px;
     z-index: 105;
 
-    color: #2f2d2b;
+    color: #4e4e4e;
 
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 400;
     line-height: 1;
     letter-spacing: -0.04em;
 

@@ -345,7 +345,7 @@
 
         {#if activeSectionId === "selected" && data.selectedExhibitions?.length}
           <div class="selected-year-links desktop-selected-year-links">
-            {#each data.selectedExhibitions as exhibition}
+            {#each data.selectedExhibitions as exhibition, index}
               <button
                 type="button"
                 class="selected-year-button"
@@ -353,6 +353,10 @@
                   exhibition.yearSlug}
                 onclick={() => selectExhibition(exhibition)}
               >
+                <span class="desktop-year-index">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
                 <span>{exhibition.title}</span>
               </button>
             {/each}

@@ -23,6 +23,54 @@ function getFeaturedImage(post) {
   );
 }
 
+function slugify(value = '') {
+  return value
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getCategorySlug(post) {
+  const category =
+    post._embedded?.['wp:term']?.flat()?.find((term) => {
+      return term.taxonomy === 'category';
+    }) || null;
+
+  const slug = slugify(category?.slug || category?.name || '');
+
+  if (slug === 'painting' || slug === 'paintings') return 'painting';
+  if (slug === 'exhibition' || slug === 'exhibitions') return 'exhibitions';
+  if (slug === 'event' || slug === 'events') return 'event';
+  if (slug === 'performance' || slug === 'performances') return 'performances';
+
+  return slug;
+}
+
+function getFrontendLink(post) {
+  const categorySlug = getCategorySlug(post);
+
+  if (categorySlug === 'painting') {
+    return `/painting?post=${post.id}`;
+  }
+
+  if (categorySlug === 'exhibitions') {
+    return `/exhibitions?post=${post.id}`;
+  }
+
+  if (categorySlug === 'event') {
+    return `/event?post=${post.id}`;
+  }
+
+  if (categorySlug === 'performances') {
+    return `/performances?post=${post.id}`;
+  }
+
+  return `/archive?post=${post.id}`;
+}
+
 export async function load({ fetch }) {
   const postsResponse = await fetch(
     `${PUBLIC_WP_API_URL}/posts?_embed&per_page=100`
@@ -37,6 +85,8 @@ export async function load({ fetch }) {
   const posts = await postsResponse.json();
 
   const archivePosts = posts.map((post, index) => {
+    const categorySlug = getCategorySlug(post);
+
     return {
       id: post.id,
       number: String(index + 1).padStart(2, '0'),
@@ -44,7 +94,8 @@ export async function load({ fetch }) {
       excerpt: decodeHtml(stripHtml(post.excerpt?.rendered || '')),
       content: decodeHtml(stripHtml(post.content?.rendered || '')),
       featuredImage: getFeaturedImage(post),
-      frontendLink: post.slug ? `/blog/${post.slug}` : '#'
+      categorySlug,
+      frontendLink: getFrontendLink(post)
     };
   });
 
