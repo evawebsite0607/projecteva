@@ -148,12 +148,6 @@
 
             <div class="preview-bottom">
               <div class="preview-info">
-                {#if selectedPainting.year}
-                  <strong>{selectedPainting.year}</strong>
-                {:else}
-                  <strong>PAINTINGS</strong>
-                {/if}
-
                 {#if selectedPainting.info}
                   <div
                     class="painting-description"
@@ -330,7 +324,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 7px;
+    gap: 4px;
     margin: 0;
     padding: 0;
     text-align: left;
@@ -360,8 +354,8 @@
     background: transparent;
     color: #bdbdbd;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
-    font-weight: 900;
+    font-size: 14px;
+    font-weight: 600;
     line-height: 1.08;
     text-align: left;
     text-transform: uppercase;
@@ -403,16 +397,6 @@
 
   .preview-info {
     max-width: 330px;
-  }
-
-  .preview-info strong {
-    display: block;
-    margin: 0 0 8px;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
-    text-transform: uppercase;
   }
 
   .preview-info p {
@@ -797,12 +781,6 @@
       text-align: left;
     }
 
-    .preview-info strong,
-    .preview-info p {
-      font-size: 14px;
-      text-align: left;
-    }
-
     .painting-description {
       width: 100%;
       max-width: none;
@@ -997,11 +975,6 @@
 
     .painting-preview h1 {
       font-size: clamp(15px, 4.2vw, 20px);
-    }
-
-    .preview-info strong,
-    .preview-info p {
-      font-size: 12px;
     }
 
     .painting-description {

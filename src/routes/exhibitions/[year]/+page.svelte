@@ -4,21 +4,30 @@
 
   let { data } = $props();
 
-  let selectedIndex = $state(null);
+  let selectedImageIndex = $state(null);
+  let hoveredImageIndex = $state(null);
+  let exhibitionGridElement = $state(null);
+  let infoExpanded = $state(false);
 
   let images = $derived(Array.isArray(data.images) ? data.images : []);
 
   let pageTitle = $derived(data.title || "Exhibition");
   let pageYear = $derived(data.year || "");
   let pageCredit = $derived(data.credit || "");
-  let heroImage = $derived(data.featuredImage || images[0]?.src || "");
 
   let selectedImage = $derived(
-    selectedIndex !== null ? images[selectedIndex] : null,
+    selectedImageIndex !== null ? images[selectedImageIndex] : null,
   );
 
+  let exhibitionInfo = $derived(pageCredit || "");
+  let shouldShowInfoToggle = $derived((exhibitionInfo || "").length > 200);
+
+  function setHoveredImage(index) {
+    hoveredImageIndex = index;
+  }
+
   function openLightbox(index) {
-    selectedIndex = index;
+    selectedImageIndex = index;
 
     if (browser) {
       document.body.style.overflow = "hidden";
@@ -26,7 +35,7 @@
   }
 
   function closeLightbox() {
-    selectedIndex = null;
+    selectedImageIndex = null;
 
     if (browser) {
       document.body.style.overflow = "";
@@ -34,31 +43,34 @@
   }
 
   function showPreviousImage() {
-    if (!images.length || selectedIndex === null) return;
+    if (!images.length || selectedImageIndex === null) return;
 
-    selectedIndex = selectedIndex === 0 ? images.length - 1 : selectedIndex - 1;
+    selectedImageIndex =
+      selectedImageIndex === 0 ? images.length - 1 : selectedImageIndex - 1;
   }
 
   function showNextImage() {
-    if (!images.length || selectedIndex === null) return;
+    if (!images.length || selectedImageIndex === null) return;
 
-    selectedIndex = selectedIndex === images.length - 1 ? 0 : selectedIndex + 1;
+    selectedImageIndex =
+      selectedImageIndex === images.length - 1 ? 0 : selectedImageIndex + 1;
+  }
+
+  function scrollBackToTop() {
+    if (exhibitionGridElement) {
+      exhibitionGridElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   }
 
   function handleKeydown(event) {
-    if (selectedIndex === null) return;
+    if (selectedImageIndex === null) return;
 
-    if (event.key === "Escape") {
-      closeLightbox();
-    }
-
-    if (event.key === "ArrowLeft") {
-      showPreviousImage();
-    }
-
-    if (event.key === "ArrowRight") {
-      showNextImage();
-    }
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") showPreviousImage();
+    if (event.key === "ArrowRight") showNextImage();
   }
 
   onDestroy(() => {
@@ -75,93 +87,113 @@
 
   <meta
     name="description"
-    content={`${pageTitle} exhibition by Eva Eichinger. View selected works, images, and documentation from ${pageYear}.`}
+    content={`${pageTitle} exhibition by Eva Eichinger. View selected works, images, and documentation.`}
   />
 </svelte:head>
 
 <main class="exhibition-page">
-  <section
-    class="exhibition-hero"
-    style={`background-image: linear-gradient(rgba(33,38,31,0.34), rgba(33,38,31,0.52))${heroImage ? `, url("${heroImage}")` : ""}`}
-  >
-    <div class="hero-content">
-      <div class="hero-meta">
-        <p>Exhibition</p>
-        <span>{pageYear}</span>
+  <section class="exhibition-layout" aria-label="Exhibition">
+    <aside class="left-column" aria-label="Exhibition navigation">
+      <div class="navigation-area">
+        <div class="section-links">
+          <button type="button" class="section-button active">
+            Exhibition
+          </button>
+        </div>
+
+        <div class="selected-exhibition-links">
+          {#if pageYear}
+            <button type="button" class="selected-exhibition-button active">
+              {pageYear}
+            </button>
+          {/if}
+
+          {#if data.previousYear}
+            <a
+              href={`/exhibitions/${data.previousYear}`}
+              class="selected-exhibition-button"
+            >
+              Previous Exhibition
+            </a>
+          {/if}
+
+          {#if data.nextYear}
+            <a
+              href={`/exhibitions/${data.nextYear}`}
+              class="selected-exhibition-button"
+            >
+              Next Exhibition
+            </a>
+          {/if}
+        </div>
       </div>
 
-      <div class="hero-title">
+      <div class="exhibition-preview">
         <h1>{pageTitle}</h1>
 
-        {#if pageCredit}
-          <p>{pageCredit}</p>
-        {/if}
+        <div class="preview-bottom">
+          <div class="preview-info">
+            {#if exhibitionInfo}
+              <div class="exhibition-description" class:expanded={infoExpanded}>
+                <p>{exhibitionInfo}</p>
+              </div>
+
+              {#if shouldShowInfoToggle}
+                <button
+                  type="button"
+                  class="info-toggle"
+                  onclick={() => (infoExpanded = !infoExpanded)}
+                >
+                  {infoExpanded ? "Less −" : "More +"}
+                </button>
+              {/if}
+            {:else}
+              <p>Selected exhibition images and documentation.</p>
+            {/if}
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </aside>
 
-  <section class="artwork-overview" aria-label="Artwork overview">
-    <div class="overview-header">
-      <h2>Selected Artworks</h2>
-      <span>{String(images.length).padStart(2, "0")} Works</span>
-    </div>
+    <section class="right-column" aria-label="Exhibition content">
+      {#if images.length}
+        <div class="image-grid" bind:this={exhibitionGridElement}>
+          {#each images as image, index}
+            <button
+              type="button"
+              class="image-card"
+              class:active={hoveredImageIndex === index}
+              onmouseenter={() => setHoveredImage(index)}
+              onfocus={() => setHoveredImage(index)}
+              onclick={() => openLightbox(index)}
+              aria-label={`Open ${image.alt || pageTitle}`}
+            >
+              <figure>
+                <img src={image.src} alt={image.alt || pageTitle} />
+              </figure>
 
-    {#if images.length}
-      <div class="thumbnail-grid">
-        {#each images as image, index}
-          <button
-            class="thumbnail-card"
-            type="button"
-            onclick={() => openLightbox(index)}
-          >
-            <span class="thumbnail-image">
-              <img src={image.src} alt={image.alt || pageTitle} />
-            </span>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+            </button>
+          {/each}
 
-            <span class="thumbnail-meta">
-              <span>{image.alt || pageTitle}</span>
-            </span>
+          <button type="button" class="back-to-top" onclick={scrollBackToTop}>
+            BACK TO TOP
           </button>
-        {/each}
-      </div>
-    {:else}
-      <p class="empty-message">No artworks found for this exhibition.</p>
-    {/if}
+        </div>
+      {:else}
+        <p class="empty-message">No images found for this exhibition.</p>
+      {/if}
+    </section>
   </section>
-
-  <nav class="exhibition-navigation" aria-label="Exhibition navigation">
-    {#if data.previousYear}
-      <a
-        href={`/exhibitions/${data.previousYear}`}
-        class="year-link previous-year-link"
-      >
-        <span class="nav-label">Previous exhibition</span>
-        <span class="nav-main">
-          <span class="nav-arrow">←</span>
-          <strong>{data.previousYear}</strong>
-        </span>
-      </a>
-    {:else}
-      <span></span>
-    {/if}
-
-    {#if data.nextYear}
-      <a
-        href={`/exhibitions/${data.nextYear}`}
-        class="year-link next-year-link"
-      >
-        <span class="nav-label">Next exhibition</span>
-        <span class="nav-main">
-          <strong>{data.nextYear}</strong>
-          <span class="nav-arrow">→</span>
-        </span>
-      </a>
-    {/if}
-  </nav>
 
   {#if selectedImage}
-    <div class="lightbox" role="dialog" aria-modal="true">
-      <button class="lightbox-close" type="button" onclick={closeLightbox}>
+    <div class="exhibition-lightbox" role="dialog" aria-modal="true">
+      <button
+        class="lightbox-close"
+        type="button"
+        onclick={closeLightbox}
+        aria-label="Close image viewer"
+      >
         Close ×
       </button>
 
@@ -179,7 +211,7 @@
 
         <div class="lightbox-meta">
           <span>
-            {String(selectedIndex + 1).padStart(2, "0")} / {String(
+            {String(selectedImageIndex + 1).padStart(2, "0")} — {String(
               images.length,
             ).padStart(2, "0")}
           </span>
@@ -207,298 +239,291 @@
 <style>
   :global(body) {
     margin: 0;
-    overflow: auto;
-    font-family: Georgia, "Times New Roman", serif;
+    overflow-x: hidden;
+    font-family: Arial, Helvetica, sans-serif;
     background: #ffffff;
-    color: #4d4a47;
+    color: #000000;
+  }
+
+  :global(*) {
+    box-sizing: border-box;
   }
 
   .exhibition-page {
+    width: 100%;
     min-height: 100vh;
+    padding: 96px 90px 90px 28px;
     background: #ffffff;
   }
 
-  .exhibition-hero {
-    width: calc(100% - 80px);
-    min-height: 80vh;
-    margin: 0 auto;
-    padding: 118px 40px 70px;
-    box-sizing: border-box;
-    background-color: #2f332b;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    align-items: flex-end;
-  }
-
-  .hero-content {
+  .exhibition-layout {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: end;
+    grid-template-columns: 19% 81%;
+    gap: 34px;
+    align-items: start;
   }
 
-  .hero-meta,
-  .hero-title {
+  .left-column {
+    position: sticky;
+    top: 96px;
+    height: calc(100vh - 186px);
+    min-height: 620px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+  }
+
+  .navigation-area {
+    width: 100%;
+    display: grid;
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .section-links,
+  .selected-exhibition-links {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-  }
-
-  .hero-title {
-    justify-self: end;
     align-items: flex-start;
-    text-align: left;
-    max-width: 520px;
-    width: 100%;
-  }
-
-  .hero-meta p,
-  .hero-meta span,
-  .hero-title h1,
-  .hero-title p {
+    gap: 4px;
     margin: 0;
-    color: #fffaf0;
-    font-size: 15px;
-    font-weight: 300;
-    line-height: 1.35;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    text-shadow: 0 1px 18px rgba(0, 0, 0, 0.28);
-  }
-
-  .hero-title p {
-    color: rgba(255, 250, 240, 0.86);
-    letter-spacing: 0.08em;
-    line-height: 1.35;
-  }
-
-  .artwork-overview {
-    padding: 34px 40px 80px;
-    box-sizing: border-box;
-  }
-
-  .overview-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 28px;
-  }
-
-  .overview-header h2 {
-    margin: 0;
-    color: #2f2d2b;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-  }
-
-  .overview-header h2::after {
-    content: "";
-    display: block;
-    width: 34px;
-    height: 1px;
-    margin-top: 10px;
-    background: #6f8f72;
-  }
-
-  .overview-header span {
-    color: #9b958f;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .thumbnail-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 26px;
-  }
-
-  .thumbnail-card {
-    border: 0;
-    background: transparent;
     padding: 0;
     text-align: left;
-    font-family: inherit;
+  }
+
+  .selected-exhibition-links {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .selected-exhibition-links::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .section-button,
+  .selected-exhibition-button {
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #bdbdbd;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.08;
+    text-align: left;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .section-button.active,
+  .section-button:hover,
+  .section-button:focus,
+  .selected-exhibition-button.active,
+  .selected-exhibition-button:hover,
+  .selected-exhibition-button:focus {
+    color: #000000;
+  }
+
+  .exhibition-preview {
+    width: 100%;
+    align-self: end;
+    min-height: 0;
+  }
+
+  .exhibition-preview h1 {
+    max-width: 340px;
+    margin: 0 0 46px;
+    color: #000000;
+    font-size: clamp(27px, 2.55vw, 45px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.055em;
+  }
+
+  .preview-bottom {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .preview-info {
+    max-width: 330px;
+  }
+
+  .preview-info p {
+    margin: 0;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .exhibition-description {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .exhibition-description::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .exhibition-description p {
+    margin: 0;
+  }
+
+  .info-toggle {
+    display: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
     cursor: pointer;
   }
 
-  .thumbnail-image {
+  .right-column {
     width: 100%;
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-    display: block;
-    background: #f7f6f3;
+    min-width: 0;
   }
 
-  .thumbnail-image img {
+  .image-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 12px;
+    padding: 0;
+  }
+
+  .image-card {
+    position: relative;
+    display: block;
+    min-height: 560px;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    color: #000000;
+    background: #eeeeee;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .image-card figure {
     width: 100%;
     height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eeeeee;
+  }
+
+  .image-card img {
+    width: 100%;
+    height: 100%;
+    min-height: 560px;
     display: block;
     object-fit: cover;
     object-position: center;
     transition:
-      transform 0.45s ease,
-      opacity 0.3s ease;
+      opacity 0.35s ease,
+      width 0.55s ease,
+      height 0.55s ease,
+      filter 0.55s ease;
   }
 
-  .thumbnail-card:hover img,
-  .thumbnail-card:focus img {
-    transform: scale(1.025);
-    opacity: 0.94;
+  .image-grid:hover .image-card img {
+    opacity: 0.12;
+    filter: grayscale(10%);
   }
 
-  .thumbnail-card:focus-visible {
-    outline: 1px solid #6f8f72;
-    outline-offset: 6px;
+  .image-grid:hover .image-card:hover img,
+  .image-grid:hover .image-card.active img {
+    width: 92%;
+    height: 92%;
+    min-height: 0;
+    opacity: 1;
+    object-fit: contain;
+    filter: none;
   }
 
-  .thumbnail-meta {
-    display: block;
-    margin-top: 22px;
-    color: #8f8883;
-    font-size: 11px;
-    font-weight: 300;
-    line-height: 1.35;
+  .image-card span {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 4;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .image-card:hover span,
+  .image-card.active span {
+    opacity: 1;
+  }
+
+  .back-to-top {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin: 48px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    cursor: pointer;
   }
 
   .empty-message {
     margin: 0;
-    color: #8f8883;
+    color: #000000;
     font-size: 14px;
-    font-weight: 300;
-  }
-
-  .exhibition-navigation {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin: 0 40px;
-    padding: 0 0 80px;
-    background: #ffffff;
-  }
-
-  .year-link {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 24px;
-    color: #4d4a47;
-    text-decoration: none;
-    border-top: 1px solid #e7e1dc;
-    transition:
-      border-color 0.3s ease,
-      color 0.3s ease;
-  }
-
-  .year-link::before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    width: 44px;
-    height: 1px;
-    background: #6f8f72;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-  }
-
-  .previous-year-link {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .previous-year-link::before {
-    left: 0;
-    transform-origin: left;
-  }
-
-  .next-year-link {
-    align-items: flex-end;
-    text-align: right;
-  }
-
-  .next-year-link::before {
-    right: 0;
-    transform-origin: right;
-  }
-
-  .nav-label {
-    color: #aaa39d;
-    font-size: 11px;
-    font-weight: 300;
-    letter-spacing: 0.14em;
+    font-weight: 900;
     text-transform: uppercase;
   }
 
-  .nav-main {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .nav-main strong {
-    color: #4d4a47;
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: 0.04em;
-  }
-
-  .nav-arrow {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ded7d1;
-    border-radius: 50%;
-    color: #6f8f72;
-    font-size: 15px;
-    line-height: 1;
-    transition:
-      border-color 0.3s ease,
-      transform 0.3s ease;
-  }
-
-  .year-link:hover,
-  .year-link:focus {
-    border-color: #cfc7bf;
-  }
-
-  .year-link:hover::before,
-  .year-link:focus::before {
-    transform: scaleX(1);
-  }
-
-  .previous-year-link:hover .nav-arrow,
-  .previous-year-link:focus .nav-arrow {
-    transform: translateX(-3px);
-    border-color: #6f8f72;
-  }
-
-  .next-year-link:hover .nav-arrow,
-  .next-year-link:focus .nav-arrow {
-    transform: translateX(3px);
-    border-color: #6f8f72;
-  }
-
-  .lightbox {
+  .exhibition-lightbox {
     position: fixed;
     inset: 0;
-    z-index: 999;
-    background: rgba(20, 22, 19, 0.96);
+    z-index: 9999;
     display: grid;
     grid-template-columns: 80px 1fr 80px;
     align-items: center;
     padding: 34px 40px;
-    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.98);
   }
 
   .lightbox-content {
@@ -521,21 +546,15 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    color: rgba(255, 250, 240, 0.78);
+    color: #000000;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.35;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
   .lightbox-meta p {
     margin: 0;
-    color: rgba(255, 250, 240, 0.86);
-    font-size: 13px;
-    line-height: 1.35;
-    letter-spacing: 0.04em;
-    text-transform: none;
   }
 
   .lightbox-close {
@@ -545,54 +564,23 @@
     z-index: 2;
     border: 0;
     background: transparent;
-    color: rgba(255, 250, 240, 0.84);
+    color: #000000;
     font-family: inherit;
     font-size: 13px;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-  }
-
-  .lightbox-close::after {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 1px;
-    margin-top: 5px;
-    background: #6f8f72;
-    opacity: 0.9;
   }
 
   .lightbox-arrow {
     width: 46px;
     height: 46px;
-    border: 1px solid rgba(255, 250, 240, 0.28);
+    border: 1px solid #d8d2cc;
     border-radius: 50%;
-    background: transparent;
-    color: #fffaf0;
+    background: #ffffff;
+    color: #000000;
     font-family: inherit;
     font-size: 18px;
     cursor: pointer;
-    transition:
-      border-color 0.3s ease,
-      color 0.3s ease,
-      transform 0.3s ease;
-  }
-
-  .lightbox-arrow:hover,
-  .lightbox-arrow:focus {
-    border-color: #6f8f72;
-    color: #9fbd91;
-  }
-
-  .lightbox-arrow-left:hover,
-  .lightbox-arrow-left:focus {
-    transform: translateX(-4px);
-  }
-
-  .lightbox-arrow-right:hover,
-  .lightbox-arrow-right:focus {
-    transform: translateX(4px);
   }
 
   .lightbox-arrow-left {
@@ -603,100 +591,418 @@
     justify-self: end;
   }
 
-  @media (max-width: 900px) {
-    .exhibition-hero {
-      width: calc(100% - 48px);
-      min-height: 75vh;
-      padding: 112px 24px 56px;
+  @media (max-width: 1280px) {
+    .exhibition-page {
+      padding: 96px 80px 90px 28px;
     }
 
-    .thumbnail-grid {
-      grid-template-columns: repeat(3, 1fr);
+    .exhibition-layout {
+      grid-template-columns: 21% 79%;
     }
 
-    .nav-main strong {
-      font-size: 20px;
+    .exhibition-preview h1 {
+      font-size: clamp(26px, 2.4vw, 38px);
     }
 
-    .lightbox {
-      grid-template-columns: 60px 1fr 60px;
-      padding: 34px 24px;
+    .image-card,
+    .image-card img {
+      min-height: 500px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    :global(html),
+    :global(body) {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .exhibition-page {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 118px 24px 0;
+    }
+
+    .exhibition-layout {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    .left-column {
+      position: relative;
+      top: auto;
+      z-index: 20;
+      height: auto;
+      min-height: 0;
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      margin: 0;
+      padding-bottom: 22px;
+      background: #ffffff;
+    }
+
+    .navigation-area {
+      width: 100%;
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 12px;
+      margin: 0 0 20px;
+      padding: 0 0 18px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .section-links {
+      width: 100%;
+      display: block;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .section-button {
+      display: block;
+      width: 100%;
+      min-height: 20px;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 15px;
+      line-height: 1.1;
+    }
+
+    .selected-exhibition-links {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 18px;
+      row-gap: 7px;
+      align-items: start;
+      justify-items: stretch;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .selected-exhibition-button {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 19px;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.08;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: anywhere;
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .selected-exhibition-button.active,
+    .selected-exhibition-button:hover,
+    .selected-exhibition-button:focus {
+      color: #000000;
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .exhibition-preview {
+      width: 100%;
+      max-width: none;
+      align-self: start;
+      display: block;
+      text-align: left;
+    }
+
+    .exhibition-preview h1 {
+      width: 100%;
+      max-width: none;
+      margin: 0 0 10px;
+      font-size: clamp(18px, 3.2vw, 25px);
+      text-align: left;
+    }
+
+    .preview-bottom {
+      width: 100%;
+      max-width: none;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .preview-info {
+      width: 100%;
+      max-width: none;
+      margin-bottom: 0;
+      text-align: left;
+    }
+
+    .exhibition-description {
+      width: 100%;
+      max-width: none;
+      max-height: 80px;
+      overflow: hidden;
+    }
+
+    .exhibition-description.expanded {
+      max-height: 22vh;
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .exhibition-description.expanded::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    .info-toggle {
+      display: block;
+      margin-top: 8px;
+    }
+
+    .right-column {
+      height: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: block;
+      overflow: hidden;
+    }
+
+    .image-grid {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+      gap: 18px 12px;
+      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
+      scrollbar-width: none;
+      scrollbar-color: transparent transparent;
+      -ms-overflow-style: none;
+      overscroll-behavior: contain;
+    }
+
+    .image-grid::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
+    }
+
+    .image-card {
+      min-height: auto;
+      overflow: visible;
+      background: transparent;
+    }
+
+    .image-card figure {
+      height: 440px;
+      background: #eeeeee;
+      overflow: hidden;
+    }
+
+    .image-card img {
+      min-height: 440px;
+    }
+
+    .image-grid:hover .image-card img {
+      opacity: 1;
+      filter: none;
+    }
+
+    .image-grid:hover .image-card:hover img,
+    .image-grid:hover .image-card.active img {
+      width: 100%;
+      height: 100%;
+      min-height: 440px;
+      object-fit: cover;
+    }
+
+    .image-card span {
+      position: static;
+      display: block;
+      margin-top: 8px;
+      opacity: 1;
+      font-size: 14px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin: 44px 0 0;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 14px;
     }
   }
 
   @media (max-width: 700px) {
-    .exhibition-hero {
-      width: calc(100% - 48px);
-      min-height: 70vh;
-      padding: 104px 24px 44px;
+    .exhibition-page {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 108px 16px 0;
     }
 
-    .hero-content {
-      grid-template-columns: 1fr;
-      gap: 16px;
+    .left-column {
+      display: grid;
+      grid-template-rows: auto auto;
+      align-content: start;
+      padding-bottom: 18px;
     }
 
-    .hero-title {
-      justify-self: start;
-      max-width: 100%;
+    .navigation-area {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 10px;
+      margin: 0 0 16px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
 
-    .hero-meta p,
-    .hero-meta span,
-    .hero-title h1,
-    .hero-title p {
-      font-size: 14px;
-      line-height: 1.3;
-    }
-
-    .artwork-overview {
-      padding: 28px 24px 50px;
-    }
-
-    .overview-header {
-      margin-bottom: 22px;
-    }
-
-    .thumbnail-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 22px 16px;
-    }
-
-    .thumbnail-meta {
-      min-height: 50px;
-      font-size: 10px;
-      grid-template-columns: 24px 1fr;
-    }
-
-    .exhibition-navigation {
-      grid-template-columns: 1fr;
-      margin: -20px 24px 0;
-      padding-bottom: 80px;
-      gap: 34px;
-    }
-
-    .next-year-link {
-      align-items: flex-start;
+    .section-links {
+      width: 100%;
+      display: block;
       text-align: left;
     }
 
-    .next-year-link::before {
-      left: 0;
-      right: auto;
-      transform-origin: left;
+    .section-button {
+      display: block;
+      width: 100%;
+      min-height: 20px;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.1;
+      text-align: left;
     }
 
-    .nav-main strong {
-      font-size: 19px;
+    .selected-exhibition-links {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 14px;
+      row-gap: 6px;
+      align-items: start;
+      justify-items: stretch;
+      margin: 0;
+      padding: 0;
+      text-align: left;
     }
 
-    .lightbox {
+    .selected-exhibition-button {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 18px;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      line-height: 1.08;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .selected-exhibition-button.active,
+    .selected-exhibition-button:hover,
+    .selected-exhibition-button:focus {
+      transform: none;
+      letter-spacing: 0;
+    }
+
+    .exhibition-preview h1,
+    .preview-bottom,
+    .preview-info,
+    .exhibition-description {
+      width: 100%;
+      max-width: none;
+    }
+
+    .exhibition-preview h1 {
+      font-size: clamp(15px, 4.2vw, 20px);
+    }
+
+    .exhibition-description {
+      max-height: 60px;
+    }
+
+    .exhibition-description.expanded {
+      max-height: 20vh;
+      overflow-y: auto;
+    }
+
+    .info-toggle {
+      font-size: 11px;
+    }
+
+    .right-column {
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .image-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 10px;
+      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+    }
+
+    .image-card figure {
+      height: 260px;
+    }
+
+    .image-card img {
+      min-height: 260px;
+    }
+
+    .image-grid:hover .image-card:hover img,
+    .image-grid:hover .image-card.active img {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+    }
+
+    .image-card span {
+      font-size: 12px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin-top: 38px;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 12px;
+    }
+
+    .exhibition-lightbox {
       grid-template-columns: 1fr 1fr;
       grid-template-areas:
         "image image"
         "left right";
       gap: 22px;
-      padding: 78px 24px 28px;
+      padding: 78px 24px 90px;
     }
 
     .lightbox-content {
@@ -704,7 +1010,7 @@
     }
 
     .lightbox-content img {
-      max-height: 68vh;
+      max-height: 60vh;
     }
 
     .lightbox-arrow-left {
@@ -720,6 +1026,39 @@
     .lightbox-close {
       top: 24px;
       right: 24px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .left-column {
+      padding-bottom: 16px;
+    }
+
+    .exhibition-preview h1 {
+      font-size: clamp(14px, 4vw, 18px);
+    }
+
+    .selected-exhibition-links {
+      column-gap: 12px;
+      row-gap: 5px;
+    }
+
+    .selected-exhibition-button {
+      font-size: 11px;
+      min-height: 17px;
+    }
+
+    .image-card figure {
+      height: 220px;
+    }
+
+    .image-card img {
+      min-height: 220px;
+    }
+
+    .image-grid:hover .image-card:hover img,
+    .image-grid:hover .image-card.active img {
+      min-height: 220px;
     }
   }
 </style>

@@ -216,13 +216,6 @@
 </footer>
 
 <style>
-  :global(body) {
-    margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
-    background: #ffffff;
-    color: #4d4a47;
-  }
-
   .site-header {
     position: fixed;
     inset: 0 0 auto;
