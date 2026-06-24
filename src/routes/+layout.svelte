@@ -186,7 +186,7 @@
       </div>
     </div>
 
-    <div class="desktop-menu-credit">Website by Zora Design</div>
+    <div class="desktop-menu-credit">Website by Zora Web Design</div>
 
     <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
 
