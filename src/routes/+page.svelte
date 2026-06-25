@@ -43,8 +43,12 @@
   function getWorkLink(work) {
     const categorySlug = normalizeCategorySlug(work);
 
+    if (work.frontendLink && work.frontendLink !== "#") {
+      return work.frontendLink;
+    }
+
     if (categorySlug === "paintings") {
-      return `/paintings?post=${work.id}`;
+      return `/painting?post=${work.id}`;
     }
 
     if (categorySlug === "performances") {
@@ -53,10 +57,6 @@
 
     if (categorySlug === "exhibitions") {
       return `/exhibitions?post=${work.id}`;
-    }
-
-    if (work.frontendLink && work.frontendLink !== "#") {
-      return work.frontendLink;
     }
 
     return `/works?post=${work.id}`;
