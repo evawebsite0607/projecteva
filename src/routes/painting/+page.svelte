@@ -270,7 +270,7 @@
   :global(html),
   :global(body),
   .paintings-page {
-    font-family: "Inconsolata", monospace;
+    font-family: Arial, Helvetica, sans-serif;
   }
 
   :global(body) {
@@ -292,8 +292,7 @@
     text-transform: uppercase;
   }
 
-  .paintings-page button,
-  .paintings-page a {
+  .paintings-page button {
     font-family: inherit;
   }
 
@@ -363,8 +362,8 @@
     border: 0;
     background: transparent;
     color: #bdbdbd;
-    font-size: clamp(13px, 0.8vw, 15px);
-    font-weight: 900;
+    font-size: clamp(12px, 0.8vw, 14px);
+    font-weight: 700;
     line-height: 1;
     text-align: left;
     cursor: pointer;
@@ -375,11 +374,12 @@
   .selected-painting-button {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 0px;
   }
 
   .painting-list-number {
     min-width: 22px;
+    margin-right: 0px;
     display: inline-block;
     flex-shrink: 0;
     color: inherit;
@@ -405,10 +405,10 @@
     max-width: 300px;
     margin: 0 0 46px;
     color: #000000;
-    font-size: clamp(14px, 0.85vw, 16px);
-    font-weight: 800;
+    font-size: clamp(12px, 0.85vw, 16px);
+    font-weight: 700;
     line-height: 1;
-    letter-spacing: 0;
+    letter-spacing: 0em;
   }
 
   .preview-bottom {
@@ -426,7 +426,7 @@
     margin: 0;
     color: #2c2b2b;
     font-size: clamp(12px, 0.72vw, 14px);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1;
     text-transform: uppercase;
   }
@@ -854,7 +854,7 @@
       padding: 0;
       color: #000000;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 700;
       line-height: 1;
       text-align: left;
     }
@@ -883,7 +883,7 @@
       padding: 0;
       color: #bdbdbd;
       font-size: 14px;
-      font-weight: 900;
+      font-weight: 700;
       line-height: 1.08;
       text-align: left;
       white-space: normal;
@@ -918,7 +918,7 @@
       max-width: 520px;
       margin: 0 0 8px;
       font-size: clamp(18px, 3.2vw, 25px);
-      font-weight: 800;
+      font-weight: 700;
       line-height: 1;
       letter-spacing: 0;
       text-align: left;
@@ -940,6 +940,7 @@
 
     .preview-info p {
       font-size: 14px;
+      font-weight: 500;
       line-height: 1.12;
     }
 
@@ -1122,7 +1123,7 @@
       margin: 0;
       padding: 0;
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 700;
       line-height: 1.08;
       text-align: left;
       white-space: normal;
@@ -1154,13 +1155,14 @@
     .painting-preview h1 {
       margin: 0 0 8px;
       font-size: clamp(15px, 4.2vw, 20px);
-      font-weight: 800;
+      font-weight: 700;
       line-height: 1;
       text-align: left;
     }
 
     .preview-info p {
       font-size: 12px;
+      font-weight: 500;
       line-height: 1.12;
     }
 

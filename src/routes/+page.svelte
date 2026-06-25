@@ -283,7 +283,7 @@
   :global(html),
   :global(body),
   .work-page {
-    font-family: "Inconsolata", monospace;
+    font-family: Arial, Helvetica, sans-serif;
   }
 
   :global(body) {
@@ -344,8 +344,8 @@
     border: 0;
     background: transparent;
     color: #bdbdbd;
-    font-size: clamp(13px, 0.8vw, 15px);
-    font-weight: 900;
+    font-size: clamp(12px, 0.8vw, 14px);
+    font-weight: 700;
     line-height: 1;
     text-align: left;
     cursor: pointer;
@@ -364,8 +364,8 @@
     max-width: 300px;
     margin: 0 0 46px;
     color: #000000;
-    font-size: clamp(14px, 0.85vw, 16px);
-    font-weight: 800;
+    font-size: clamp(12px, 0.85vw, 16px);
+    font-weight: 700;
     line-height: 1;
     letter-spacing: 0em;
   }
@@ -389,8 +389,8 @@
     display: block;
     margin: 0 0 8px;
     color: #000000;
-    font-size: clamp(14px, 0.85vw, 16px);
-    font-weight: 900;
+    font-size: clamp(14px, 0.85vw, 14px);
+    font-weight: 700;
     line-height: 1;
   }
 
@@ -398,7 +398,7 @@
     margin: 0;
     color: #2c2b2b;
     font-size: clamp(12px, 0.72vw, 14px);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1;
     text-transform: uppercase;
   }
@@ -411,7 +411,7 @@
   .case-count {
     color: #000000;
     font-size: clamp(12px, 0.72vw, 14px);
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
   }
 

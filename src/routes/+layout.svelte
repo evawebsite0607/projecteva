@@ -58,6 +58,8 @@
     return "Work";
   });
 
+  let isArchivePage = $derived(() => page.url.pathname.startsWith("/archive"));
+
   function toggleMenu() {
     menuOpen = !menuOpen;
   }
@@ -84,154 +86,160 @@
   });
 </script>
 
-<header class="site-header" class:menu-is-open={menuOpen}>
-  <a href="/" class="logo" onclick={closeMenu}>Eva Eichinger</a>
+{#if !isArchivePage()}
+  <header class="site-header" class:menu-is-open={menuOpen}>
+    <a href="/" class="logo" onclick={closeMenu}>Eva Eichinger</a>
 
-  <div class="desktop-page-label">
-    {currentPageLabel()}
-  </div>
+    <div class="desktop-page-label">
+      {currentPageLabel()}
+    </div>
 
-  <button
-    class="desktop-menu-control"
-    type="button"
-    aria-label={menuOpen ? "Close menu" : "Open menu"}
-    aria-expanded={menuOpen}
-    onclick={toggleMenu}
-  >
-    <span class="desktop-menu-control-text">
-      {menuOpen ? "Close" : "Menu"}
-    </span>
+    <button
+      class="desktop-menu-control"
+      type="button"
+      aria-label={menuOpen ? "Close menu" : "Open menu"}
+      aria-expanded={menuOpen}
+      onclick={toggleMenu}
+    >
+      <span class="desktop-menu-control-text">
+        {menuOpen ? "Close" : "Menu"}
+      </span>
 
-    <span class="desktop-menu-control-icon" aria-hidden="true">
+      <span class="desktop-menu-control-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+
+    <a href="/archive" class="desktop-archive-fixed" onclick={closeMenu}>
+      BIBLO
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label={menuOpen ? "Close menu" : "Open menu"}
+      aria-expanded={menuOpen}
+      onclick={toggleMenu}
+    >
       <span></span>
       <span></span>
-    </span>
-  </button>
+    </button>
 
-  <a href="/archive" class="desktop-archive-fixed" onclick={closeMenu}>
-    BIBLO
-  </a>
+    <nav class:open={menuOpen} class="main-nav" aria-label="Main navigation">
+      <div class="desktop-menu-brand-block">
+        <div class="desktop-menu-brand">Eva Eichinger</div>
 
-  <button
-    class="menu-toggle"
-    type="button"
-    aria-label={menuOpen ? "Close menu" : "Open menu"}
-    aria-expanded={menuOpen}
-    onclick={toggleMenu}
-  >
-    <span></span>
-    <span></span>
-  </button>
+        <div class="desktop-menu-address">
+          <address>
+            Westbahnstraße 27-29<br />
+            1070 Vienna
+          </address>
 
-  <nav class:open={menuOpen} class="main-nav" aria-label="Main navigation">
-    <div class="desktop-menu-brand-block">
-      <div class="desktop-menu-brand">Eva Eichinger</div>
-
-      <div class="desktop-menu-address">
-        <address>
-          Westbahnstraße 27-29<br />
-          1070 Vienna
-        </address>
-
-        <a href="mailto:info@evaeichinger.com">
-          Email: info@evaeichinger.com
-        </a>
-      </div>
-    </div>
-
-    <div class="desktop-menu-images" aria-hidden="true">
-      {#if menuImages().length > 0}
-        {#each menuImages() as image}
-          <div class="desktop-menu-image">
-            <img src={image} alt="" loading="lazy" />
-          </div>
-        {/each}
-      {/if}
-    </div>
-
-    <div class="menu-links-area">
-      <div class="menu-grid">
-        {#each menuItems as item}
-          <div class="menu-grid-item">
-            <a href={item.href} class="main-menu-link" onclick={closeMenu}>
-              {item.label}
-            </a>
-
-            {#if item.children && item.children.length > 0}
-              <div class="submenu-grid">
-                {#each item.children as child}
-                  <a href={child.href} class="submenu-link" onclick={closeMenu}>
-                    {#if child.featuredImage}
-                      <img
-                        src={child.featuredImage}
-                        alt=""
-                        class="submenu-thumb"
-                        loading="lazy"
-                      />
-                    {/if}
-
-                    <span>{child.label}</span>
-                  </a>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/each}
+          <a href="mailto:info@evaeichinger.com">
+            Email: info@evaeichinger.com
+          </a>
+        </div>
       </div>
 
-      <div class="desktop-social-links">
-        <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
-          Linkedin
-        </a>
-
-        <a href="https://www.instagram.com" target="_blank" rel="noreferrer">
-          Instagram
-        </a>
-      </div>
-    </div>
-
-    <div class="desktop-menu-credit">Website by Zora Web Design</div>
-
-    <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
-
-    <div class="mobile-menu-extra">
-      <div class="mobile-social-icons">
-        <a href="https://www.facebook.com" target="_blank" rel="noreferrer">
-          Facebook
-        </a>
-
-        <a href="https://www.instagram.com" target="_blank" rel="noreferrer">
-          Instagram
-        </a>
-
-        <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
-          LinkedIn
-        </a>
+      <div class="desktop-menu-images" aria-hidden="true">
+        {#if menuImages().length > 0}
+          {#each menuImages() as image}
+            <div class="desktop-menu-image">
+              <img src={image} alt="" loading="lazy" />
+            </div>
+          {/each}
+        {/if}
       </div>
 
-      <div class="mobile-contact-info">
-        <p>Contact</p>
+      <div class="menu-links-area">
+        <div class="menu-grid">
+          {#each menuItems as item}
+            <div class="menu-grid-item">
+              <a href={item.href} class="main-menu-link" onclick={closeMenu}>
+                {item.label}
+              </a>
 
-        <a href="mailto:info@evaeichinger.com">
-          Email: info@evaeichinger.com
-        </a>
+              {#if item.children && item.children.length > 0}
+                <div class="submenu-grid">
+                  {#each item.children as child}
+                    <a
+                      href={child.href}
+                      class="submenu-link"
+                      onclick={closeMenu}
+                    >
+                      {#if child.featuredImage}
+                        <img
+                          src={child.featuredImage}
+                          alt=""
+                          class="submenu-thumb"
+                          loading="lazy"
+                        />
+                      {/if}
 
-        <address>
-          Westbahnstraße 27-29<br />
-          1070 Vienna
-        </address>
+                      <span>{child.label}</span>
+                    </a>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+
+        <div class="desktop-social-links">
+          <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+            Linkedin
+          </a>
+
+          <a href="https://www.instagram.com" target="_blank" rel="noreferrer">
+            Instagram
+          </a>
+        </div>
       </div>
-    </div>
 
-    <div class="mobile-design-credit">Designed by zoraDesign</div>
-  </nav>
-</header>
+      <div class="desktop-menu-credit">Website by Zora Web Design</div>
+
+      <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
+
+      <div class="mobile-menu-extra">
+        <div class="mobile-social-icons">
+          <a href="https://www.facebook.com" target="_blank" rel="noreferrer">
+            Facebook
+          </a>
+
+          <a href="https://www.instagram.com" target="_blank" rel="noreferrer">
+            Instagram
+          </a>
+
+          <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+            LinkedIn
+          </a>
+        </div>
+
+        <div class="mobile-contact-info">
+          <p>Contact</p>
+
+          <a href="mailto:info@evaeichinger.com">
+            Email: info@evaeichinger.com
+          </a>
+
+          <address>
+            Westbahnstraße 27-29<br />
+            1070 Vienna
+          </address>
+        </div>
+      </div>
+
+      <div class="mobile-design-credit">Designed by zoraDesign</div>
+    </nav>
+  </header>
+{/if}
 
 {@render children()}
 
 <style>
   :global(:root) {
-    --site-font-family: "Inconsolata", monospace;
+    --site-font-family: Arial, Helvetica, sans-serif;
   }
 
   :global(html.menu-open-lock),
@@ -265,8 +273,8 @@
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: 0.01em;
     text-transform: uppercase;
@@ -286,8 +294,8 @@
     right: 28px;
     z-index: 105;
     color: #4e4e4e;
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 14px;
+    font-weight: 900;
     line-height: 1;
     letter-spacing: -0.04em;
     text-transform: uppercase;
@@ -315,8 +323,8 @@
 
   .desktop-menu-control-text {
     color: currentColor;
-    font-size: 14px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -366,8 +374,8 @@
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 14px;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.04em;
     pointer-events: auto;
@@ -431,7 +439,7 @@
     color: rgba(255, 255, 255, 0.72);
     font-size: 13px;
     font-weight: 400;
-    line-height: 1.45;
+    line-height: 1.4;
     letter-spacing: -0.02em;
   }
 
@@ -508,7 +516,7 @@
     font-size: clamp(48px, 4.2vw, 76px);
     font-weight: 400;
     line-height: 0.96;
-    letter-spacing: -0.075em;
+    letter-spacing: -0.022em;
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
