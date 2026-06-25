@@ -185,13 +185,21 @@
   <section class="work-layout" aria-label="Selected works">
     <aside class="left-column" aria-label="Project information">
       <div class="work-filter" aria-label="Work categories">
-        {#each categories() as category}
+        {#each categories() as category, index}
           <button
             type="button"
             class:active={activeCategory === category}
             onclick={() => setCategory(category)}
           >
-            {category}
+            {#if category !== "ALL WORK"}
+              <span class="filter-number">
+                {String(index).padStart(2, "0")}
+              </span>
+            {/if}
+
+            <span class="filter-label">
+              {category}
+            </span>
           </button>
         {/each}
       </div>

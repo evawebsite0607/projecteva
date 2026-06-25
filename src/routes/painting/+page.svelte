@@ -267,10 +267,15 @@
 </main>
 
 <style>
+  :global(html),
+  :global(body),
+  .paintings-page {
+    font-family: "Inconsolata", monospace;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
-    font-family: "Inconsolata", monospace;
     background: #ffffff;
     color: #000000;
   }
@@ -282,9 +287,14 @@
   .paintings-page {
     width: 100%;
     min-height: 100vh;
-    padding: 96px 90px 90px 28px;
+    padding: 96px 72px 90px 28px;
     background: #ffffff;
     text-transform: uppercase;
+  }
+
+  .paintings-page button,
+  .paintings-page a {
+    font-family: inherit;
   }
 
   .paintings-page p {
@@ -294,8 +304,8 @@
   .paintings-layout {
     width: 100%;
     display: grid;
-    grid-template-columns: 19% 81%;
-    gap: 34px;
+    grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
   }
 
@@ -304,9 +314,9 @@
     top: 96px;
     height: calc(100vh - 186px);
     min-height: 620px;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .navigation-area {
@@ -314,7 +324,7 @@
     display: grid;
     grid-template-rows: auto auto;
     align-content: start;
-    gap: 14px;
+    gap: 12px;
     margin: 0;
     padding: 0;
   }
@@ -325,14 +335,14 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 7px;
     margin: 0;
     padding: 0;
     text-align: left;
   }
 
   .selected-painting-links {
-    max-height: 220px;
+    max-height: 240px;
     overflow-y: auto;
     padding-right: 4px;
     scrollbar-width: none;
@@ -347,31 +357,35 @@
 
   .section-button,
   .selected-painting-button {
-    display: block;
     width: auto;
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
     color: #bdbdbd;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.08;
+    font-size: clamp(13px, 0.8vw, 15px);
+    font-weight: 900;
+    line-height: 1;
     text-align: left;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.25s ease;
     text-transform: uppercase;
   }
 
   .selected-painting-button {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 10px;
   }
 
   .painting-list-number {
-    min-width: 20px;
+    min-width: 22px;
     display: inline-block;
+    flex-shrink: 0;
+    color: inherit;
+    font-size: 0.9em;
+    font-weight: 900;
+    letter-spacing: 0.04em;
   }
 
   .section-button.active,
@@ -385,18 +399,16 @@
 
   .painting-preview {
     width: 100%;
-    align-self: end;
-    min-height: 0;
   }
 
   .painting-preview h1 {
-    max-width: 340px;
+    max-width: 300px;
     margin: 0 0 46px;
     color: #000000;
-    font-size: clamp(24px, 2vw, 30px);
-    font-weight: 400;
+    font-size: clamp(14px, 0.85vw, 16px);
+    font-weight: 800;
     line-height: 1;
-    letter-spacing: -0.055em;
+    letter-spacing: 0;
   }
 
   .preview-bottom {
@@ -407,15 +419,16 @@
   }
 
   .preview-info {
-    max-width: 330px;
+    max-width: 285px;
   }
 
   .preview-info p {
     margin: 0;
-    color: #000000;
-    font-size: 14px;
+    color: #2c2b2b;
+    font-size: clamp(12px, 0.72vw, 14px);
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1;
+    text-transform: uppercase;
   }
 
   .painting-description {
@@ -424,7 +437,6 @@
     padding-right: 6px;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    text-transform: uppercase;
   }
 
   .painting-description::-webkit-scrollbar {
@@ -448,6 +460,7 @@
     font-weight: 900;
     line-height: 1;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .right-column {
@@ -457,24 +470,53 @@
 
   .image-grid {
     width: 100%;
+    min-width: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 12px;
-    padding: 0;
+    column-gap: clamp(18px, 1.45vw, 28px);
+    row-gap: clamp(26px, 1.8vw, 34px);
+    padding: 6px 0 40px;
   }
 
   .image-card {
     position: relative;
     display: block;
-    min-height: 560px;
+    min-height: clamp(500px, 32vw, 570px);
     overflow: hidden;
     padding: 0;
     border: 0;
     color: #000000;
-    background: #eeeeee;
+    background: #f6f6f4;
     text-align: left;
     cursor: pointer;
+    isolation: isolate;
+  }
+
+  .image-card::before {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.35s ease,
+      inset 0.35s ease;
+  }
+
+  .image-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.08),
+      rgba(0, 0, 0, 0.08)
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
   }
 
   .image-card figure {
@@ -484,35 +526,54 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eeeeee;
+    background: #f6f6f4;
   }
 
   .image-card img {
     width: 100%;
     height: 100%;
-    min-height: 560px;
+    min-height: clamp(500px, 32vw, 570px);
     display: block;
     object-fit: cover;
     object-position: center;
+    transform: scale(1.015);
     transition:
       opacity 0.35s ease,
-      width 0.55s ease,
-      height 0.55s ease,
-      filter 0.55s ease;
+      width 0.6s ease,
+      height 0.6s ease,
+      transform 0.6s ease,
+      filter 0.6s ease;
   }
 
   .image-grid:hover .image-card img {
-    opacity: 0.12;
-    filter: grayscale(10%);
+    opacity: 0.22;
+    filter: grayscale(20%) contrast(0.88);
+  }
+
+  .image-grid:hover .image-card:hover,
+  .image-grid:hover .image-card.active {
+    background: #f8f7f4;
+  }
+
+  .image-grid:hover .image-card:hover::before,
+  .image-grid:hover .image-card.active::before {
+    inset: 18px;
+    opacity: 1;
+  }
+
+  .image-grid:hover .image-card:hover::after,
+  .image-grid:hover .image-card.active::after {
+    opacity: 1;
   }
 
   .image-grid:hover .image-card:hover img,
   .image-grid:hover .image-card.active img {
-    width: 92%;
-    height: 92%;
+    width: calc(100% - 54px);
+    height: calc(100% - 54px);
     min-height: 0;
     opacity: 1;
     object-fit: contain;
+    transform: scale(1);
     filter: none;
   }
 
@@ -533,8 +594,9 @@
 
   .empty-message {
     margin: 0;
+    padding: 120px 0;
     color: #000000;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 900;
   }
 
@@ -589,7 +651,9 @@
     background: transparent;
     color: #000000;
     font-size: 13px;
+    font-weight: 900;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .lightbox-arrow {
@@ -611,22 +675,117 @@
     justify-self: end;
   }
 
-  @media (max-width: 1280px) {
+  @media (min-width: 1025px) {
+    .image-card:nth-child(even) {
+      transform: translateY(42px);
+    }
+
+    .image-card:nth-child(4n + 1) {
+      min-height: clamp(570px, 35vw, 640px);
+    }
+
+    .image-card:nth-child(4n + 1) img {
+      min-height: clamp(570px, 35vw, 640px);
+    }
+
+    .image-card:nth-child(4n + 2) {
+      min-height: clamp(470px, 28vw, 520px);
+    }
+
+    .image-card:nth-child(4n + 2) img {
+      min-height: clamp(470px, 28vw, 520px);
+    }
+
+    .image-card:nth-child(4n + 3) {
+      min-height: clamp(490px, 29vw, 540px);
+    }
+
+    .image-card:nth-child(4n + 3) img {
+      min-height: clamp(490px, 29vw, 540px);
+    }
+
+    .image-card:nth-child(4n + 4) {
+      min-height: clamp(580px, 36vw, 650px);
+    }
+
+    .image-card:nth-child(4n + 4) img {
+      min-height: clamp(580px, 36vw, 650px);
+    }
+  }
+
+  @media (min-width: 1440px) {
     .paintings-page {
-      padding: 96px 80px 90px 28px;
+      padding-right: 72px;
     }
 
     .paintings-layout {
-      grid-template-columns: 21% 79%;
+      grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
+      gap: 14px;
+    }
+  }
+
+  @media (min-width: 1680px) {
+    .paintings-page {
+      padding-right: 76px;
+    }
+
+    .paintings-layout {
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 14px;
     }
 
     .painting-preview h1 {
-      font-size: clamp(24px, 2vw, 30px);
+      max-width: 285px;
+    }
+
+    .preview-info {
+      max-width: 275px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    .paintings-page {
+      padding: 96px 72px 90px 28px;
+    }
+
+    .paintings-layout {
+      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .painting-preview h1 {
+      max-width: 300px;
+      font-size: clamp(14px, 1vw, 16px);
+    }
+
+    .image-grid {
+      column-gap: 22px;
+      row-gap: 30px;
     }
 
     .image-card,
     .image-card img {
       min-height: 500px;
+    }
+
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 1) img {
+      min-height: 570px;
+    }
+
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 2) img {
+      min-height: 470px;
+    }
+
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 3) img {
+      min-height: 490px;
+    }
+
+    .image-card:nth-child(4n + 4),
+    .image-card:nth-child(4n + 4) img {
+      min-height: 580px;
     }
   }
 
@@ -657,15 +816,15 @@
     .left-column {
       position: relative;
       top: auto;
+      left: auto;
+      right: auto;
       z-index: 20;
       height: auto;
       min-height: 0;
       flex: 0 0 auto;
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
+      display: block;
       margin: 0;
-      padding-bottom: 22px;
+      padding-bottom: 28px;
       background: #ffffff;
     }
 
@@ -673,10 +832,10 @@
       width: 100%;
       display: grid;
       grid-template-rows: auto auto;
-      gap: 12px;
-      margin: 0 0 20px;
-      padding: 0 0 18px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      gap: 10px;
+      margin: 0 0 24px;
+      padding: 0;
+      border-bottom: 0;
     }
 
     .section-links {
@@ -690,12 +849,14 @@
     .section-button {
       display: block;
       width: 100%;
-      min-height: 20px;
+      min-height: 0;
       margin: 0;
       padding: 0;
+      color: #000000;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
       text-align: left;
-      font-size: 15px;
-      line-height: 1.1;
     }
 
     .selected-painting-links {
@@ -704,7 +865,7 @@
       overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 18px;
+      column-gap: 12px;
       row-gap: 7px;
       align-items: start;
       justify-items: stretch;
@@ -717,17 +878,24 @@
       display: flex;
       width: 100%;
       min-width: 0;
-      min-height: 19px;
+      min-height: 0;
       margin: 0;
       padding: 0;
-      text-align: left;
+      color: #bdbdbd;
       font-size: 14px;
+      font-weight: 900;
       line-height: 1.08;
+      text-align: left;
       white-space: normal;
       word-break: normal;
       overflow-wrap: anywhere;
       transform: none;
       letter-spacing: 0;
+    }
+
+    .painting-list-number {
+      min-width: 22px;
+      font-size: 0.9em;
     }
 
     .selected-painting-button.active,
@@ -741,23 +909,25 @@
     .painting-preview {
       width: 100%;
       max-width: none;
-      align-self: start;
       display: block;
       text-align: left;
     }
 
     .painting-preview h1 {
       width: 100%;
-      max-width: none;
-      margin: 0 0 10px;
+      max-width: 520px;
+      margin: 0 0 8px;
       font-size: clamp(18px, 3.2vw, 25px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0;
       text-align: left;
     }
 
     .preview-bottom {
       width: 100%;
       max-width: none;
-      gap: 8px;
+      gap: 0;
       text-align: left;
     }
 
@@ -768,17 +938,26 @@
       text-align: left;
     }
 
+    .preview-info p {
+      font-size: 14px;
+      line-height: 1.12;
+    }
+
     .painting-description {
       width: 100%;
       max-width: none;
-      max-height: 80px;
+      max-height: 72px;
       overflow: hidden;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .painting-description.expanded {
-      max-height: 22vh;
+      max-height: 24vh;
       overflow-y: auto;
+      padding-top: 4px;
       padding-right: 8px;
+      padding-bottom: 12px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
@@ -791,7 +970,12 @@
 
     .info-toggle {
       display: block;
-      margin-top: 8px;
+      margin-top: 12px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
     }
 
     .right-column {
@@ -826,10 +1010,29 @@
       background: transparent;
     }
 
-    .image-card {
+    .image-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .image-grid::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    .image-card,
+    .image-card:nth-child(even),
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 4) {
       min-height: auto;
       overflow: visible;
       background: transparent;
+      transform: none;
+    }
+
+    .image-card::before,
+    .image-card::after {
+      display: none;
     }
 
     .image-card figure {
@@ -838,8 +1041,15 @@
       overflow: hidden;
     }
 
-    .image-card img {
+    .image-card img,
+    .image-card:nth-child(4n + 1) img,
+    .image-card:nth-child(4n + 2) img,
+    .image-card:nth-child(4n + 3) img,
+    .image-card:nth-child(4n + 4) img {
+      width: 100%;
+      height: 100%;
       min-height: 440px;
+      transform: none;
     }
 
     .image-grid:hover .image-card img {
@@ -874,36 +1084,19 @@
     }
 
     .left-column {
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
-      padding-bottom: 18px;
+      padding-bottom: 24px;
     }
 
     .navigation-area {
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 10px;
-      margin: 0 0 16px;
-      padding: 0 0 16px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .section-links {
-      width: 100%;
-      display: block;
-      text-align: left;
+      gap: 9px;
+      margin: 0 0 22px;
+      padding: 0;
+      border-bottom: 0;
     }
 
     .section-button {
-      display: block;
-      width: 100%;
-      min-height: 20px;
-      margin: 0;
-      padding: 0;
-      font-size: 14px;
-      line-height: 1.1;
-      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .selected-painting-links {
@@ -912,7 +1105,7 @@
       overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 14px;
+      column-gap: 10px;
       row-gap: 6px;
       align-items: start;
       justify-items: stretch;
@@ -925,10 +1118,11 @@
       display: flex;
       width: 100%;
       min-width: 0;
-      min-height: 18px;
+      min-height: 0;
       margin: 0;
       padding: 0;
       font-size: 12px;
+      font-weight: 900;
       line-height: 1.08;
       text-align: left;
       white-space: normal;
@@ -939,6 +1133,7 @@
 
     .painting-list-number {
       min-width: 18px;
+      font-size: 0.9em;
     }
 
     .selected-painting-button.active,
@@ -957,19 +1152,35 @@
     }
 
     .painting-preview h1 {
+      margin: 0 0 8px;
       font-size: clamp(15px, 4.2vw, 20px);
+      font-weight: 800;
+      line-height: 1;
+      text-align: left;
+    }
+
+    .preview-info p {
+      font-size: 12px;
+      line-height: 1.12;
     }
 
     .painting-description {
-      max-height: 60px;
+      max-height: 58px;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .painting-description.expanded {
-      max-height: 20vh;
+      max-height: 22vh;
       overflow-y: auto;
+      padding-top: 4px;
+      padding-bottom: 14px;
     }
 
     .info-toggle {
+      margin-top: 12px;
+      padding-top: 5px;
+      padding-bottom: 5px;
       font-size: 11px;
     }
 
@@ -1043,7 +1254,11 @@
 
   @media (max-width: 420px) {
     .left-column {
-      padding-bottom: 16px;
+      padding-bottom: 22px;
+    }
+
+    .navigation-area {
+      margin-bottom: 20px;
     }
 
     .painting-preview h1 {
@@ -1051,17 +1266,32 @@
     }
 
     .selected-painting-links {
-      column-gap: 12px;
+      column-gap: 9px;
       row-gap: 5px;
     }
 
     .selected-painting-button {
       font-size: 11px;
-      min-height: 17px;
+      line-height: 1.08;
     }
 
     .painting-list-number {
       min-width: 17px;
+    }
+
+    .painting-description {
+      max-height: 54px;
+    }
+
+    .painting-description.expanded {
+      max-height: 21vh;
+      padding-bottom: 14px;
+    }
+
+    .info-toggle {
+      margin-top: 11px;
+      padding-top: 5px;
+      padding-bottom: 5px;
     }
 
     .image-card figure {
