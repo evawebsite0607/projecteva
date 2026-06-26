@@ -1,4 +1,7 @@
 <script>
+  import { browser } from "$app/environment";
+  import { onMount } from "svelte";
+
   let { data } = $props();
 
   let activeCategory = $state("ALL WORK");
@@ -111,7 +114,7 @@
     return ["HOME PAGE"];
   }
 
-  let categories = $derived(() => {
+  let categories = $derived.by(() => {
     const found = new Map();
 
     allWorks.forEach((work) => {
@@ -125,7 +128,7 @@
     return ["ALL WORK", ...Array.from(found.values())];
   });
 
-  let filteredWorks = $derived(() => {
+  let filteredWorks = $derived.by(() => {
     if (activeCategory === "ALL WORK") {
       return allWorks;
     }
@@ -135,25 +138,22 @@
     );
   });
 
-  let activeWork = $derived(
-    filteredWorks().find((work) => work.id === hoveredWorkId) ||
-      filteredWorks()[0],
+  let activeWork = $derived.by(
+    () =>
+      filteredWorks.find((work) => work.id === hoveredWorkId) ||
+      filteredWorks[0],
   );
 
-  function setCategory(category) {
-    activeCategory = category;
-    hoveredWorkId = null;
+  function unlockPageScroll() {
+    if (!browser) return;
 
-    if (workGridElement) {
-      workGridElement.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  }
+    document.documentElement.classList.remove("menu-open-lock");
+    document.body.classList.remove("menu-open-lock");
 
-  function setHoveredWork(work) {
-    hoveredWorkId = work.id;
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    document.body.style.overflow = "";
+    document.body.style.height = "";
   }
 
   function scrollBackToTop() {
@@ -163,7 +163,28 @@
         behavior: "smooth",
       });
     }
+
+    if (browser) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   }
+
+  function setCategory(category) {
+    activeCategory = category;
+    hoveredWorkId = null;
+    scrollBackToTop();
+  }
+
+  function setHoveredWork(work) {
+    hoveredWorkId = work.id;
+  }
+
+  onMount(() => {
+    unlockPageScroll();
+  });
 </script>
 
 <svelte:head>
@@ -171,7 +192,7 @@
 
   <meta
     name="description"
-    content="{artistName} presents selected contemporary artworks, exhibitions, visual projects and case studies in a minimalist artist portfolio."
+    content={`${artistName} presents selected contemporary artworks, exhibitions, visual projects and case studies in a minimalist artist portfolio.`}
   />
 
   <meta name="robots" content="index, follow" />
@@ -185,7 +206,7 @@
   <section class="work-layout" aria-label="Selected works">
     <aside class="left-column" aria-label="Project information">
       <div class="work-filter" aria-label="Work categories">
-        {#each categories() as category, index}
+        {#each categories as category, index}
           <button
             type="button"
             class:active={activeCategory === category}
@@ -227,20 +248,20 @@
             </div>
 
             <div class="case-count">
-              CASE STUDIES({filteredWorks().length})
+              CASE STUDIES({filteredWorks.length})
             </div>
           </div>
         </div>
       {/if}
     </aside>
 
-    {#if filteredWorks().length > 0}
+    {#if filteredWorks.length > 0}
       <section
         class="work-grid"
         aria-label="Work gallery"
         bind:this={workGridElement}
       >
-        {#each filteredWorks() as work, index}
+        {#each filteredWorks as work, index}
           <a
             href={getWorkLink(work)}
             class="work-card"
@@ -783,26 +804,17 @@
   }
 
   @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: 100%;
-      overflow: hidden;
-    }
-
     .work-page {
-      height: 100vh;
-      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
-      padding: 118px 24px 0;
+      overflow: visible;
+      padding: 118px 24px 90px;
     }
 
     .work-layout {
-      height: 100%;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .left-column {
@@ -892,34 +904,13 @@
     .work-grid {
       width: 100%;
       min-height: 0;
-      flex: 1 1 auto;
       margin-left: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 18px 12px;
-      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
-      scrollbar-width: none;
-      scrollbar-color: transparent transparent;
-      -ms-overflow-style: none;
-      overscroll-behavior: contain;
-    }
-
-    .work-grid::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-      display: none;
-      background: transparent;
-    }
-
-    .work-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .work-grid::-webkit-scrollbar-thumb {
-      background: transparent;
+      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
     }
 
     .work-card,
@@ -1017,12 +1008,10 @@
 
   @media (max-width: 700px) {
     .work-page {
-      height: 100vh;
-      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
-      padding: 108px 16px 0;
+      overflow: visible;
+      padding: 108px 16px 90px;
     }
 
     .left-column {
@@ -1072,7 +1061,8 @@
     .work-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+      overflow: visible;
+      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
     }
 
     .work-card,
