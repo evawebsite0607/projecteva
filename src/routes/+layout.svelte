@@ -124,7 +124,7 @@
           stroke="light"
           state="in-reveal"
           colors="primary:#000000,secondary:#000000"
-          style="width:80px;height:80px"
+          style="width:60px;height:60px"
         >
         </lord-icon>
       {:else if isPaintingPage}

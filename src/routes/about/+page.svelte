@@ -1,6 +1,8 @@
 <script>
   let { data } = $props();
 
+  let aboutTextBlockElement = $state(null);
+
   const dummySections = [
     {
       id: "studio",
@@ -30,7 +32,7 @@
     },
   ];
 
-  const aboutSections = [
+  let aboutSections = $derived.by(() => [
     ...(data.sections || []).map((section, index) => ({
       id: `section-${index}`,
       title: section.title,
@@ -41,17 +43,31 @@
       ...section,
       image: data.featuredImage || "",
     })),
-  ];
+  ]);
 
-  let activeSectionId = $state(aboutSections[0]?.id || "");
+  let activeSectionId = $state("");
 
-  let activeSection = $derived(
-    aboutSections.find((section) => section.id === activeSectionId) ||
+  $effect(() => {
+    if (!activeSectionId && aboutSections.length > 0) {
+      activeSectionId = aboutSections[0].id;
+    }
+  });
+
+  let activeSection = $derived.by(
+    () =>
+      aboutSections.find((section) => section.id === activeSectionId) ||
       aboutSections[0],
   );
 
   function selectSection(sectionId) {
     activeSectionId = sectionId;
+
+    if (aboutTextBlockElement) {
+      aboutTextBlockElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   }
 </script>
 
@@ -81,7 +97,7 @@
         {/each}
       </div>
 
-      <div class="about-text-block">
+      <div class="about-text-block" bind:this={aboutTextBlockElement}>
         {#if activeSection}
           <h1>{@html activeSection.title}</h1>
 
@@ -108,44 +124,35 @@
 </main>
 
 <style>
-  /* Define fonts globally */
+  /* DESKTOP ABOUT PAGE — PREMIUM MINIMAL VERSION */
+  /* Same row position as homepage, wider left column, tighter column gap */
+
   :global(:root) {
     --site-font-family: Arial, Helvetica, sans-serif;
   }
 
-  /* Apply fonts to your specific components */
   :global(html),
   :global(body),
   .about-page {
     font-family: var(--site-font-family);
   }
 
-  /* Reset body without locking the scroll */
   :global(body) {
     margin: 0;
     background: #ffffff;
     color: #000000;
+    overflow-x: hidden;
   }
 
   :global(*) {
     box-sizing: border-box;
   }
 
-  /* The overflow: hidden is now only on the page container, not the body */
-  .about-page {
-    width: 100%;
-    height: 100vh;
-    padding: 96px 56px 38px 28px;
-    overflow: hidden; /* This makes the About page internal layout work */
-    background: #ffffff;
-    text-transform: uppercase;
-  }
-
   .about-page {
     width: 100%;
     height: 100vh;
     min-height: 100vh;
-    padding: 96px 56px 38px 28px;
+    padding: 96px 72px 90px 28px;
     overflow: hidden;
     background: #ffffff;
     text-transform: uppercase;
@@ -157,50 +164,54 @@
 
   .about-layout {
     width: 100%;
-    height: calc(100vh - 150px);
+    height: calc(100vh - 186px);
     min-height: 0;
     display: grid;
-    grid-template-columns: 35% minmax(0, 65%);
-    gap: 8px;
+    grid-template-columns: minmax(310px, 36vw) minmax(0, 1fr);
+    gap: clamp(18px, 2vw, 38px);
     align-items: stretch;
     overflow: hidden;
   }
 
   .about-left {
+    width: 100%;
     height: 100%;
+    min-width: 0;
     min-height: 0;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 34px;
-    padding-right: 4px;
+    gap: clamp(48px, 7vh, 82px);
+    padding-right: 0;
     overflow: hidden;
   }
 
   .about-links {
     width: 100%;
+    max-width: 310px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 7px;
+    gap: 8px;
     padding: 0;
+    margin: 0;
   }
 
   .about-link {
     position: relative;
     display: inline-flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 7px;
     width: fit-content;
     max-width: 100%;
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
-    color: #b8b8b8;
-    font-size: clamp(12px, 0.78vw, 13px);
+    color: #b7b7b7;
+    font-size: clamp(11px, 0.7vw, 13px);
     font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.01em;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
     text-align: left;
     text-transform: uppercase;
     cursor: pointer;
@@ -215,19 +226,20 @@
     color: #000000;
   }
 
-  .about-link.active .about-link-label span {
+  .about-link.active .about-link-label span,
+  .about-link:hover .about-link-label span {
     animation: aboutTextLift 0.42s ease both;
   }
 
   .about-link-number {
     display: inline-block;
-    min-width: 17px;
+    min-width: 18px;
     flex-shrink: 0;
     color: inherit;
-    font-size: 0.82em;
+    font-size: 0.78em;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    opacity: 0.62;
+    letter-spacing: 0.05em;
+    opacity: 0.58;
     transform: translateY(-0.5px);
   }
 
@@ -266,11 +278,12 @@
   .about-text-block {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     min-height: 0;
+    justify-self: stretch;
+    align-self: end;
     overflow-y: auto;
-    padding-top: 0;
-    padding-right: 18px;
-    padding-bottom: 24px;
+    padding: 0 12px 4px 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -284,9 +297,9 @@
   .about-text-block h1 {
     width: 100%;
     max-width: 100%;
-    margin: 0 0 38px;
+    margin: 0 0 clamp(22px, 3.5vh, 42px);
     color: #000000;
-    font-size: clamp(12px, 0.78vw, 14px);
+    font-size: clamp(13px, 0.9vw, 16px);
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
@@ -309,16 +322,18 @@
   .about-section-text {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
 
   .about-section-text p {
     width: 100%;
-    margin: 0 0 12px;
-    color: #262626;
-    font-size: clamp(11px, 0.66vw, 12px);
+    max-width: 100%;
+    margin: 0 0 13px;
+    color: #242424;
+    font-size: clamp(11px, 0.68vw, 13px);
     font-weight: 500;
-    line-height: 1.34;
-    letter-spacing: 0.006em;
+    line-height: 1.42;
+    letter-spacing: 0.008em;
     text-transform: uppercase;
   }
 
@@ -331,15 +346,19 @@
 
   .about-right {
     position: relative;
+    width: 100%;
     height: 100%;
+    min-width: 0;
     min-height: 0;
-    display: block;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
     overflow: hidden;
   }
 
   .about-video-frame {
     width: 100%;
-    height: calc(100% - 26px);
+    height: 100%;
     min-height: 0;
     overflow: hidden;
     background: #ffffff;
@@ -349,24 +368,38 @@
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     background: #ffffff;
   }
 
-  @media (max-width: 1280px) {
+  /* DESKTOP REFINEMENT FOR SMALLER LAPTOPS */
+
+  @media (min-width: 1025px) and (max-width: 1280px) {
     .about-page {
-      padding-right: 48px;
+      padding: 96px 72px 90px 28px;
     }
 
     .about-layout {
-      grid-template-columns: 35% minmax(0, 65%);
-      gap: 8px;
+      height: calc(100vh - 186px);
+      grid-template-columns: minmax(290px, 38vw) minmax(0, 1fr);
+      gap: clamp(16px, 2vw, 32px);
     }
 
     .about-left {
-      gap: 32px;
-      padding-right: 4px;
+      gap: clamp(38px, 6vh, 68px);
+    }
+
+    .about-links {
+      max-width: 300px;
+    }
+
+    .about-text-block,
+    .about-text-block h1,
+    .about-section-text,
+    .about-section-text p {
+      width: 100%;
+      max-width: 100%;
     }
 
     .about-text-block h1 {
@@ -374,43 +407,89 @@
     }
   }
 
-  @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: auto;
-      overflow-y: auto;
-    }
+  /* DESKTOP REFINEMENT FOR LARGE SCREENS */
 
+  @media (min-width: 1440px) {
     .about-page {
-      height: auto;
-      min-height: 100vh;
-      padding: 118px 24px 110px;
-      overflow: visible; /* This is the important part for scrolling */
+      padding: 96px 72px 90px 28px;
     }
 
     .about-layout {
+      height: calc(100vh - 186px);
+      grid-template-columns: minmax(360px, 34vw) minmax(0, 1fr);
+      gap: clamp(24px, 2.4vw, 48px);
+    }
+
+    .about-text-block,
+    .about-text-block h1,
+    .about-section-text,
+    .about-section-text p {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  @media (min-width: 1680px) {
+    .about-page {
+      padding: 96px 76px 90px 28px;
+    }
+
+    .about-layout {
+      height: calc(100vh - 186px);
+      grid-template-columns: 540px minmax(0, 1fr);
+      gap: 52px;
+    }
+
+    .about-links {
+      max-width: 340px;
+    }
+
+    .about-text-block,
+    .about-text-block h1,
+    .about-section-text,
+    .about-section-text p {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .about-page {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 68px 24px 0;
+    }
+
+    .about-layout {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      height: auto;
-      min-height: auto;
       gap: 0;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .about-right {
       order: 1;
       width: 100%;
-      height: auto;
+      height: 43vh;
+      height: 43dvh;
       min-height: 0;
+      flex: 0 0 43vh;
+      flex-basis: 43dvh;
       display: block;
-      overflow: visible;
-      margin: 0 0 10px;
+      overflow: hidden;
+      margin: 0 0 14px;
     }
 
     .about-video-frame {
       width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
+      height: 100%;
       min-height: 0;
       margin: 0;
       background: #ffffff;
@@ -421,7 +500,7 @@
       width: 100%;
       height: 100%;
       display: block;
-      object-fit: contain;
+      object-fit: cover;
       object-position: center;
       background: #ffffff;
     }
@@ -429,25 +508,40 @@
     .about-left {
       order: 2;
       width: 100%;
-      height: auto;
-      min-height: auto;
-      display: block;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
       padding-right: 0;
       margin: 0;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .about-links {
       width: 100%;
+      max-height: 22vh;
+      max-height: 22dvh;
+      flex: 0 0 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 12px;
       row-gap: 7px;
       align-items: start;
       justify-items: stretch;
-      margin: 0 0 24px;
+      margin: 0 0 18px;
       padding: 0;
       text-align: left;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .about-links::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
 
     .about-link {
@@ -485,9 +579,22 @@
     .about-text-block {
       width: 100%;
       max-width: 100%;
-      overflow: visible;
-      padding: 0;
+      min-height: 0;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
       margin: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    .about-text-block::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
 
     .about-text-block h1 {
@@ -521,19 +628,29 @@
 
   @media (max-width: 700px) {
     .about-page {
-      padding: 108px 16px 120px;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 62px 16px 0;
     }
 
-    .about-video-frame {
-      height: auto;
-      aspect-ratio: 16 / 9;
+    .about-right {
+      height: 42vh;
+      height: 42dvh;
+      flex: 0 0 42vh;
+      flex-basis: 42dvh;
+      margin-bottom: 12px;
     }
 
     .about-links {
+      max-height: 23vh;
+      max-height: 23dvh;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 10px;
       row-gap: 6px;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
     .about-link {
@@ -544,6 +661,10 @@
     .about-link-number {
       min-width: 18px;
       font-size: 0.82em;
+    }
+
+    .about-text-block {
+      padding-bottom: calc(90px + env(safe-area-inset-bottom));
     }
 
     .about-text-block h1 {
@@ -561,14 +682,24 @@
   }
 
   @media (max-width: 420px) {
-    .about-video-frame {
-      height: auto;
-      aspect-ratio: 16 / 9;
+    .about-page {
+      padding-top: 58px;
+    }
+
+    .about-right {
+      height: 40vh;
+      height: 40dvh;
+      flex: 0 0 40vh;
+      flex-basis: 40dvh;
+      margin-bottom: 11px;
     }
 
     .about-links {
+      max-height: 24vh;
+      max-height: 24dvh;
       column-gap: 9px;
       row-gap: 5px;
+      margin-bottom: 14px;
     }
 
     .about-link {
