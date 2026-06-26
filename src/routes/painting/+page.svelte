@@ -4,15 +4,22 @@
 
   let { data } = $props();
 
-  const initialPainting =
-    data.paintings?.find((painting) => painting.id === data.requestedPostId) ||
-    data.paintings?.[0];
-
-  let selectedPaintingSlug = $state(initialPainting?.postSlug || "");
+  let selectedPaintingSlug = $state("");
   let selectedImageIndex = $state(null);
   let hoveredImageIndex = $state(null);
   let paintingGridElement = $state(null);
   let infoExpanded = $state(false);
+
+  let initialPainting = $derived(
+    data.paintings?.find((painting) => painting.id === data.requestedPostId) ??
+      data.paintings?.[0],
+  );
+
+  $effect(() => {
+    if (!selectedPaintingSlug && initialPainting) {
+      selectedPaintingSlug = initialPainting.postSlug;
+    }
+  });
 
   let selectedPainting = $derived(
     data.paintings?.find(
@@ -889,27 +896,18 @@
   }
 
   @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: 100%;
-      overflow: hidden;
-    }
-
     .paintings-page {
-      height: 100vh;
-      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
-      padding: 118px 24px 0;
+      overflow: visible;
+      padding: 118px 24px 90px;
     }
 
     .paintings-layout {
-      height: 100%;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       gap: 0;
+      overflow: visible;
     }
 
     .left-column {
@@ -1079,43 +1077,20 @@
     }
 
     .right-column {
-      height: 100%;
       min-height: 0;
-      flex: 1 1 auto;
       display: block;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .image-grid {
       width: 100%;
-      height: 100%;
       min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 18px 12px;
-      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
-      scrollbar-width: none;
-      scrollbar-color: transparent transparent;
-      -ms-overflow-style: none;
-      overscroll-behavior: contain;
-    }
-
-    .image-grid::-webkit-scrollbar {
-      width: 0;
-      height: 0;
-      display: none;
-      background: transparent;
-    }
-
-    .image-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .image-grid::-webkit-scrollbar-thumb {
-      background: transparent;
+      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
     }
 
     .image-card,
@@ -1195,12 +1170,10 @@
 
   @media (max-width: 700px) {
     .paintings-page {
-      height: 100vh;
-      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: hidden;
-      padding: 108px 16px 0;
+      overflow: visible;
+      padding: 108px 16px 90px;
     }
 
     .left-column {
@@ -1306,15 +1279,15 @@
     }
 
     .right-column {
-      height: 100%;
       min-height: 0;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .image-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+      overflow: visible;
+      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
     }
 
     .image-card,

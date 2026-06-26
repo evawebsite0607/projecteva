@@ -1,17 +1,21 @@
 <script>
   import { page } from "$app/state";
+  import { afterNavigate } from "$app/navigation";
+  import { browser } from "$app/environment";
+  import { onDestroy } from "svelte";
 
   let { children, data } = $props();
-
   let menuOpen = $state(false);
 
-  const aboutItems = data?.aboutMenuItems || [];
-  const paintingItems = data?.paintingMenuItems || [];
-  const exhibitionItems = data?.exhibitionMenuItems || [];
-  const performanceItems = data?.performanceMenuItems || [];
-  const eventItems = data?.eventMenuItems || [];
+  // --- Data Logic (Retained from your original code) ---
+  let aboutItems = $derived(data?.aboutMenuItems || []);
+  let paintingItems = $derived(data?.paintingMenuItems || []);
+  let exhibitionItems = $derived(data?.exhibitionMenuItems || []);
+  let performanceItems = $derived(data?.performanceMenuItems || []);
+  let eventItems = $derived(data?.eventMenuItems || []);
+  let pathname = $derived(page.url.pathname);
 
-  const menuItems = [
+  let menuItems = $derived.by(() => [
     { label: "Home", href: "/", children: [] },
     { label: "About", href: "/about", children: aboutItems },
     { label: "Paintings", href: "/painting", children: paintingItems },
@@ -24,41 +28,48 @@
     { label: "Events", href: "/event", children: eventItems },
     { label: "Contact", href: "/contact", children: [] },
     { label: "Archive", href: "/archive", children: [] },
-  ];
+  ]);
 
-  let menuImages = $derived(() => {
+  let menuImages = $derived.by(() => {
     const images = [];
-
     [
       ...paintingItems,
       ...exhibitionItems,
       ...eventItems,
       ...aboutItems,
     ].forEach((item) => {
-      if (item.featuredImage && images.length < 10) {
+      if (item.featuredImage && images.length < 10)
         images.push(item.featuredImage);
-      }
     });
-
     return images;
   });
 
-  let currentPageLabel = $derived(() => {
-    const path = page.url.pathname;
-
-    if (path === "/") return "Home";
-    if (path.startsWith("/about")) return "About";
-    if (path.startsWith("/painting")) return "Paintings";
-    if (path.startsWith("/exhibitions")) return "Exhibitions";
-    if (path.startsWith("/performances")) return "Performances";
-    if (path.startsWith("/event")) return "Events";
-    if (path.startsWith("/archive")) return "Archive";
-    if (path.startsWith("/contact")) return "Contact";
-
+  let currentPageLabel = $derived.by(() => {
+    if (pathname === "/") return "Home";
+    if (pathname.startsWith("/about")) return "About";
+    if (pathname.startsWith("/painting")) return "Paintings";
+    if (pathname.startsWith("/exhibitions")) return "Exhibitions";
+    if (pathname.startsWith("/performances")) return "Performances";
+    if (pathname.startsWith("/event")) return "Events";
+    if (pathname.startsWith("/archive")) return "Archive";
+    if (pathname.startsWith("/contact")) return "Contact";
     return "Work";
   });
 
-  let isArchivePage = $derived(() => page.url.pathname.startsWith("/archive"));
+  let isHomePage = $derived(pathname === "/");
+  let isAboutPage = $derived(pathname.startsWith("/about"));
+  let isPaintingPage = $derived(pathname.startsWith("/painting"));
+  let isArchivePage = $derived(pathname.startsWith("/archive"));
+
+  // --- Optimized Scroll Lock Logic ---
+  function updateScrollLock(shouldLock) {
+    if (!browser) return;
+    if (shouldLock) {
+      document.body.classList.add("menu-open-lock");
+    } else {
+      document.body.classList.remove("menu-open-lock");
+    }
+  }
 
   function toggleMenu() {
     menuOpen = !menuOpen;
@@ -68,30 +79,62 @@
     menuOpen = false;
   }
 
+  // Reactive effect ensures the DOM class always matches the state
   $effect(() => {
-    if (typeof document === "undefined") return;
+    updateScrollLock(menuOpen);
+  });
 
-    if (menuOpen) {
-      document.documentElement.classList.add("menu-open-lock");
-      document.body.classList.add("menu-open-lock");
-    } else {
-      document.documentElement.classList.remove("menu-open-lock");
-      document.body.classList.remove("menu-open-lock");
-    }
+  // Automatically unlock and close menu on navigation
+  afterNavigate(() => {
+    menuOpen = false;
+  });
 
-    return () => {
-      document.documentElement.classList.remove("menu-open-lock");
-      document.body.classList.remove("menu-open-lock");
-    };
+  onDestroy(() => {
+    updateScrollLock(false);
   });
 </script>
 
-{#if !isArchivePage()}
+{#if !isArchivePage}
   <header class="site-header" class:menu-is-open={menuOpen}>
     <a href="/" class="logo" onclick={closeMenu}>Eva Eichinger</a>
 
-    <div class="desktop-page-label">
-      {currentPageLabel()}
+    <div class="desktop-page-label" aria-label={currentPageLabel}>
+      {#if isHomePage}
+        <lord-icon
+          src="https://cdn.lordicon.com/skpqewwt.json"
+          trigger="in"
+          delay="1500"
+          stroke="light"
+          state="in-reveal"
+          colors="primary:#000000,secondary:#000000"
+          style="width:80px;height:80px"
+        >
+        </lord-icon>
+      {:else if isAboutPage}
+        <lord-icon
+          src="https://cdn.lordicon.com/urswgamh.json"
+          trigger="in"
+          delay="1500"
+          stroke="light"
+          state="in-reveal"
+          colors="primary:#000000,secondary:#000000"
+          style="width:80px;height:80px"
+        >
+        </lord-icon>
+      {:else if isPaintingPage}
+        <lord-icon
+          src="https://cdn.lordicon.com/snxksidl.json"
+          trigger="in"
+          delay="1500"
+          stroke="light"
+          state="in-reveal"
+          colors="primary:#000000,secondary:#000000"
+          style="width:80px;height:80px"
+        >
+        </lord-icon>
+      {:else}
+        {currentPageLabel}
+      {/if}
     </div>
 
     <button
@@ -143,8 +186,8 @@
       </div>
 
       <div class="desktop-menu-images" aria-hidden="true">
-        {#if menuImages().length > 0}
-          {#each menuImages() as image}
+        {#if menuImages.length > 0}
+          {#each menuImages as image}
             <div class="desktop-menu-image">
               <img src={image} alt="" loading="lazy" />
             </div>
@@ -242,11 +285,30 @@
     --site-font-family: Arial, Helvetica, sans-serif;
   }
 
-  :global(html.menu-open-lock),
+  /* Basic reset */
+  :global(html),
+  :global(body) {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  :global(body) {
+    overflow-x: hidden;
+  }
+
+  /* This class is added by our script to lock scrolling */
   :global(body.menu-open-lock) {
-    overflow: hidden;
-    height: 100%;
-    touch-action: none;
+    overflow: hidden !important;
+    height: 100vh;
+  }
+
+  /* Font inheritance */
+  .site-header,
+  .site-header *,
+  .main-nav,
+  .main-nav * {
+    font-family: var(--site-font-family);
   }
 
   .site-header,
@@ -290,16 +352,25 @@
 
   .desktop-page-label {
     position: fixed;
-    top: 32px;
+    top: 26px;
     right: 28px;
     z-index: 105;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #4e4e4e;
     font-size: 14px;
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.04em;
     text-transform: uppercase;
-    pointer-events: none;
+    pointer-events: auto;
+  }
+
+  .desktop-page-label lord-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
   }
 
   .desktop-menu-control {
@@ -401,6 +472,7 @@
     inset: 0;
     z-index: 103;
     width: 100%;
+    height: 100vh;
     height: 100dvh;
     overflow: hidden;
     background: #000000;
@@ -458,6 +530,7 @@
     top: 0;
     left: 30vw;
     width: 160px;
+    height: 100vh;
     height: 100dvh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -645,7 +718,9 @@
     }
 
     .main-nav {
+      height: 100vh;
       height: 100dvh;
+      max-height: 100vh;
       max-height: 100dvh;
       padding: 76px 24px 24px;
       box-sizing: border-box;
