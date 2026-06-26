@@ -7,15 +7,13 @@
   let { children, data } = $props();
   let menuOpen = $state(false);
 
+  // --- Data Logic (Retained from your original code) ---
   let aboutItems = $derived(data?.aboutMenuItems || []);
   let paintingItems = $derived(data?.paintingMenuItems || []);
   let exhibitionItems = $derived(data?.exhibitionMenuItems || []);
   let performanceItems = $derived(data?.performanceMenuItems || []);
   let eventItems = $derived(data?.eventMenuItems || []);
   let pathname = $derived(page.url.pathname);
-
-  let lockedScrollY = 0;
-  let scrollIsLocked = false;
 
   let menuItems = $derived.by(() => [
     { label: "Home", href: "/", children: [] },
@@ -34,18 +32,15 @@
 
   let menuImages = $derived.by(() => {
     const images = [];
-
     [
       ...paintingItems,
       ...exhibitionItems,
       ...eventItems,
       ...aboutItems,
     ].forEach((item) => {
-      if (item.featuredImage && images.length < 10) {
+      if (item.featuredImage && images.length < 10)
         images.push(item.featuredImage);
-      }
     });
-
     return images;
   });
 
@@ -66,54 +61,14 @@
   let isPaintingPage = $derived(pathname.startsWith("/painting"));
   let isArchivePage = $derived(pathname.startsWith("/archive"));
 
-  function lockPageScroll() {
-    if (!browser || scrollIsLocked) return;
-
-    lockedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-    scrollIsLocked = true;
-
-    document.documentElement.classList.add("menu-open-lock");
-    document.body.classList.add("menu-open-lock");
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${lockedScrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-  }
-
-  function unlockPageScroll(restoreScroll = true) {
-    if (!browser || !scrollIsLocked) return;
-
-    scrollIsLocked = false;
-
-    document.documentElement.classList.remove("menu-open-lock");
-    document.body.classList.remove("menu-open-lock");
-
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    document.body.style.width = "";
-
-    if (restoreScroll) {
-      window.scrollTo(0, lockedScrollY);
-    }
-  }
-
-  function forceUnlockPageScroll() {
+  // --- Optimized Scroll Lock Logic ---
+  function updateScrollLock(shouldLock) {
     if (!browser) return;
-
-    scrollIsLocked = false;
-
-    document.documentElement.classList.remove("menu-open-lock");
-    document.body.classList.remove("menu-open-lock");
-
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    document.body.style.width = "";
+    if (shouldLock) {
+      document.body.classList.add("menu-open-lock");
+    } else {
+      document.body.classList.remove("menu-open-lock");
+    }
   }
 
   function toggleMenu() {
@@ -124,28 +79,24 @@
     menuOpen = false;
   }
 
+  // Reactive effect ensures the DOM class always matches the state
   $effect(() => {
-    if (!browser) return;
-
-    if (menuOpen) {
-      lockPageScroll();
-    } else {
-      unlockPageScroll(true);
-    }
+    updateScrollLock(menuOpen);
   });
 
+  // Automatically unlock and close menu on navigation
   afterNavigate(() => {
     menuOpen = false;
 
+    // Explicitly remove the class to ensure scrolling works
+    // regardless of the previous transition state
     if (browser) {
-      forceUnlockPageScroll();
+      document.body.classList.remove("menu-open-lock");
     }
   });
 
   onDestroy(() => {
-    if (browser) {
-      forceUnlockPageScroll();
-    }
+    updateScrollLock(false);
   });
 </script>
 
@@ -340,19 +291,30 @@
     --site-font-family: Arial, Helvetica, sans-serif;
   }
 
+  /* Basic reset */
   :global(html),
   :global(body) {
     margin: 0;
     padding: 0;
     width: 100%;
     min-height: 100%;
+    overflow-x: hidden; /* This is fine, but avoid overflow-y: hidden */
+  }
+  :global(body) {
     overflow-x: hidden;
   }
 
-  :global(html.menu-open-lock),
   :global(body.menu-open-lock) {
     overflow: hidden !important;
-    overscroll-behavior: none;
+    /* Remove the height line entirely */
+  }
+
+  /* Font inheritance */
+  .site-header,
+  .site-header *,
+  .main-nav,
+  .main-nav * {
+    font-family: var(--site-font-family);
   }
 
   .site-header,
@@ -512,33 +474,22 @@
   }
 
   .main-nav {
-    position: fixed;
-    inset: 0;
-    z-index: 104;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
+    height: 100dvh; /* Using d-v-h is better for mobile browsers */
     padding: 76px 24px 24px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
+    overscroll-behavior: contain; /* This prevents background scrolling */
     -webkit-overflow-scrolling: touch;
     background: #000000;
-    opacity: 0;
-    pointer-events: none;
     transform: translateX(100%);
-    transition:
-      transform 0.35s ease,
-      opacity 0.25s ease;
   }
 
   .main-nav.open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 
   .desktop-menu-brand-block {
@@ -768,30 +719,19 @@
     }
 
     .main-nav {
-      position: fixed;
-      inset: 0;
-      z-index: 104;
-      width: 100%;
-      height: 100vh;
+      /* Use dvh for mobile reliability */
       height: 100dvh;
-      padding: 76px 24px 24px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+      /* Force the menu to be fixed so it doesn't move with the body */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      /* Keep these to ensure the menu scrolls but the page doesn't */
       overflow-y: auto;
-      overflow-x: hidden;
       overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-      background: #000000;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(100%);
     }
 
     .main-nav.open {
-      opacity: 1;
-      pointer-events: auto;
       transform: translateX(0);
     }
 
