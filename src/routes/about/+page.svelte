@@ -108,21 +108,37 @@
 </main>
 
 <style>
+  /* Define fonts globally */
+  :global(:root) {
+    --site-font-family: Arial, Helvetica, sans-serif;
+  }
+
+  /* Apply fonts to your specific components */
   :global(html),
   :global(body),
   .about-page {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--site-font-family);
   }
 
+  /* Reset body without locking the scroll */
   :global(body) {
     margin: 0;
-    overflow: hidden;
     background: #ffffff;
     color: #000000;
   }
 
   :global(*) {
     box-sizing: border-box;
+  }
+
+  /* The overflow: hidden is now only on the page container, not the body */
+  .about-page {
+    width: 100%;
+    height: 100vh;
+    padding: 96px 56px 38px 28px;
+    overflow: hidden; /* This makes the About page internal layout work */
+    background: #ffffff;
+    text-transform: uppercase;
   }
 
   .about-page {
