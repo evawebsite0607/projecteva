@@ -114,6 +114,16 @@
     return ["HOME PAGE"];
   }
 
+  function getDesktopLastCardOffset(count) {
+    const position = count % 4;
+
+    if (position === 1) return 0;
+    if (position === 2) return 34;
+    if (position === 3) return 8;
+
+    return 42;
+  }
+
   let categories = $derived.by(() => {
     const found = new Map();
 
@@ -125,9 +135,18 @@
       });
     });
 
-    return ["ALL WORK", ...Array.from(found.values())];
-  });
+    const preferredOrder = ["PAINTINGS", "EXHIBITIONS", "PERFORMANCES"];
 
+    const orderedCategories = preferredOrder.filter((categoryName) =>
+      found.has(categoryName),
+    );
+
+    const remainingCategories = Array.from(found.values()).filter(
+      (categoryName) => !preferredOrder.includes(categoryName),
+    );
+
+    return ["ALL WORK", ...orderedCategories, ...remainingCategories];
+  });
   let filteredWorks = $derived.by(() => {
     if (activeCategory === "ALL WORK") {
       return allWorks;
@@ -234,9 +253,7 @@
               <span class="filter-number">
                 {String(index).padStart(2, "0")}
               </span>
-            {/if}
-
-            <span class="filter-label">
+            {/if}<span class="filter-label">
               <span>{category}</span>
             </span>
           </button>
@@ -277,6 +294,7 @@
         class="work-grid"
         aria-label="Work gallery"
         bind:this={workGridElement}
+        style={`--last-desktop-offset: ${getDesktopLastCardOffset(filteredWorks.length)}px;`}
       >
         {#each filteredWorks as work, index}
           <a
@@ -325,6 +343,20 @@
     font-family: Arial, Helvetica, sans-serif;
   }
 
+  :global(html),
+  :global(body) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :global(html::-webkit-scrollbar),
+  :global(body::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
@@ -337,8 +369,13 @@
   }
 
   .work-page {
+    --desktop-card-height: clamp(455px, 28vw, 515px);
+
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding: 96px 72px 90px 28px;
     background: #ffffff;
     text-transform: uppercase;
@@ -355,17 +392,21 @@
 
   .work-layout {
     width: 100%;
+    height: 100%;
+    min-height: 0;
     display: grid;
     grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
     gap: 16px;
     align-items: start;
+    overflow: hidden;
   }
 
   .left-column {
-    position: sticky;
-    top: 96px;
-    height: calc(100vh - 186px);
-    min-height: 620px;
+    position: relative;
+    top: auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -382,7 +423,7 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -403,25 +444,23 @@
   }
 
   .work-filter button.all-work-button::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -3px;
-    width: 0;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.65;
-    transition: width 0.32s ease;
+    content: none;
+  }
+
+  .work-filter button.all-work-button .filter-label > span {
+    text-decoration-line: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .work-filter button.all-work-button.active .filter-label > span,
+  .work-filter button.all-work-button:hover .filter-label > span {
+    text-decoration-line: underline;
   }
 
   .work-filter button.active,
   .work-filter button:hover {
     color: #000000;
-  }
-
-  .work-filter button.all-work-button.active::before,
-  .work-filter button.all-work-button:hover::before {
-    width: 100%;
   }
 
   .work-filter button:hover .filter-label span,
@@ -431,7 +470,8 @@
 
   .filter-number {
     display: inline-block;
-    min-width: 17px;
+    min-width: 0;
+    margin-right: 0;
     color: inherit;
     font-size: 0.82em;
     font-weight: 700;
@@ -555,18 +595,43 @@
 
   .work-grid {
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
     column-gap: clamp(20px, 1.6vw, 30px);
     row-gap: clamp(28px, 2vw, 38px);
-    padding: 6px 0 40px;
+    padding: 0 0 var(--last-desktop-offset, 0px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
+  }
+
+  .work-grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  .work-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .work-grid::-webkit-scrollbar-thumb {
+    background: transparent;
   }
 
   .work-card {
     position: relative;
     display: block;
-    height: clamp(455px, 28vw, 515px);
+    height: var(--desktop-card-height);
     min-height: 0;
     overflow: hidden;
     color: #000000;
@@ -759,6 +824,8 @@
 
   @media (min-width: 1440px) {
     .work-page {
+      --desktop-card-height: clamp(455px, 27vw, 510px);
+
       padding-right: 72px;
     }
 
@@ -766,14 +833,12 @@
       grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
       gap: 14px;
     }
-
-    .work-card {
-      height: clamp(455px, 27vw, 510px);
-    }
   }
 
   @media (min-width: 1680px) {
     .work-page {
+      --desktop-card-height: 510px;
+
       padding-right: 76px;
     }
 
@@ -789,14 +854,12 @@
     .project-preview-info {
       max-width: 260px;
     }
-
-    .work-card {
-      height: 510px;
-    }
   }
 
   @media (max-width: 1280px) {
     .work-page {
+      --desktop-card-height: 455px;
+
       padding: 96px 72px 90px 28px;
     }
 
@@ -813,10 +876,6 @@
     .work-grid {
       column-gap: 22px;
       row-gap: 32px;
-    }
-
-    .work-card {
-      height: 455px;
     }
   }
 
@@ -849,16 +908,16 @@
       flex: 0 0 auto;
       display: block;
       margin: 0;
-      padding-top: 86px;
-      padding-bottom: 24px;
+      padding-top: 116px;
+      padding-bottom: 26px;
       background: #ffffff;
     }
 
     .work-filter {
       position: fixed;
-      top: 118px;
-      left: 24px;
-      right: 24px;
+      top: 108px;
+      left: 16px;
+      right: 16px;
       z-index: 40;
       width: auto;
       display: flex;
@@ -867,22 +926,24 @@
       gap: 7px;
       margin: 0;
       padding: 0;
-      text-align: right;
+      text-align: left;
       background: #ffffff;
     }
 
     .work-filter button {
       display: inline-flex;
-      width: auto;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
       margin: 0;
       padding: 0;
-      text-align: right;
-      font-size: 14px;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .work-filter button.all-work-button::before {
-      left: auto;
-      right: 0;
+      left: 0;
+      right: auto;
     }
 
     .project-preview {
@@ -1060,8 +1121,8 @@
     }
 
     .left-column {
-      padding-top: 76px;
-      padding-bottom: 22px;
+      padding-top: 104px;
+      padding-bottom: 24px;
     }
 
     .work-filter {
@@ -1077,16 +1138,17 @@
       gap: 7px;
       margin: 0;
       padding: 0;
-      text-align: right;
+      text-align: left;
       background: #ffffff;
     }
 
     .work-filter button {
       display: inline-flex;
-      width: auto;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
       margin: 0;
       padding: 0;
-      text-align: right;
+      text-align: left;
       font-size: 12px;
       line-height: 1.08;
     }
@@ -1167,8 +1229,8 @@
 
   @media (max-width: 420px) {
     .left-column {
-      padding-top: 72px;
-      padding-bottom: 20px;
+      padding-top: 100px;
+      padding-bottom: 22px;
     }
 
     .project-preview h1 {

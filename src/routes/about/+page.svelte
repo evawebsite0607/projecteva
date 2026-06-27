@@ -1,7 +1,19 @@
 <script>
+  import { onMount, onDestroy } from "svelte";
+
   let { data } = $props();
 
   let aboutTextBlockElement = $state(null);
+
+  let aboutVideo = $state(null);
+  let showVideoThumbnail = $state(true);
+  let videoStartTimer;
+
+  const aboutVideoSrc =
+    "https://testing.zorawebdesign.com/wp-content/uploads/2026/06/Video-Project-eva.mp4";
+
+  const aboutVideoThumbnail =
+    "https://testing.zorawebdesign.com/wp-content/uploads/2026/06/atelierportrait.webp";
 
   const dummySections = [
     {
@@ -59,6 +71,37 @@
       aboutSections[0],
   );
 
+  onMount(() => {
+    videoStartTimer = setTimeout(() => {
+      playAboutVideoOnce();
+    }, 3500);
+  });
+
+  onDestroy(() => {
+    clearTimeout(videoStartTimer);
+  });
+
+  async function playAboutVideoOnce() {
+    if (!aboutVideo) return;
+
+    showVideoThumbnail = false;
+    aboutVideo.currentTime = 0;
+
+    try {
+      await aboutVideo.play();
+    } catch (error) {
+      showVideoThumbnail = true;
+    }
+  }
+
+  function handleAboutVideoEnded() {
+    if (!aboutVideo) return;
+
+    aboutVideo.pause();
+    aboutVideo.currentTime = 0;
+    showVideoThumbnail = true;
+  }
+
   function selectSection(sectionId) {
     activeSectionId = sectionId;
 
@@ -112,11 +155,23 @@
 
     <section class="about-right" aria-label="About video">
       <div class="about-video-frame">
-        <video autoplay muted loop playsinline preload="auto">
-          <source
-            src="https://testing.zorawebdesign.com/wp-content/uploads/2026/06/Video-Project-eva.mp4"
-            type="video/mp4"
+        {#if showVideoThumbnail}
+          <img
+            class="about-video-thumbnail"
+            src={aboutVideoThumbnail}
+            alt="Eva Eichinger video preview"
           />
+        {/if}
+
+        <video
+          bind:this={aboutVideo}
+          muted
+          playsinline
+          preload="auto"
+          poster={aboutVideoThumbnail}
+          onended={handleAboutVideoEnded}
+        >
+          <source src={aboutVideoSrc} type="video/mp4" />
         </video>
       </div>
     </section>
@@ -160,6 +215,28 @@
 
   .about-page p {
     text-transform: none;
+  }
+
+  .about-video-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #eeeeee;
+  }
+
+  .about-video-frame video,
+  .about-video-thumbnail {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .about-video-thumbnail {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
   }
 
   .about-layout {

@@ -236,18 +236,18 @@
     <div class="desktop-page-label" aria-label={currentPageLabel}>
       {#if isHomePage}
         <lord-icon
-          src="https://cdn.lordicon.com/skpqewwt.json"
+          src="https://cdn.lordicon.com/exymduqj.json"
           trigger="in"
           delay="1500"
           stroke="light"
           state="in-reveal"
           colors="primary:#000000,secondary:#000000"
-          style="width:80px;height:80px"
+          style="width:60px;height:60px"
         >
         </lord-icon>
       {:else if isAboutPage}
         <lord-icon
-          src="https://cdn.lordicon.com/urswgamh.json"
+          src="https://cdn.lordicon.com/mtuudzxm.json"
           trigger="in"
           delay="1500"
           stroke="light"
@@ -259,12 +259,10 @@
       {:else if isPaintingPage}
         <lord-icon
           src="https://cdn.lordicon.com/snxksidl.json"
-          trigger="in"
-          delay="1500"
+          trigger="hover"
           stroke="light"
-          state="in-reveal"
           colors="primary:#000000,secondary:#000000"
-          style="width:80px;height:80px"
+          style="width:60px;height:60px"
         >
         </lord-icon>
       {:else}

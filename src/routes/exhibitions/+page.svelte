@@ -4,199 +4,30 @@
 
   let { data } = $props();
 
-  const soloExhibitions = [
-    {
-      year: "2020",
-      items: ["Als ich über Bäume sprang, Edition, Linz"],
-    },
-    {
-      year: "2019",
-      items: ["TOP SHELF/BOTTOM DRAWER – SONNTAGSZIMMER, VIENNA"],
-    },
-    {
-      year: "2016",
-      items: [
-        "IMPORTANCE OF DESTRUCTION IN AN ENVIRONMENT OF HARMONY – PARADIGMA, LINZ",
-      ],
-    },
-    {
-      year: "2012",
-      items: [
-        "ROCKET SCIENTISTS REMEMBER HOW IT FEELS TO FLY – KUNST IM BAD, LINZ",
-      ],
-    },
-  ];
-
-  const groupExhibitions = [
-    {
-      year: "2023",
-      items: ["PARALLEL ART FAIR"],
-    },
-    {
-      year: "2022",
-      items: ["AUFWÄRTS FALLEN", "Oberösterreichischer Kunstverein"],
-    },
-    {
-      year: "2021",
-      items: [
-        "Vier Mal Solo Ein Mal im Duo - Galerie Jonathan Seiffert, Wien",
-        "WO IST DAS SCHÖNE LEBEN HIN? RCS Karlsplatz, Wien",
-      ],
-    },
-    {
-      year: "2020",
-      items: [
-        "In the Deep Lightness, Kluckyland Wien",
-        "Kultur braucht Kunst – Schlossmuseum Linz, Linz",
-        "PARALLEL ART FAIR (REPRESENTED BY KAH) – RUDOLF SALLINGER PL. 1, VIENNA",
-      ],
-    },
-    {
-      year: "2019",
-      items: [
-        "FROZEN FINGERS – KUNSTHALLE LINZ, LINZ",
-        "PARALLEL ART FAIR (REPRESENTED BY KAH) – LASSALLESTRASSE 5, VIENN",
-        "TEMPOTEMPO – BEARDED BIRD STUDIOS, VIENNA",
-        "36. ÖSTERREICHISCHER GRAFIKWETTBEWERB, TAXISPALAIS KUNSTHALLE TIROL, INNSBRUCK",
-      ],
-    },
-    {
-      year: "2018",
-      items: [
-        "KISM | ART | ON – Kunstverein Eisenstadt, Eisenstadt",
-        "schade, aber schön – kaeshmaesh, Vienna",
-        "Open Call Exhibition – Delphian Gallery, London UK",
-      ],
-    },
-    {
-      year: "2017",
-      items: [
-        "Ex Change – Henrici Schloßquartier, Eisenstadt",
-        "Negotiations – Reindorfgasse 42, Vienna",
-      ],
-    },
-    {
-      year: "2016",
-      items: [
-        "All in – curated by Andreas Reiter Raabe – Deutschvilla, Strobl",
-        "Freunde des Lentos Kunstpreis – LENTOS Auditorium, Linz",
-      ],
-    },
-    {
-      year: "2014",
-      items: [
-        "malerei forever – Perspektiven Attersee, Attersee",
-        "bestOff 2014 – Brückenkopfgebäude West, Linz",
-        "aquarellhappening – Mehlerhaus, Tux",
-      ],
-    },
-    {
-      year: "2013",
-      items: [
-        "between domestic and wild – Galerie West Linz",
-        "Kunst im öffentlichen Raum – Galerie der Stadt Wels",
-      ],
-    },
-    {
-      year: "2012",
-      items: [
-        "best off 2012 – Tabakfabrik Linz",
-        "4th IOC Sport and Art Contest – Guildhall Gallery London",
-        "Painting with Light – Impossible Shop Vienna",
-        "Reglose Steigerung des Ungreifbaren – PP6 Linz",
-        "Under Pressure – KAPU Linz",
-      ],
-    },
-    {
-      year: "2011",
-      items: [
-        "best off 2011 – Tabakfabrik Linz",
-        "ARTBASELMIAMIBEACHWELS #2 – Galerie der Stadt Wels",
-      ],
-    },
-    {
-      year: "2010",
-      items: ["2010 EXHIBITION – Fluc Vienna"],
-    },
-  ];
-
-  const residenceItems = [
-    {
-      year: "2021",
-      items: [
-        "studio of the Austrian federal chancellery, Visual Art Department, Studio: Westbahnstrasse",
-      ],
-    },
-    {
-      year: "2020",
-      items: [
-        "Artist in Residence in Cesky Krumlov, scholarship of Upper Austria",
-      ],
-    },
-    {
-      year: "2019",
-      items: [
-        "purchase through “dieKunstsammlung des Landes Oberösterreich”",
-        "studio work stay in Copenhagen, Denmark",
-      ],
-    },
-    {
-      year: "2014",
-      items: ["Aquarellhappening in Tux, Tyrol"],
-    },
-    {
-      year: "2013",
-      items: ["summer academy Traunkirchen – class of Leo Kandl, Photography"],
-    },
-  ];
-
-  const sections = [
-    {
-      id: "selected",
-      label: "Selected Exhibitions",
-      heading: "Selected Exhibitions",
-      entries: [],
-    },
-    {
-      id: "solo",
-      label: "Solo Exhibitions",
-      heading: "Solo Exhibitions",
-      entries: soloExhibitions,
-    },
-    {
-      id: "group",
-      label: "Group Exhibitions",
-      heading: "Group Exhibitions",
-      entries: groupExhibitions,
-    },
-    {
-      id: "residence",
-      label: "Residence & Scholarships",
-      heading: "Artist in Residence & Scholarships",
-      entries: residenceItems,
-    },
-  ];
-
-  const initialExhibition =
-    data.selectedExhibitions?.find(
-      (exhibition) => exhibition.id === data.requestedPostId,
-    ) || data.selectedExhibitions?.[0];
-
-  let activeSectionId = $state("selected");
-  let selectedYearSlug = $state(initialExhibition?.yearSlug || "");
+  let selectedExhibitionId = $state(null);
   let selectedImageIndex = $state(null);
   let hoveredImageIndex = $state(null);
   let exhibitionGridElement = $state(null);
   let infoExpanded = $state(false);
 
-  let activeSection = $derived(
-    sections.find((section) => section.id === activeSectionId) || sections[0],
+  let exhibitions = $derived(
+    Array.isArray(data.selectedExhibitions) ? data.selectedExhibitions : [],
   );
 
+  let initialExhibition = $derived(
+    exhibitions.find((exhibition) => exhibition.id === data.requestedPostId) ??
+      exhibitions[0],
+  );
+
+  $effect(() => {
+    if (selectedExhibitionId === null && initialExhibition) {
+      selectedExhibitionId = initialExhibition.id;
+    }
+  });
+
   let selectedExhibition = $derived(
-    data.selectedExhibitions?.find(
-      (exhibition) => exhibition.yearSlug === selectedYearSlug,
-    ) || data.selectedExhibitions?.[0],
+    exhibitions.find((exhibition) => exhibition.id === selectedExhibitionId) ||
+      exhibitions[0],
   );
 
   let selectedImages = $derived(selectedExhibition?.images || []);
@@ -206,34 +37,21 @@
   );
 
   let shouldShowInfoToggle = $derived(
-    activeSectionId === "selected"
-      ? (selectedExhibition?.info || "").length > 200
-      : false,
+    (selectedExhibition?.info || "").length > 200,
   );
 
-  function scrollContentToTop() {
+  function selectExhibition(exhibition) {
+    selectedExhibitionId = exhibition.id;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+
     if (exhibitionGridElement) {
       exhibitionGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
-  }
-
-  function selectSection(sectionId) {
-    activeSectionId = sectionId;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-    infoExpanded = false;
-    scrollContentToTop();
-  }
-
-  function selectExhibition(exhibition) {
-    selectedYearSlug = exhibition.yearSlug;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-    infoExpanded = false;
-    scrollContentToTop();
   }
 
   function setHoveredImage(index) {
@@ -275,7 +93,12 @@
   }
 
   function scrollBackToTop() {
-    scrollContentToTop();
+    if (exhibitionGridElement) {
+      exhibitionGridElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   }
 
   function handleKeydown(event) {
@@ -296,120 +119,84 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-  <title>Exhibitions | Eva Eichinger</title>
+  <title>{selectedExhibition?.title || "Exhibitions"} | Eva Eichinger</title>
 
   <meta
     name="description"
-    content="Explore solo exhibitions, group exhibitions, residences, scholarships, and selected exhibition images by Eva Eichinger."
+    content="Explore selected exhibitions, visual works, image galleries, and contemporary art projects by Eva Eichinger."
   />
 </svelte:head>
 
 <main class="exhibitions-page">
-  <section class="exhibitions-layout" aria-label="Exhibitions">
-    <aside class="left-column" aria-label="Exhibition navigation">
-      <div class="navigation-area">
-        <div class="section-links">
-          {#each sections as section}
-            <div class="section-link-group">
+  {#if exhibitions.length > 0}
+    <section class="exhibitions-layout" aria-label="Exhibitions">
+      <aside class="left-column" aria-label="Exhibition navigation">
+        <div class="navigation-area">
+          <div class="section-links">
+            <button type="button" class="section-button active">
+              <span class="section-label">
+                <span>Selected Exhibitions</span>
+              </span>
+            </button>
+          </div>
+
+          <div class="selected-exhibition-links">
+            {#each exhibitions as exhibition, index}
               <button
                 type="button"
-                class="section-button"
-                class:active={activeSectionId === section.id}
-                onclick={() => selectSection(section.id)}
-              >
-                {section.label}
-              </button>
-
-              {#if section.id === "selected" && activeSectionId === "selected" && data.selectedExhibitions?.length}
-                <div class="selected-year-links mobile-selected-year-links">
-                  {#each data.selectedExhibitions as exhibition, index}
-                    <button
-                      type="button"
-                      class="selected-year-button"
-                      class:active={selectedExhibition?.yearSlug ===
-                        exhibition.yearSlug}
-                      onclick={() => selectExhibition(exhibition)}
-                    >
-                      <span class="mobile-year-index">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-
-                      <span>{exhibition.title}</span>
-                    </button>
-                  {/each}
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-
-        {#if activeSectionId === "selected" && data.selectedExhibitions?.length}
-          <div class="selected-year-links desktop-selected-year-links">
-            {#each data.selectedExhibitions as exhibition, index}
-              <button
-                type="button"
-                class="selected-year-button"
-                class:active={selectedExhibition?.yearSlug ===
-                  exhibition.yearSlug}
+                class="selected-exhibition-button"
+                class:active={selectedExhibition?.id === exhibition.id}
                 onclick={() => selectExhibition(exhibition)}
               >
-                <span class="desktop-year-index">
+                <span class="exhibition-list-number">
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
-                <span>{exhibition.title}</span>
+                <span class="exhibition-button-label">
+                  <span>{exhibition.title}</span>
+                </span>
               </button>
             {/each}
           </div>
-        {/if}
-      </div>
+        </div>
 
-      <div class="exhibition-preview">
-        {#if activeSectionId === "selected" && selectedExhibition}
-          <h1>{selectedExhibition.title}</h1>
+        <div class="exhibition-preview">
+          {#if selectedExhibition}
+            <h1>{selectedExhibition.title}</h1>
 
-          <div class="preview-bottom">
-            <div class="preview-info">
-              {#if selectedExhibition.info}
-                <div
-                  class="exhibition-description"
-                  class:expanded={infoExpanded}
-                >
-                  <p>{selectedExhibition.info}</p>
-                </div>
-
-                {#if shouldShowInfoToggle}
-                  <button
-                    type="button"
-                    class="info-toggle"
-                    onclick={() => (infoExpanded = !infoExpanded)}
+            <div class="preview-bottom">
+              <div class="preview-info">
+                {#if selectedExhibition.info}
+                  <div
+                    class="exhibition-description"
+                    class:expanded={infoExpanded}
                   >
-                    {infoExpanded ? "Less −" : "More +"}
-                  </button>
+                    <p>{selectedExhibition.info}</p>
+                  </div>
+
+                  {#if shouldShowInfoToggle}
+                    <button
+                      type="button"
+                      class="info-toggle"
+                      onclick={() => (infoExpanded = !infoExpanded)}
+                    >
+                      {infoExpanded ? "Less −" : "More +"}
+                    </button>
+                  {/if}
+                {:else}
+                  <p>Selected exhibition images and documentation.</p>
                 {/if}
-              {:else}
-                <p>Selected exhibition images and documentation.</p>
-              {/if}
+              </div>
             </div>
-          </div>
-        {:else}
-          <h1>{activeSection.heading}</h1>
+          {/if}
+        </div>
+      </aside>
 
-          <div class="preview-bottom">
-            <div class="preview-info">
-              <p>Selected exhibition history, residences, and scholarships.</p>
-            </div>
-          </div>
-        {/if}
-      </div>
-    </aside>
-
-    <section class="right-column" aria-label="Exhibition content">
-      {#if activeSectionId === "selected"}
-        {#if selectedExhibition?.images?.length}
-          {#key selectedExhibition.yearSlug}
+      <section class="right-column" aria-label="Exhibition content">
+        {#if selectedImages.length}
+          {#key selectedExhibition.id}
             <div class="image-grid" bind:this={exhibitionGridElement}>
-              {#each selectedExhibition.images as image, index}
+              {#each selectedImages as image, index}
                 <button
                   type="button"
                   class="image-card"
@@ -426,7 +213,9 @@
                     />
                   </figure>
 
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <span class="image-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </button>
               {/each}
 
@@ -442,27 +231,11 @@
         {:else}
           <p class="empty-message">No images found for this exhibition.</p>
         {/if}
-      {:else}
-        <div class="text-grid" bind:this={exhibitionGridElement}>
-          {#each activeSection.entries as group}
-            <section class="entry-group">
-              <h2>{group.year}</h2>
-
-              <div class="entry-items">
-                {#each group.items as item}
-                  <p>{item}</p>
-                {/each}
-              </div>
-            </section>
-          {/each}
-
-          <button type="button" class="back-to-top" onclick={scrollBackToTop}>
-            BACK TO TOP
-          </button>
-        </div>
-      {/if}
+      </section>
     </section>
-  </section>
+  {:else}
+    <p class="empty-message">No exhibition posts found.</p>
+  {/if}
 
   {#if selectedImage}
     <div class="exhibition-lightbox" role="dialog" aria-modal="true">
@@ -492,7 +265,7 @@
 
         <div class="lightbox-meta">
           <span>
-            {String(selectedImageIndex + 1).padStart(2, "0")} — {String(
+            {String((selectedImageIndex ?? 0) + 1).padStart(2, "0")} — {String(
               selectedImages.length,
             ).padStart(2, "0")}
           </span>
@@ -518,10 +291,15 @@
 </main>
 
 <style>
+  :global(html),
+  :global(body),
+  .exhibitions-page {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
-    font-family: Arial, Helvetica, sans-serif;
     background: #ffffff;
     color: #000000;
   }
@@ -533,15 +311,24 @@
   .exhibitions-page {
     width: 100%;
     min-height: 100vh;
-    padding: 96px 90px 90px 28px;
+    padding: 96px 72px 90px 28px;
     background: #ffffff;
+    text-transform: uppercase;
+  }
+
+  .exhibitions-page button {
+    font-family: inherit;
+  }
+
+  .exhibitions-page p {
+    text-transform: none;
   }
 
   .exhibitions-layout {
     width: 100%;
     display: grid;
-    grid-template-columns: 19% 81%;
-    gap: 34px;
+    grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
   }
 
@@ -550,9 +337,9 @@
     top: 96px;
     height: calc(100vh - 186px);
     min-height: 620px;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .navigation-area {
@@ -560,93 +347,166 @@
     display: grid;
     grid-template-rows: auto auto;
     align-content: start;
-    gap: 14px;
+    gap: 12px;
     margin: 0;
     padding: 0;
   }
 
   .section-links,
-  .selected-year-links {
+  .selected-exhibition-links {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 7px;
     margin: 0;
     padding: 0;
     text-align: left;
   }
 
-  .section-link-group {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  .selected-year-links {
-    max-height: 220px;
+  .selected-exhibition-links {
+    max-height: 240px;
     overflow-y: auto;
     padding-right: 4px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  .selected-year-links::-webkit-scrollbar {
+  .selected-exhibition-links::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
 
-  .mobile-selected-year-links {
-    display: none;
-  }
-
-  .mobile-year-index {
-    display: none;
-  }
-
   .section-button,
-  .selected-year-button {
-    display: block;
+  .selected-exhibition-button {
+    position: relative;
     width: auto;
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
-    color: #bdbdbd;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.08;
+    color: #b8b8b8;
+    font-size: clamp(12px, 0.78vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
     text-align: left;
-    text-transform: uppercase;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition:
+      color 0.28s ease,
+      opacity 0.28s ease;
+    text-transform: uppercase;
+  }
+
+  .section-button {
+    color: #000000;
+  }
+
+  .section-button::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.65;
+  }
+
+  .selected-exhibition-button {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .section-button:hover .section-label span,
+  .section-button.active .section-label span,
+  .selected-exhibition-button:hover .exhibition-button-label span,
+  .selected-exhibition-button.active .exhibition-button-label span {
+    animation: exhibitionTextLift 0.42s ease both;
+  }
+
+  .exhibition-list-number {
+    display: inline-block;
+    min-width: 17px;
+    flex-shrink: 0;
+    color: inherit;
+    font-size: 0.82em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    opacity: 0.62;
+    transform: translateY(-0.5px);
+  }
+
+  .section-label,
+  .exhibition-button-label {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+  }
+
+  .section-label span,
+  .exhibition-button-label span {
+    display: inline-block;
   }
 
   .section-button.active,
   .section-button:hover,
   .section-button:focus,
-  .selected-year-button.active,
-  .selected-year-button:hover,
-  .selected-year-button:focus {
+  .selected-exhibition-button.active,
+  .selected-exhibition-button:hover,
+  .selected-exhibition-button:focus {
     color: #000000;
+  }
+
+  @keyframes exhibitionTextLift {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    42% {
+      transform: translateY(-110%);
+      opacity: 0;
+    }
+
+    43% {
+      transform: translateY(110%);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .exhibition-preview {
     width: 100%;
-    align-self: end;
-    min-height: 0;
   }
 
   .exhibition-preview h1 {
-    max-width: 340px;
-    margin: 0 0 46px;
+    max-width: 280px;
+    margin: 0 0 42px;
     color: #000000;
-    font-size: clamp(27px, 2.55vw, 45px);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.055em;
+    font-size: clamp(12px, 0.78vw, 14px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: 0.005em;
+    animation: previewTitleIn 0.46s ease both;
+  }
+
+  @keyframes previewTitleIn {
+    0% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .preview-bottom {
@@ -657,15 +517,17 @@
   }
 
   .preview-info {
-    max-width: 330px;
+    max-width: 265px;
   }
 
   .preview-info p {
     margin: 0;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.2;
+    color: #262626;
+    font-size: clamp(11px, 0.66vw, 12px);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: 0.006em;
+    text-transform: uppercase;
   }
 
   .exhibition-description {
@@ -684,6 +546,7 @@
 
   .exhibition-description p {
     margin: 0;
+    text-transform: uppercase;
   }
 
   .info-toggle {
@@ -692,12 +555,11 @@
     border: 0;
     background: transparent;
     color: #000000;
-    font-family: Arial, Helvetica, sans-serif;
     font-size: 12px;
     font-weight: 900;
     line-height: 1;
-    text-transform: uppercase;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .right-column {
@@ -707,24 +569,60 @@
 
   .image-grid {
     width: 100%;
+    min-width: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 12px;
-    padding: 0;
+    column-gap: clamp(20px, 1.6vw, 30px);
+    row-gap: clamp(28px, 2vw, 38px);
+    padding: 6px 0 40px;
   }
 
   .image-card {
     position: relative;
     display: block;
-    min-height: 560px;
+    height: clamp(455px, 28vw, 515px);
+    min-height: 0;
     overflow: hidden;
     padding: 0;
     border: 0;
     color: #000000;
-    background: #eeeeee;
+    background: #f8f8f6;
     text-align: left;
     cursor: pointer;
+    isolation: isolate;
+    transition:
+      background 0.45s ease,
+      transform 0.45s ease;
+  }
+
+  .image-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.22),
+        rgba(255, 255, 255, 0) 30%
+      ),
+      linear-gradient(to top, rgba(0, 0, 0, 0.055), rgba(0, 0, 0, 0) 42%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.42s ease;
+  }
+
+  .image-card::after {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.985);
+    transition:
+      opacity 0.42s ease,
+      transform 0.42s ease;
   }
 
   .image-card figure {
@@ -734,90 +632,78 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eeeeee;
+    background: #f8f8f6;
   }
 
   .image-card img {
     width: 100%;
     height: 100%;
-    min-height: 560px;
+    min-height: 0;
     display: block;
     object-fit: cover;
     object-position: center;
+    transform: scale(1.01);
     transition:
-      opacity 0.35s ease,
-      width 0.55s ease,
-      height 0.55s ease,
-      filter 0.55s ease;
+      opacity 0.45s ease,
+      width 0.65s ease,
+      height 0.65s ease,
+      transform 0.65s ease,
+      filter 0.65s ease;
   }
 
   .image-grid:hover .image-card img {
-    opacity: 0.12;
-    filter: grayscale(10%);
+    opacity: 0.38;
+    filter: grayscale(12%) contrast(0.94) brightness(1.03);
+  }
+
+  .image-grid:hover .image-card:hover,
+  .image-grid:hover .image-card.active {
+    background: #fbfaf7;
+  }
+
+  .image-grid:hover .image-card:hover::before,
+  .image-grid:hover .image-card.active::before {
+    opacity: 1;
+  }
+
+  .image-grid:hover .image-card:hover::after,
+  .image-grid:hover .image-card.active::after {
+    opacity: 1;
+    transform: scale(1);
   }
 
   .image-grid:hover .image-card:hover img,
   .image-grid:hover .image-card.active img {
-    width: 92%;
-    height: 92%;
+    width: calc(100% - 46px);
+    height: calc(100% - 46px);
     min-height: 0;
     opacity: 1;
     object-fit: contain;
+    transform: scale(1);
     filter: none;
   }
 
-  .image-card span {
+  .image-number {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 22px;
+    left: 22px;
     z-index: 4;
     color: #000000;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 900;
     line-height: 1;
+    letter-spacing: 0.05em;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transform: translateY(4px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
   }
 
-  .image-card:hover span,
-  .image-card.active span {
+  .image-card:hover .image-number,
+  .image-card.active .image-number {
     opacity: 1;
-  }
-
-  .text-grid {
-    width: 100%;
-    max-width: 980px;
-    padding-bottom: 90px;
-  }
-
-  .entry-group {
-    display: grid;
-    grid-template-columns: 90px minmax(0, 1fr);
-    gap: 30px;
-    margin-bottom: 26px;
-  }
-
-  .entry-group h2 {
-    margin: 0;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1.2;
-  }
-
-  .entry-items {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-
-  .entry-items p {
-    margin: 0;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.22;
-    text-transform: uppercase;
+    transform: translateY(0);
   }
 
   .back-to-top {
@@ -829,20 +715,18 @@
     border: 0;
     background: transparent;
     color: #000000;
-    font-family: Arial, Helvetica, sans-serif;
     font-size: 14px;
     font-weight: 900;
     line-height: 1;
-    text-transform: uppercase;
     cursor: pointer;
   }
 
   .empty-message {
     margin: 0;
+    padding: 120px 0;
     color: #000000;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 900;
-    text-transform: uppercase;
   }
 
   .exhibition-lightbox {
@@ -880,11 +764,18 @@
     font-size: 12px;
     font-weight: 400;
     line-height: 1.35;
+  }
+
+  .lightbox-meta span {
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
   .lightbox-meta p {
     margin: 0;
+    text-transform: none;
   }
 
   .lightbox-close {
@@ -895,21 +786,19 @@
     border: 0;
     background: transparent;
     color: #000000;
-    font-family: inherit;
     font-size: 13px;
-    text-transform: uppercase;
+    font-weight: 900;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .lightbox-arrow {
     width: 46px;
     height: 46px;
-    border: 1px solid #d8d2cc;
-    border-radius: 50%;
-    background: #ffffff;
+    border: 0;
+    background: transparent;
     color: #000000;
-    font-family: inherit;
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
   }
 
@@ -921,22 +810,104 @@
     justify-self: end;
   }
 
-  @media (max-width: 1280px) {
+  @media (min-width: 1025px) {
+    .image-card:nth-child(4n + 1) {
+      transform: translateY(0);
+    }
+
+    .image-card:nth-child(4n + 2) {
+      transform: translateY(34px);
+    }
+
+    .image-card:nth-child(4n + 3) {
+      transform: translateY(8px);
+    }
+
+    .image-card:nth-child(4n + 4) {
+      transform: translateY(42px);
+    }
+
+    .image-card:nth-child(4n + 1):hover,
+    .image-card:nth-child(4n + 1).active {
+      transform: translateY(-3px);
+    }
+
+    .image-card:nth-child(4n + 2):hover,
+    .image-card:nth-child(4n + 2).active {
+      transform: translateY(31px);
+    }
+
+    .image-card:nth-child(4n + 3):hover,
+    .image-card:nth-child(4n + 3).active {
+      transform: translateY(5px);
+    }
+
+    .image-card:nth-child(4n + 4):hover,
+    .image-card:nth-child(4n + 4).active {
+      transform: translateY(39px);
+    }
+  }
+
+  @media (min-width: 1440px) {
     .exhibitions-page {
-      padding: 96px 80px 90px 28px;
+      padding-right: 72px;
     }
 
     .exhibitions-layout {
-      grid-template-columns: 21% 79%;
+      grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .image-card {
+      height: clamp(455px, 27vw, 510px);
+    }
+  }
+
+  @media (min-width: 1680px) {
+    .exhibitions-page {
+      padding-right: 76px;
+    }
+
+    .exhibitions-layout {
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 14px;
     }
 
     .exhibition-preview h1 {
-      font-size: clamp(26px, 2.4vw, 38px);
+      max-width: 270px;
     }
 
-    .image-card,
-    .image-card img {
-      min-height: 500px;
+    .preview-info {
+      max-width: 260px;
+    }
+
+    .image-card {
+      height: 510px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    .exhibitions-page {
+      padding: 96px 72px 90px 28px;
+    }
+
+    .exhibitions-layout {
+      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .exhibition-preview h1 {
+      max-width: 280px;
+      font-size: clamp(13px, 0.95vw, 15px);
+    }
+
+    .image-grid {
+      column-gap: 22px;
+      row-gap: 32px;
+    }
+
+    .image-card {
+      height: 455px;
     }
   }
 
@@ -960,59 +931,63 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       gap: 0;
+      overflow: hidden;
     }
 
     .left-column {
       position: relative;
       top: auto;
+      left: auto;
+      right: auto;
       z-index: 20;
       height: auto;
       min-height: 0;
       flex: 0 0 auto;
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
+      display: block;
       margin: 0;
-      padding-bottom: 22px;
+      padding-bottom: 28px;
       background: #ffffff;
     }
 
     .navigation-area {
       width: 100%;
-      display: block;
-      margin: 0 0 20px;
-      padding: 0 0 18px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    }
-
-    .desktop-selected-year-links {
-      display: none;
-    }
-
-    .mobile-selected-year-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 18px;
-      row-gap: 7px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 7px 0 0;
-      padding: 0 0 0 10px;
-      text-align: left;
+      grid-template-rows: auto auto;
+      gap: 10px;
+      margin: 0 0 24px;
+      padding: 0;
+      border-bottom: 0;
     }
 
     .section-links {
       width: 100%;
+      display: block;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .section-button {
+      display: block;
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      color: #000000;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: left;
+    }
+
+    .selected-exhibition-links {
+      width: 100%;
       max-height: none;
       overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 18px;
+      column-gap: 12px;
       row-gap: 7px;
       align-items: start;
       justify-items: stretch;
@@ -1021,45 +996,18 @@
       text-align: left;
     }
 
-    .section-link-group {
-      display: block;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .section-link-group:first-child {
-      grid-column: 1 / -1;
-    }
-
-    .section-button {
-      display: block;
-      width: 100%;
-      min-width: 0;
-      min-height: 19px;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-      font-size: 14px;
-      line-height: 1.08;
-      white-space: normal;
-      word-break: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
-    }
-
-    .selected-year-button {
+    .selected-exhibition-button {
       display: flex;
-      align-items: baseline;
-      gap: 6px;
       width: 100%;
       min-width: 0;
-      min-height: 19px;
+      min-height: 0;
       margin: 0;
       padding: 0;
-      text-align: left;
+      color: #b8b8b8;
       font-size: 14px;
+      font-weight: 700;
       line-height: 1.08;
+      text-align: left;
       white-space: normal;
       word-break: normal;
       overflow-wrap: anywhere;
@@ -1067,23 +1015,14 @@
       letter-spacing: 0;
     }
 
-    .mobile-year-index {
-      display: inline-block;
-      flex: 0 0 auto;
-      min-width: 18px;
-      color: #000000;
-      font-size: 10px;
-      font-weight: 900;
-      line-height: 1;
-      opacity: 0.85;
+    .exhibition-list-number {
+      min-width: 22px;
+      font-size: 0.82em;
     }
 
-    .section-button.active,
-    .section-button:hover,
-    .section-button:focus,
-    .selected-year-button.active,
-    .selected-year-button:hover,
-    .selected-year-button:focus {
+    .selected-exhibition-button.active,
+    .selected-exhibition-button:hover,
+    .selected-exhibition-button:focus {
       color: #000000;
       transform: none;
       letter-spacing: 0;
@@ -1092,23 +1031,25 @@
     .exhibition-preview {
       width: 100%;
       max-width: none;
-      align-self: start;
       display: block;
       text-align: left;
     }
 
     .exhibition-preview h1 {
       width: 100%;
-      max-width: none;
-      margin: 0 0 10px;
-      font-size: clamp(18px, 3.2vw, 25px);
+      max-width: 520px;
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
       text-align: left;
     }
 
     .preview-bottom {
       width: 100%;
       max-width: none;
-      gap: 8px;
+      gap: 0;
       text-align: left;
     }
 
@@ -1119,17 +1060,27 @@
       text-align: left;
     }
 
+    .preview-info p {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.12;
+    }
+
     .exhibition-description {
       width: 100%;
       max-width: none;
-      max-height: 80px;
+      max-height: 72px;
       overflow: hidden;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .exhibition-description.expanded {
-      max-height: 22vh;
+      max-height: 24vh;
       overflow-y: auto;
+      padding-top: 4px;
       padding-right: 8px;
+      padding-bottom: 12px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
@@ -1142,7 +1093,12 @@
 
     .info-toggle {
       display: block;
-      margin-top: 8px;
+      margin-top: 12px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
     }
 
     .right-column {
@@ -1153,79 +1109,93 @@
       overflow: hidden;
     }
 
-    .image-grid,
-    .text-grid {
+    .image-grid {
       width: 100%;
       height: 100%;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
+      gap: 18px 12px;
+      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
       scrollbar-width: none;
-      scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
       overscroll-behavior: contain;
     }
 
-    .image-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px 12px;
-      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
-    }
-
-    .text-grid {
-      max-width: none;
-      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
-    }
-
-    .image-grid::-webkit-scrollbar,
-    .text-grid::-webkit-scrollbar {
+    .image-grid::-webkit-scrollbar {
+      display: none;
       width: 0;
       height: 0;
-      display: none;
-      background: transparent;
     }
 
-    .image-card {
-      min-height: auto;
-      overflow: visible;
-      background: transparent;
+    .image-card,
+    .image-card:nth-child(even),
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 4) {
+      height: 440px;
+      min-height: 0;
+      overflow: hidden;
+      background: #eeeeee;
+      transform: none;
+    }
+
+    .image-card:nth-child(4n + 1):hover,
+    .image-card:nth-child(4n + 1).active,
+    .image-card:nth-child(4n + 2):hover,
+    .image-card:nth-child(4n + 2).active,
+    .image-card:nth-child(4n + 3):hover,
+    .image-card:nth-child(4n + 3).active,
+    .image-card:nth-child(4n + 4):hover,
+    .image-card:nth-child(4n + 4).active {
+      transform: none;
+    }
+
+    .image-card::before,
+    .image-card::after {
+      display: none;
     }
 
     .image-card figure {
-      height: 440px;
+      width: 100%;
+      height: 100%;
       background: #eeeeee;
       overflow: hidden;
     }
 
-    .image-card img {
-      min-height: 440px;
+    .image-card img,
+    .image-card:nth-child(4n + 1) img,
+    .image-card:nth-child(4n + 2) img,
+    .image-card:nth-child(4n + 3) img,
+    .image-card:nth-child(4n + 4) img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      object-fit: cover;
+      transform: none;
     }
 
     .image-grid:hover .image-card img {
-      opacity: 1;
-      filter: none;
+      opacity: 0.42;
+      filter: grayscale(10%) contrast(0.96) brightness(1.02);
     }
 
     .image-grid:hover .image-card:hover img,
     .image-grid:hover .image-card.active img {
-      width: 100%;
-      height: 100%;
-      min-height: 440px;
-      object-fit: cover;
-    }
-
-    .image-card span {
-      position: static;
-      display: block;
-      margin-top: 8px;
+      width: calc(100% - 36px);
+      height: calc(100% - 36px);
+      min-height: 0;
+      object-fit: contain;
       opacity: 1;
-      font-size: 14px;
+      filter: none;
     }
 
-    .entry-group {
-      grid-template-columns: 80px minmax(0, 1fr);
+    .image-number {
+      display: none;
     }
 
     .back-to-top {
@@ -1247,79 +1217,45 @@
     }
 
     .left-column {
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
-      padding-bottom: 18px;
+      padding-bottom: 24px;
     }
 
     .navigation-area {
-      display: block;
-      margin: 0 0 16px;
-      padding: 0 0 16px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .section-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 14px;
-      row-gap: 6px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
+      gap: 9px;
+      margin: 0 0 22px;
       padding: 0;
-      text-align: left;
-    }
-
-    .section-link-group:first-child {
-      grid-column: 1 / -1;
-    }
-
-    .mobile-selected-year-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 14px;
-      row-gap: 6px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 6px 0 0;
-      padding: 0 0 0 8px;
-      text-align: left;
+      border-bottom: 0;
     }
 
     .section-button {
-      display: block;
-      width: 100%;
-      min-width: 0;
-      min-height: 18px;
-      margin: 0;
-      padding: 0;
       font-size: 12px;
       line-height: 1.08;
-      text-align: left;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
     }
 
-    .selected-year-button {
+    .selected-exhibition-links {
+      width: 100%;
+      max-height: none;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 10px;
+      row-gap: 6px;
+      align-items: start;
+      justify-items: stretch;
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+
+    .selected-exhibition-button {
       display: flex;
-      align-items: baseline;
-      gap: 5px;
       width: 100%;
       min-width: 0;
-      min-height: 18px;
+      min-height: 0;
       margin: 0;
       padding: 0;
       font-size: 12px;
+      font-weight: 700;
       line-height: 1.08;
       text-align: left;
       white-space: normal;
@@ -1328,23 +1264,14 @@
       letter-spacing: 0;
     }
 
-    .mobile-year-index {
-      display: inline-block;
-      flex: 0 0 auto;
-      min-width: 16px;
-      color: #000000;
-      font-size: 9px;
-      font-weight: 900;
-      line-height: 1;
-      opacity: 0.85;
+    .exhibition-list-number {
+      min-width: 18px;
+      font-size: 0.82em;
     }
 
-    .section-button.active,
-    .section-button:hover,
-    .section-button:focus,
-    .selected-year-button.active,
-    .selected-year-button:hover,
-    .selected-year-button:focus {
+    .selected-exhibition-button.active,
+    .selected-exhibition-button:hover,
+    .selected-exhibition-button:focus {
       transform: none;
       letter-spacing: 0;
     }
@@ -1358,19 +1285,36 @@
     }
 
     .exhibition-preview h1 {
-      font-size: clamp(15px, 4.2vw, 20px);
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: left;
+    }
+
+    .preview-info p {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.12;
     }
 
     .exhibition-description {
-      max-height: 60px;
+      max-height: 58px;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .exhibition-description.expanded {
-      max-height: 20vh;
+      max-height: 22vh;
       overflow-y: auto;
+      padding-top: 4px;
+      padding-bottom: 14px;
     }
 
     .info-toggle {
+      margin-top: 12px;
+      padding-top: 5px;
+      padding-bottom: 5px;
       font-size: 11px;
     }
 
@@ -1383,19 +1327,39 @@
     .image-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
     }
 
-    .text-grid {
-      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+    .image-card,
+    .image-card:nth-child(even),
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 4) {
+      height: auto;
+      min-height: auto;
+      overflow: visible;
+      background: transparent;
     }
 
     .image-card figure {
       height: 260px;
+      background: #eeeeee;
+      overflow: hidden;
     }
 
     .image-card img {
+      width: 100%;
+      height: 100%;
       min-height: 260px;
+      object-fit: cover;
+    }
+
+    .image-grid:hover .image-card img {
+      opacity: 1;
+      filter: none;
     }
 
     .image-grid:hover .image-card:hover img,
@@ -1404,20 +1368,6 @@
       height: 100%;
       min-height: 260px;
       object-fit: cover;
-    }
-
-    .image-card span {
-      font-size: 12px;
-    }
-
-    .entry-group {
-      grid-template-columns: 1fr;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-
-    .entry-items p {
-      font-size: 12px;
     }
 
     .back-to-top {
@@ -1462,32 +1412,44 @@
 
   @media (max-width: 420px) {
     .left-column {
-      padding-bottom: 16px;
+      padding-bottom: 22px;
+    }
+
+    .navigation-area {
+      margin-bottom: 20px;
     }
 
     .exhibition-preview h1 {
-      font-size: clamp(14px, 4vw, 18px);
+      font-size: 14px;
     }
 
-    .section-links,
-    .mobile-selected-year-links {
-      column-gap: 12px;
+    .selected-exhibition-links {
+      column-gap: 9px;
       row-gap: 5px;
     }
 
-    .mobile-selected-year-links {
-      padding-left: 7px;
-    }
-
-    .section-button,
-    .selected-year-button {
+    .selected-exhibition-button {
       font-size: 11px;
-      min-height: 17px;
+      line-height: 1.08;
     }
 
-    .mobile-year-index {
-      min-width: 15px;
-      font-size: 8.5px;
+    .exhibition-list-number {
+      min-width: 17px;
+    }
+
+    .exhibition-description {
+      max-height: 54px;
+    }
+
+    .exhibition-description.expanded {
+      max-height: 21vh;
+      padding-bottom: 14px;
+    }
+
+    .info-toggle {
+      margin-top: 11px;
+      padding-top: 5px;
+      padding-bottom: 5px;
     }
 
     .image-card figure {
