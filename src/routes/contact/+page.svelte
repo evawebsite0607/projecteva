@@ -1,10 +1,40 @@
 <script>
+  import { browser } from "$app/environment";
+  import { onMount } from "svelte";
+
   let { data } = $props();
+
+  const fallbackContact = {
+    name: "Eva Eichinger",
+    email: "info@evaeichinger.com",
+    address: "Westbahnstraße 27-29, 1070 Vienna",
+    instagram: "@eva_eichinger_",
+    instagramUrl: "https://www.instagram.com/eva_eichinger_/",
+    website: "evaeichinger.com",
+    websiteUrl: "https://evaeichinger.com",
+  };
 
   let email = $state("");
   let newsletterMessage = $state("");
+  let contactScrollElement = $state(null);
 
-  const contact = data.contact;
+  let contact = $derived({
+    ...fallbackContact,
+    ...(data?.contact || {}),
+  });
+
+  let contactEmail = $derived(String(contact.email || "").toLowerCase());
+  let contactInstagram = $derived(
+    String(contact.instagram || "").toLowerCase(),
+  );
+  let contactWebsite = $derived(String(contact.website || "").toLowerCase());
+  let contactAddress = $derived(
+    contact.address || "Westbahnstraße 27-29, 1070 Vienna",
+  );
+
+  let mapEmbedUrl = $derived(
+    `https://www.google.com/maps?q=${encodeURIComponent(contactAddress)}&output=embed`,
+  );
 
   function handleNewsletterSubmit(event) {
     event.preventDefault();
@@ -14,453 +44,1032 @@
 
     email = "";
   }
+
+  function scrollBackToTop() {
+    if (contactScrollElement) {
+      contactScrollElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }
+
+  function unlockPageLocks() {
+    if (!browser) return;
+
+    document.documentElement.classList.remove("menu-open-lock");
+    document.body.classList.remove("menu-open-lock");
+
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    document.documentElement.style.position = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.touchAction = "";
+
+    document.body.style.overflow = "";
+    document.body.style.height = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.top = "";
+    document.body.style.touchAction = "";
+  }
+
+  onMount(() => {
+    unlockPageLocks();
+
+    requestAnimationFrame(() => {
+      unlockPageLocks();
+    });
+
+    setTimeout(() => {
+      unlockPageLocks();
+    }, 0);
+
+    return () => {
+      unlockPageLocks();
+    };
+  });
 </script>
 
 <svelte:head>
-  <title>kontakt | Eva Eichinger</title>
+  <title>Contact | Eva Eichinger</title>
+
   <meta
     name="description"
     content="Contact Eva Eichinger by email, Instagram, website or address in Vienna."
   />
+
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
 </svelte:head>
 
 <main class="contact-page">
-  <section class="contact-section" aria-labelledby="contact-title">
-    <div class="contact-intro">
-      <span class="page-number">STAY IN TOUCH</span>
-
-      <p class="eyebrow">{contact.eyebrow}</p>
-
-      <h1 id="contact-title">
-        Studio,<br />
-        inquiries<br />
-        and news.
-      </h1>
-    </div>
-
-    <div class="contact-panel">
-      <div class="panel-top">
-        <p class="panel-label">__</p>
-        <h2>{contact.name}</h2>
+  <section class="contact-layout" aria-label="Contact">
+    <aside class="left-column" aria-label="Studio information">
+      <div class="contact-top">
+        <span>CONTACT</span>
       </div>
 
-      <div class="contact-lines">
-        <a href={`mailto:${contact.email}`} class="contact-line">
-          <span>E</span>
-          <strong>{contact.email}</strong>
-        </a>
+      <div class="contact-preview">
+        <h1>STUDIO</h1>
 
-        <a
-          href={contact.mapUrl}
-          target="_blank"
-          rel="noreferrer"
-          class="contact-line"
-        >
-          <span>A</span>
-          <strong>{contact.address}</strong>
-        </a>
+        <div class="preview-bottom">
+          <div class="preview-info">
+            <strong>{contact.name}</strong>
 
-        <a
-          href={contact.instagramUrl}
-          target="_blank"
-          rel="noreferrer"
-          class="contact-line"
-        >
-          <span>I</span>
-          <strong>{contact.instagram}</strong>
-        </a>
-
-        <a
-          href={contact.websiteUrl}
-          target="_blank"
-          rel="noreferrer"
-          class="contact-line"
-        >
-          <span>W</span>
-          <strong>{contact.website}</strong>
-        </a>
+            <p>
+              Studio visits by appointment.<br />
+              Monday – Friday: 09:00 – 17:00<br />
+              Saturday – Sunday: closed
+            </p>
+          </div>
+        </div>
       </div>
+    </aside>
 
-      <form class="newsletter-form" onsubmit={handleNewsletterSubmit}>
-        <div class="newsletter-heading">
-          <span>Newsletter</span>
+    <section class="right-column" aria-label="Contact content">
+      <div class="contact-grid" bind:this={contactScrollElement}>
+        <article class="contact-card address-card">
+          <span class="card-number">01</span>
 
-          <p>
-            Receive occasional updates about exhibitions, performances and
-            studio news.
-          </p>
-        </div>
+          <span class="contact-icon" aria-hidden="true">
+            <lord-icon
+              src="https://cdn.lordicon.com/onmwuuox.json"
+              trigger="hover"
+              stroke="light"
+              colors="primary:#000000,secondary:#000000"
+              style="width:72px;height:72px"
+            >
+            </lord-icon>
+          </span>
 
-        <div class="newsletter-input-row">
-          <input
-            type="email"
-            bind:value={email}
-            placeholder="Email address"
-            aria-label="Email address"
-            required
-          />
+          <div class="contact-card-content">
+            <strong>ADDRESS</strong>
+            <p>{contactAddress}</p>
+          </div>
 
-          <button type="submit">Join</button>
-        </div>
+          <div class="map-frame" aria-label="Google map">
+            <iframe
+              src={mapEmbedUrl}
+              title="Studio location map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </article>
 
-        {#if newsletterMessage}
-          <p class="newsletter-message">{newsletterMessage}</p>
-        {/if}
-      </form>
-    </div>
+        <article class="contact-card">
+          <span class="card-number">02</span>
+
+          <span class="contact-icon" aria-hidden="true">
+            <lord-icon
+              src="https://cdn.lordicon.com/apmrcxtj.json"
+              trigger="hover"
+              stroke="light"
+              colors="primary:#000000,secondary:#000000"
+              style="width:72px;height:72px"
+            >
+            </lord-icon>
+          </span>
+
+          <div class="contact-card-content">
+            <strong>EMAIL</strong>
+
+            <p>
+              <a href={`mailto:${contactEmail}`}>
+                {contactEmail}
+              </a>
+            </p>
+          </div>
+        </article>
+
+        <article class="contact-card">
+          <span class="card-number">03</span>
+
+          <span class="contact-icon" aria-hidden="true">
+            <lord-icon
+              src="https://cdn.lordicon.com/tgyvxauj.json"
+              trigger="hover"
+              stroke="light"
+              colors="primary:#000000,secondary:#000000"
+              style="width:72px;height:72px"
+            >
+            </lord-icon>
+          </span>
+
+          <div class="contact-card-content">
+            <strong>INSTAGRAM</strong>
+
+            <p>
+              <a href={contact.instagramUrl} target="_blank" rel="noreferrer">
+                {contactInstagram}
+              </a>
+            </p>
+          </div>
+        </article>
+
+        <article class="contact-card">
+          <span class="card-number">04</span>
+
+          <span class="contact-icon" aria-hidden="true">
+            <lord-icon
+              src="https://cdn.lordicon.com/rpviwvwn.json"
+              trigger="hover"
+              stroke="light"
+              colors="primary:#000000,secondary:#000000"
+              style="width:72px;height:72px"
+            >
+            </lord-icon>
+          </span>
+
+          <div class="contact-card-content">
+            <strong>WEBSITE</strong>
+
+            <p>
+              <a href={contact.websiteUrl} target="_blank" rel="noreferrer">
+                {contactWebsite}
+              </a>
+            </p>
+          </div>
+        </article>
+
+        <article class="contact-card">
+          <span class="card-number">05</span>
+
+          <span class="contact-icon" aria-hidden="true">
+            <lord-icon
+              src="https://cdn.lordicon.com/warimioc.json"
+              trigger="hover"
+              stroke="light"
+              colors="primary:#000000,secondary:#000000"
+              style="width:72px;height:72px"
+            >
+            </lord-icon>
+          </span>
+
+          <div class="contact-card-content">
+            <strong>OPENING HOURS</strong>
+
+            <p>
+              Monday – Friday<br />
+              09:00 – 17:00<br />
+              Saturday – Sunday closed
+            </p>
+          </div>
+        </article>
+
+        <form
+          class="contact-card newsletter-card"
+          onsubmit={handleNewsletterSubmit}
+        >
+          <span class="card-number">06</span>
+
+          <div class="contact-card-content">
+            <strong>NEWSLETTER</strong>
+
+            <p>
+              Occasional updates about exhibitions, performances and studio
+              news.
+            </p>
+
+            <div class="newsletter-input-row">
+              <input
+                type="email"
+                bind:value={email}
+                placeholder="Email address"
+                aria-label="Email address"
+                required
+              />
+
+              <button type="submit">Join</button>
+            </div>
+
+            {#if newsletterMessage}
+              <p class="newsletter-message">{newsletterMessage}</p>
+            {/if}
+          </div>
+        </form>
+
+        <button type="button" class="back-to-top" onclick={scrollBackToTop}>
+          BACK TO TOP
+        </button>
+      </div>
+    </section>
   </section>
 </main>
 
 <style>
+  :global(html),
+  :global(body),
   .contact-page {
-    min-height: 100dvh;
-    background: #ffffff;
-    color: #2f2d2b;
     font-family: Arial, Helvetica, sans-serif;
   }
 
-  .contact-section {
-    min-height: 100dvh;
-    display: grid;
-    grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
-    gap: clamp(40px, 6vw, 96px);
-    align-items: center;
-    padding: 120px 8vw 90px;
-    box-sizing: border-box;
-    background: #ffffff;
+  :global(html),
+  :global(body) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  .contact-intro {
-    min-height: 420px;
+  :global(html::-webkit-scrollbar),
+  :global(body::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  :global(body) {
+    margin: 0;
+    overflow-x: hidden;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  .contact-page {
+    --map-height: 150px;
+    --contact-card-height: calc(var(--map-height) + 106px);
+
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 96px 72px 90px 28px;
+    background: #ffffff;
+    color: #000000;
+    text-transform: uppercase;
+  }
+
+  .contact-page a,
+  .contact-page button,
+  .contact-page input {
+    font-family: inherit;
+  }
+
+  .contact-page p {
+    text-transform: none;
+  }
+
+  .contact-layout {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    overflow: hidden;
+  }
+
+  .left-column {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .contact-top {
+    width: 100%;
+  }
+
+  .contact-top span {
+    display: inline-block;
+    color: #000000;
+    font-size: clamp(12px, 0.78vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .contact-preview {
+    width: 100%;
+  }
+
+  .contact-preview h1 {
+    max-width: 280px;
+    margin: 0 0 42px;
+    color: #000000;
+    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: 0.005em;
+  }
+
+  .preview-bottom {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .preview-info {
+    max-width: 265px;
+  }
+
+  .preview-info strong {
+    display: block;
+    margin: 0 0 9px;
+    color: #000000;
+    font-size: clamp(12px, 0.72vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
+    text-transform: uppercase;
+  }
+
+  .preview-info p {
+    margin: 0;
+    color: #000000;
+    font-size: clamp(11px, 0.66vw, 12px);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: 0.006em;
+    text-transform: uppercase;
+  }
+
+  .right-column {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .contact-grid {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: var(--contact-card-height);
+    align-content: start;
+    gap: clamp(12px, 1vw, 18px);
+    padding: 0 0 24px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
+  }
+
+  .contact-grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  .contact-card {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    background: #ffffff;
-  }
-
-  .page-number {
-    margin-bottom: auto;
-    color: rgba(47, 45, 43, 0.36);
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 0.14em;
-  }
-
-  .eyebrow {
-    margin: 0 0 20px;
-    color: rgba(47, 45, 43, 0.58);
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
-  h1,
-  h2,
-  p {
-    margin-top: 0;
-  }
-
-  h1 {
-    margin-bottom: 0;
-    max-width: 420px;
-    color: #2f2d2b;
-    font-size: clamp(38px, 4.2vw, 64px);
-    font-weight: 400;
-    line-height: 0.96;
-    letter-spacing: -0.06em;
-  }
-
-  .contact-panel {
-    max-width: 720px;
-    padding: 0;
-    background: #ffffff;
-    border: 0;
-    box-shadow: none;
-  }
-
-  .panel-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 28px;
-    margin-bottom: 48px;
-    background: #ffffff;
-  }
-
-  .panel-label {
-    margin: 0;
-    color: rgba(47, 45, 43, 0.52);
-    font-size: 13px;
-    line-height: 1;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 0;
-    color: #2f2d2b;
-    font-size: clamp(24px, 2vw, 34px);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.045em;
-    text-align: right;
-  }
-
-  .contact-lines {
-    display: flex;
-    flex-direction: column;
-    background: #ffffff;
-  }
-
-  .contact-line {
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    gap: 22px;
-    align-items: center;
-    min-height: 66px;
-    color: #2f2d2b;
+    padding: 16px;
+    color: #000000;
+    background: #f8f8f6;
     text-decoration: none;
-    background: #ffffff;
+    isolation: isolate;
     transition:
-      opacity 0.25s ease,
-      padding-left 0.25s ease;
+      background 0.35s ease,
+      opacity 0.35s ease;
   }
 
-  .contact-line span {
-    color: rgba(47, 45, 43, 0.48);
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+  .contact-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.22),
+        rgba(255, 255, 255, 0) 35%
+      ),
+      linear-gradient(to top, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0) 46%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
   }
 
-  .contact-line strong {
-    font-size: clamp(17px, 1.25vw, 21px);
-    font-weight: 400;
-    line-height: 1.16;
-    letter-spacing: -0.035em;
+  .contact-card::after {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.985);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease;
   }
 
-  .newsletter-form {
-    margin-top: 58px;
-    background: #ffffff;
+  .contact-card:hover,
+  .contact-card:focus-within {
+    background: #fbfaf7;
   }
 
-  .newsletter-heading {
-    display: grid;
-    grid-template-columns: 130px 1fr;
-    gap: 28px;
-    margin-bottom: 24px;
-    background: #ffffff;
+  .contact-card:hover::before,
+  .contact-card:focus-within::before,
+  .contact-card:hover::after,
+  .contact-card:focus-within::after {
+    opacity: 1;
+    transform: scale(1);
   }
 
-  .newsletter-heading span {
-    color: #2f2d2b;
-    font-size: 13px;
+  .card-number {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 4;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 900;
     line-height: 1;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.05em;
+    opacity: 0.42;
+  }
+
+  .contact-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 4;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.9;
+    pointer-events: auto;
+  }
+
+  .contact-icon lord-icon {
+    display: block;
+  }
+
+  .contact-card-content {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    max-width: 520px;
+    padding-right: 80px;
+  }
+
+  .address-card .contact-card-content {
+    padding-right: 86px;
+  }
+
+  .contact-card-content strong {
+    display: block;
+    margin: 0 0 8px;
+    color: #000000;
+    font-size: clamp(11px, 0.68vw, 12px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
     text-transform: uppercase;
   }
 
-  .newsletter-heading p {
-    margin-bottom: 0;
-    max-width: 380px;
-    color: rgba(47, 45, 43, 0.58);
-    font-size: 14px;
-    line-height: 1.45;
+  .contact-card-content p {
+    margin: 0;
+    color: #000000;
+    font-size: clamp(12px, 0.95vw, 15px);
+    font-weight: 700;
+    line-height: 1.08;
     letter-spacing: -0.01em;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-card-content a {
+    color: #000000;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: opacity 0.24s ease;
+  }
+
+  .contact-card-content a:hover,
+  .contact-card-content a:focus {
+    opacity: 0.55;
+  }
+
+  .map-frame {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    height: var(--map-height);
+    margin-top: 14px;
+    overflow: hidden;
+    background: #e5e5e5;
+  }
+
+  .map-frame iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: 0;
+    filter: grayscale(100%);
+    pointer-events: none;
   }
 
   .newsletter-input-row {
+    width: 100%;
+    max-width: 520px;
+    margin-top: 18px;
     display: grid;
     grid-template-columns: 1fr auto;
-    border-bottom: 1px solid #2f2d2b;
-    background: #ffffff;
+    border-bottom: 1px solid #000000;
   }
 
   .newsletter-input-row input {
     width: 100%;
-    padding: 16px 0;
+    padding: 11px 0;
     border: 0;
-    background: #ffffff;
-    color: #2f2d2b;
-    font: inherit;
-    font-size: 16px;
+    background: transparent;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
     outline: none;
+    text-transform: uppercase;
   }
 
   .newsletter-input-row input::placeholder {
-    color: rgba(47, 45, 43, 0.46);
+    color: rgba(0, 0, 0, 0.42);
   }
 
   .newsletter-input-row button {
-    padding: 16px 0 16px 28px;
+    padding: 11px 0 11px 22px;
     border: 0;
-    background: #ffffff;
-    color: #2f2d2b;
-    font: inherit;
-    font-size: 16px;
-    letter-spacing: -0.02em;
+    background: transparent;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
     cursor: pointer;
+    transition: opacity 0.24s ease;
   }
 
-  .newsletter-input-row button:hover {
-    opacity: 0.6;
+  .newsletter-input-row button:hover,
+  .newsletter-input-row button:focus {
+    opacity: 0.55;
   }
 
   .newsletter-message {
-    margin: 14px 0 0;
-    color: rgba(47, 45, 43, 0.58);
-    font-size: 13px;
-    line-height: 1.45;
-    background: #ffffff;
+    margin: 10px 0 0;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.16;
+    letter-spacing: 0.006em;
+    text-transform: uppercase;
+  }
+
+  .back-to-top {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin: 32px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 1440px) {
+    .contact-page {
+      padding-right: 72px;
+    }
+
+    .contact-layout {
+      grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
+      gap: 14px;
+    }
+  }
+
+  @media (min-width: 1680px) {
+    .contact-page {
+      padding-right: 76px;
+    }
+
+    .contact-layout {
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .contact-preview h1 {
+      max-width: 270px;
+    }
+
+    .preview-info {
+      max-width: 260px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    .contact-page {
+      --map-height: 145px;
+      --contact-card-height: calc(var(--map-height) + 104px);
+
+      padding: 96px 72px 90px 28px;
+    }
+
+    .contact-layout {
+      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .contact-grid {
+      gap: 16px;
+    }
+
+    .contact-preview h1 {
+      max-width: 280px;
+      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
+    }
   }
 
   @media (max-width: 1024px) {
-    .contact-section {
+    .contact-page {
+      --map-height: 118px;
+      --contact-card-height: calc(var(--map-height) + 104px);
+
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
       min-height: 100dvh;
+      overflow: hidden;
+      padding: 96px 24px 0;
+    }
+
+    .contact-layout {
+      height: 100%;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      justify-content: center;
-      gap: 42px;
-      padding: 120px 24px 72px;
-      background: #ffffff;
+      overflow: hidden;
+      gap: 0;
     }
 
-    .contact-intro {
-      min-height: auto;
-      background: #ffffff;
-    }
-
-    .page-number {
-      margin-bottom: 30px;
+    .left-column {
+      position: relative;
+      z-index: 20;
+      height: auto;
+      min-height: 0;
+      flex: 0 0 auto;
       display: block;
-    }
-
-    .eyebrow {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 0.78rem;
-      letter-spacing: 0.13em;
-    }
-
-    h1 {
-      max-width: 460px;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(2.45rem, 9vw, 4.2rem);
-      line-height: 1;
-      letter-spacing: -0.035em;
-    }
-
-    .contact-panel {
-      max-width: none;
+      margin: 0;
+      padding-bottom: 22px;
       background: #ffffff;
     }
 
-    .panel-top {
-      flex-direction: column;
-      gap: 14px;
-      margin-bottom: 34px;
-      background: #ffffff;
-    }
-
-    .panel-label {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 0.78rem;
-      letter-spacing: 0.13em;
-    }
-
-    h2 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 1.35rem;
-      letter-spacing: 0.04em;
+    .contact-top {
+      width: 100%;
+      margin-bottom: 20px;
       text-align: left;
-      text-transform: uppercase;
     }
 
-    .contact-line {
-      grid-template-columns: 34px 1fr;
-      gap: 16px;
-      min-height: 62px;
-      background: #ffffff;
+    .contact-top span {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.005em;
     }
 
-    .contact-line:hover {
-      padding-left: 0;
+    .contact-preview h1 {
+      max-width: 520px;
+      margin: 0 0 8px;
+      font-size: 16px;
+      text-align: left;
+      line-height: 1;
     }
 
-    .contact-line strong {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 1rem;
-      line-height: 1.25;
-      letter-spacing: 0.02em;
-    }
-
-    .newsletter-form {
-      margin-top: 46px;
-      background: #ffffff;
-    }
-
-    .newsletter-heading {
-      grid-template-columns: 1fr;
-      gap: 12px;
-      background: #ffffff;
-    }
-
-    .newsletter-heading span {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 0.78rem;
-      letter-spacing: 0.13em;
-    }
-
-    .newsletter-heading p {
+    .preview-info {
+      width: 100%;
       max-width: none;
+      margin-bottom: 0;
+      text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 14px;
+    }
+
+    .preview-info p {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.12;
+    }
+
+    .right-column {
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: block;
+      overflow: hidden;
+    }
+
+    .contact-grid {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: var(--contact-card-height);
+      align-content: start;
+      gap: 12px;
+      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
+      scrollbar-width: none;
+      scrollbar-color: transparent transparent;
+      -ms-overflow-style: none;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .contact-card {
+      padding: 14px;
+      background: #eeeeee;
+    }
+
+    .contact-card::before,
+    .contact-card::after {
+      display: none;
+    }
+
+    .card-number {
+      top: 14px;
+      left: 14px;
+      font-size: 10px;
+    }
+
+    .contact-icon {
+      top: 8px;
+      right: 8px;
+      width: 56px;
+      height: 56px;
+    }
+
+    .contact-icon lord-icon {
+      width: 56px !important;
+      height: 56px !important;
+    }
+
+    .contact-card-content,
+    .address-card .contact-card-content {
+      padding-right: 58px;
+    }
+
+    .contact-card-content strong {
+      font-size: 12px;
+    }
+
+    .contact-card-content p {
+      font-size: 12px;
+      line-height: 1.12;
+    }
+
+    .map-frame {
+      margin-top: 10px;
+    }
+
+    .newsletter-input-row {
+      margin-top: 16px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin: 32px 0 0;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 14px;
     }
   }
 
-  @media (max-width: 600px) {
-    .contact-section {
-      padding: 112px 20px 56px;
-      gap: 34px;
-      background: #ffffff;
+  @media (max-width: 700px) {
+    .contact-page {
+      --map-height: 108px;
+      --contact-card-height: calc(var(--map-height) + 100px);
+
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 88px 16px 0;
     }
 
-    h1 {
-      max-width: 340px;
-      font-size: clamp(2.1rem, 11vw, 3.2rem);
+    .left-column {
+      padding-bottom: 18px;
     }
 
-    .contact-line {
-      grid-template-columns: 28px 1fr;
-      gap: 12px;
-      min-height: 58px;
-      background: #ffffff;
+    .contact-top {
+      margin-bottom: 16px;
+      text-align: left;
     }
 
-    .contact-line strong {
-      font-size: 0.95rem;
+    .contact-top span {
+      font-size: 17px;
+    }
+
+    .contact-preview h1 {
+      max-width: 100%;
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .preview-info strong {
+      font-size: 12px;
+    }
+
+    .preview-info p {
+      font-size: 12px;
+      line-height: 1.12;
+    }
+
+    .contact-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: var(--contact-card-height);
+      gap: 10px;
+      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
+    }
+
+    .contact-card {
+      padding: 12px;
+      background: #eeeeee;
+    }
+
+    .card-number {
+      top: 12px;
+      left: 12px;
+      font-size: 10px;
+    }
+
+    .contact-icon {
+      top: 6px;
+      right: 6px;
+      width: 48px;
+      height: 48px;
+    }
+
+    .contact-icon lord-icon {
+      width: 48px !important;
+      height: 48px !important;
+    }
+
+    .contact-card-content,
+    .address-card .contact-card-content {
+      padding-right: 44px;
+    }
+
+    .contact-card-content strong {
+      margin-bottom: 7px;
+      font-size: 11px;
+    }
+
+    .contact-card-content p {
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .map-frame {
+      margin-top: 8px;
     }
 
     .newsletter-input-row {
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: 6px;
+      margin-top: 14px;
       border-bottom: 0;
-      background: #ffffff;
     }
 
     .newsletter-input-row input {
-      border-bottom: 1px solid #2f2d2b;
-      background: #ffffff;
+      padding: 10px 0;
+      border-bottom: 1px solid #000000;
+      font-size: 11px;
     }
 
     .newsletter-input-row button {
       width: fit-content;
-      padding: 8px 0;
-      background: #ffffff;
+      padding: 5px 0;
+      font-size: 11px;
       text-decoration: underline;
       text-decoration-thickness: 1px;
       text-underline-offset: 4px;
+    }
+
+    .newsletter-message {
+      margin-top: 8px;
+      font-size: 10px;
+    }
+
+    .back-to-top {
+      display: block;
+      margin-top: 30px;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .contact-page {
+      --map-height: 98px;
+      --contact-card-height: calc(var(--map-height) + 96px);
+      padding-top: 84px;
+    }
+
+    .contact-top {
+      margin-bottom: 14px;
+    }
+
+    .contact-top span {
+      font-size: 16px;
+    }
+
+    .contact-card {
+      padding: 11px;
+    }
+
+    .contact-icon {
+      width: 42px;
+      height: 42px;
+    }
+
+    .contact-icon lord-icon {
+      width: 42px !important;
+      height: 42px !important;
+    }
+
+    .contact-card-content,
+    .address-card .contact-card-content {
+      padding-right: 36px;
+    }
+
+    .contact-card-content p {
+      font-size: 10px;
     }
   }
 </style>

@@ -1,48 +1,149 @@
 <script>
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { browser } from "$app/environment";
 
   let { data } = $props();
 
-  const initialPerformance =
-    data.performances?.find(
-      (performance) => performance.id === data.requestedPostId,
-    ) || data.performances?.[0];
+  const allPerformancesSlug = "ALL PERFORMANCES";
+  const performanceColor = "#ab9bf2";
 
-  let selectedPerformanceSlug = $state(initialPerformance?.postSlug || "");
+  let selectedPerformanceSlug = $state("");
   let selectedImageIndex = $state(null);
   let hoveredImageIndex = $state(null);
   let performanceGridElement = $state(null);
   let infoExpanded = $state(false);
 
-  let selectedPerformance = $derived(
-    data.performances?.find(
-      (performance) => performance.postSlug === selectedPerformanceSlug,
-    ) || data.performances?.[0],
+  let performances = $derived(
+    Array.isArray(data.performances) ? data.performances : [],
   );
 
-  let selectedImages = $derived(selectedPerformance?.images || []);
+  let initialPerformance = $derived(
+    performances.find(
+      (performance) => performance.id === data.requestedPostId,
+    ) || performances[0],
+  );
+
+  $effect(() => {
+    if (!selectedPerformanceSlug && performances.length) {
+      selectedPerformanceSlug =
+        data.requestedPostId && initialPerformance
+          ? initialPerformance.postSlug
+          : allPerformancesSlug;
+    }
+  });
+
+  function isAllPerformances() {
+    return (
+      selectedPerformanceSlug === allPerformancesSlug ||
+      !selectedPerformanceSlug
+    );
+  }
+
+  let selectedPerformance = $derived.by(() => {
+    if (isAllPerformances()) return null;
+
+    return (
+      performances.find(
+        (performance) => performance.postSlug === selectedPerformanceSlug,
+      ) || performances[0]
+    );
+  });
+
+  let allPerformanceImages = $derived.by(() => {
+    return performances.flatMap((performance) =>
+      (performance.images || []).map((image, imageIndex) => ({
+        ...image,
+        imageIndex,
+        performanceTitle: performance.title,
+        performancePostSlug: performance.postSlug,
+      })),
+    );
+  });
+
+  let selectedImages = $derived.by(() => {
+    if (isAllPerformances()) {
+      return allPerformanceImages;
+    }
+
+    return (selectedPerformance?.images || []).map((image, imageIndex) => ({
+      ...image,
+      imageIndex,
+      performanceTitle: selectedPerformance?.title || "Performance",
+      performancePostSlug: selectedPerformance?.postSlug || "",
+    }));
+  });
 
   let selectedImage = $derived(
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
-  let shouldShowInfoToggle = $derived(
-    (selectedPerformance?.info || "").length > 200,
+  let previewTitle = $derived(
+    isAllPerformances()
+      ? allPerformancesSlug
+      : selectedPerformance?.title || allPerformancesSlug,
   );
 
-  function selectPerformance(performance) {
-    selectedPerformanceSlug = performance.postSlug;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-    infoExpanded = false;
+  let shouldShowInfoToggle = $derived(
+    !isAllPerformances() && (selectedPerformance?.info || "").length > 200,
+  );
 
+  function cleanHtml(value) {
+    return value || "";
+  }
+
+  function getDesktopLastCardOffset(count) {
+    const position = count % 4;
+
+    if (position === 1) return 0;
+    if (position === 2) return 34;
+    if (position === 3) return 8;
+
+    return 42;
+  }
+
+  function unlockPageLocks() {
+    if (!browser) return;
+
+    document.documentElement.classList.remove("menu-open-lock");
+    document.body.classList.remove("menu-open-lock");
+
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    document.documentElement.style.position = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.touchAction = "";
+
+    document.body.style.overflow = "";
+    document.body.style.height = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.top = "";
+    document.body.style.touchAction = "";
+  }
+
+  function scrollGridToTop() {
     if (performanceGridElement) {
       performanceGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
+  }
+
+  function selectAllPerformances() {
+    selectedPerformanceSlug = allPerformancesSlug;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
+  }
+
+  function selectPerformance(performance) {
+    selectedPerformanceSlug = performance.postSlug;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
   }
 
   function setHoveredImage(index) {
@@ -83,6 +184,10 @@
         : selectedImageIndex + 1;
   }
 
+  function scrollBackToTop() {
+    scrollGridToTop();
+  }
+
   function handleKeydown(event) {
     if (selectedImageIndex === null) return;
 
@@ -90,6 +195,22 @@
     if (event.key === "ArrowLeft") showPreviousImage();
     if (event.key === "ArrowRight") showNextImage();
   }
+
+  onMount(() => {
+    unlockPageLocks();
+
+    requestAnimationFrame(() => {
+      unlockPageLocks();
+    });
+
+    setTimeout(() => {
+      unlockPageLocks();
+    }, 0);
+
+    return () => {
+      unlockPageLocks();
+    };
+  });
 
   onDestroy(() => {
     if (browser) {
@@ -101,7 +222,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-  <title>Performances | Eva Eichinger</title>
+  <title>{previewTitle} | Eva Eichinger</title>
 
   <meta
     name="description"
@@ -109,73 +230,89 @@
   />
 </svelte:head>
 
-<main class="performances-page">
-  {#if data.performances && data.performances.length > 0}
+<main
+  class="performances-page"
+  style={`--performance-color: ${performanceColor};`}
+>
+  {#if performances.length > 0}
     <section class="performances-layout" aria-label="Performances">
       <aside class="left-column" aria-label="Performance navigation">
-        <div class="navigation-area">
-          <div class="section-links">
-            <button type="button" class="section-button active">
-              Selected Performances
-            </button>
-          </div>
+        <div class="performance-filter" aria-label="Performance categories">
+          <button
+            type="button"
+            class="all-performances-button"
+            class:active={isAllPerformances()}
+            onclick={selectAllPerformances}
+          >
+            <span class="performance-button-label">
+              <span>ALL PERFORMANCES</span>
+            </span>
+          </button>
 
-          <div class="selected-performance-links">
-            {#each data.performances as performance, index}
-              <button
-                type="button"
-                class="selected-performance-button"
-                class:active={selectedPerformance?.postSlug ===
-                  performance.postSlug}
-                onclick={() => selectPerformance(performance)}
-              >
-                <span class="performance-list-number">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
+          {#each performances as performance, index}
+            <button
+              type="button"
+              class="selected-performance-button"
+              class:active={selectedPerformance?.postSlug ===
+                performance.postSlug}
+              onclick={() => selectPerformance(performance)}
+            >
+              <span class="performance-list-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
 
+              <span class="performance-button-label">
                 <span>{performance.title}</span>
-              </button>
-            {/each}
-          </div>
+              </span>
+            </button>
+          {/each}
         </div>
 
         <div class="performance-preview">
-          {#if selectedPerformance}
-            <h1>{selectedPerformance.title}</h1>
+          <h1>{previewTitle}</h1>
 
-            <div class="preview-bottom">
-              <div class="preview-info">
-                {#if selectedPerformance.info}
-                  <div
-                    class="performance-description"
-                    class:expanded={infoExpanded}
+          <div class="preview-bottom">
+            <div class="preview-info">
+              {#if isAllPerformances()}
+                <strong>PERFORMANCES</strong>
+                <p>Selected performance images and documentation.</p>
+              {:else if selectedPerformance?.info}
+                <strong>PERFORMANCE</strong>
+
+                <div
+                  class="performance-description"
+                  class:expanded={infoExpanded}
+                >
+                  <p>{@html cleanHtml(selectedPerformance.info)}</p>
+                </div>
+
+                {#if shouldShowInfoToggle}
+                  <button
+                    type="button"
+                    class="info-toggle"
+                    onclick={() => (infoExpanded = !infoExpanded)}
                   >
-                    <p>{selectedPerformance.info}</p>
-                  </div>
-
-                  {#if shouldShowInfoToggle}
-                    <button
-                      type="button"
-                      class="info-toggle"
-                      onclick={() => (infoExpanded = !infoExpanded)}
-                    >
-                      {infoExpanded ? "Less −" : "More +"}
-                    </button>
-                  {/if}
-                {:else}
-                  <p>Selected performance images and documentation.</p>
+                    {infoExpanded ? "Less −" : "More +"}
+                  </button>
                 {/if}
-              </div>
+              {:else}
+                <strong>PERFORMANCE</strong>
+                <p>Selected performance images and documentation.</p>
+              {/if}
             </div>
-          {/if}
+          </div>
         </div>
       </aside>
 
       <section class="right-column" aria-label="Performance content">
-        {#if selectedPerformance?.images?.length}
-          {#key selectedPerformance.postSlug}
-            <div class="image-grid" bind:this={performanceGridElement}>
-              {#each selectedPerformance.images as image, index}
+        {#if selectedImages.length}
+          {#key selectedPerformanceSlug}
+            <div
+              class="image-grid"
+              bind:this={performanceGridElement}
+              style={`--last-desktop-offset: ${getDesktopLastCardOffset(selectedImages.length)}px;`}
+            >
+              {#each selectedImages as image, index}
                 <button
                   type="button"
                   class="image-card"
@@ -183,16 +320,33 @@
                   onmouseenter={() => setHoveredImage(index)}
                   onfocus={() => setHoveredImage(index)}
                   onclick={() => openLightbox(index)}
-                  aria-label={`Open ${image.alt || selectedPerformance.title}`}
+                  aria-label={`Open ${image.alt || image.performanceTitle || "performance image"}`}
                 >
                   <figure>
                     <img
                       src={image.src}
-                      alt={image.alt || selectedPerformance.title}
+                      alt={image.alt ||
+                        image.performanceTitle ||
+                        "Performance image"}
+                      loading={index < 4 ? "eager" : "lazy"}
                     />
                   </figure>
+
+                  <span class="magnify-icon" aria-hidden="true"> ⛶ </span>
+
+                  <span class="image-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </button>
               {/each}
+
+              <button
+                type="button"
+                class="back-to-top"
+                onclick={scrollBackToTop}
+              >
+                BACK TO TOP
+              </button>
             </div>
           {/key}
         {:else}
@@ -227,14 +381,24 @@
       <div class="lightbox-content">
         <img
           src={selectedImage.src}
-          alt={selectedImage.alt || selectedPerformance.title}
+          alt={selectedImage.alt ||
+            selectedImage.performanceTitle ||
+            "Performance image"}
         />
 
         <div class="lightbox-meta">
+          <span>
+            {String((selectedImageIndex ?? 0) + 1).padStart(2, "0")} — {String(
+              selectedImages.length,
+            ).padStart(2, "0")}
+          </span>
+
           {#if selectedImage.alt}
             <p>{selectedImage.alt}</p>
+          {:else if selectedImage.performanceTitle}
+            <p>{selectedImage.performanceTitle}</p>
           {:else}
-            <p>{selectedPerformance.title}</p>
+            <p>Performance image</p>
           {/if}
         </div>
       </div>
@@ -252,10 +416,29 @@
 </main>
 
 <style>
+  :global(html),
+  :global(body),
+  .performances-page {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  :global(html),
+  :global(body) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :global(html::-webkit-scrollbar),
+  :global(body::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
-    font-family: Arial, Helvetica, sans-serif;
     background: #ffffff;
     color: #000000;
   }
@@ -265,119 +448,192 @@
   }
 
   .performances-page {
+    --desktop-card-height: clamp(455px, 28vw, 515px);
+
     width: 100%;
-    min-height: 100vh;
-    padding: 96px 90px 90px 28px;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: 96px 72px 90px 28px;
     background: #ffffff;
+    text-transform: uppercase;
+  }
+
+  .performances-page button,
+  .performances-page a {
+    font-family: inherit;
+  }
+
+  .performances-page p {
+    text-transform: none;
   }
 
   .performances-layout {
     width: 100%;
+    height: 100%;
+    min-height: 0;
     display: grid;
-    grid-template-columns: 19% 81%;
-    gap: 34px;
+    grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
+    overflow: hidden;
   }
 
   .left-column {
-    position: sticky;
-    top: 96px;
-    height: calc(100vh - 186px);
-    min-height: 620px;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    align-content: start;
+    position: relative;
+    top: auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
-  .navigation-area {
+  .performance-filter {
     width: 100%;
-    display: grid;
-    grid-template-rows: auto auto;
-    align-content: start;
-    gap: 14px;
-    margin: 0;
-    padding: 0;
-  }
-
-  .section-links,
-  .selected-performance-links {
-    width: 100%;
+    max-height: 44vh;
+    overflow-y: auto;
+    padding-right: 4px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
-    margin: 0;
-    padding: 0;
-    text-align: left;
-  }
-
-  .selected-performance-links {
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 4px;
+    gap: 7px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  .selected-performance-links::-webkit-scrollbar {
-    display: none;
+  .performance-filter::-webkit-scrollbar {
     width: 0;
     height: 0;
+    display: none;
   }
 
-  .section-button,
+  .all-performances-button,
   .selected-performance-button {
-    display: block;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     width: auto;
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
-    color: #bdbdbd;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.08;
+    color: #b8b8b8;
+    font-size: clamp(12px, 0.78vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
     text-align: left;
-    text-transform: uppercase;
+    text-decoration: none;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition:
+      color 0.28s ease,
+      opacity 0.28s ease;
+    text-transform: uppercase;
   }
 
-  .selected-performance-button {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
+  .all-performances-button .performance-button-label > span {
+    text-decoration-line: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
-  .performance-list-number {
-    min-width: 20px;
-    display: inline-block;
+  .all-performances-button.active .performance-button-label > span,
+  .all-performances-button:hover .performance-button-label > span {
+    text-decoration-line: underline;
   }
 
-  .section-button.active,
-  .section-button:hover,
-  .section-button:focus,
+  .all-performances-button.active,
+  .all-performances-button:hover,
+  .all-performances-button:focus,
   .selected-performance-button.active,
   .selected-performance-button:hover,
   .selected-performance-button:focus {
-    color: #000000;
+    color: var(--performance-color);
+  }
+
+  .all-performances-button:hover .performance-button-label span,
+  .all-performances-button.active .performance-button-label span,
+  .selected-performance-button:hover .performance-button-label span,
+  .selected-performance-button.active .performance-button-label span {
+    animation: performanceTextLift 0.42s ease both;
+  }
+
+  .performance-list-number {
+    display: inline-block;
+    min-width: 0;
+    margin-right: 0;
+    color: inherit;
+    font-size: 0.82em;
+    font-weight: 700;
+    opacity: 0.62;
+    transform: translateY(-0.5px);
+  }
+
+  .performance-button-label {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+  }
+
+  .performance-button-label span {
+    display: inline-block;
+  }
+
+  @keyframes performanceTextLift {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    42% {
+      transform: translateY(-110%);
+      opacity: 0;
+    }
+
+    43% {
+      transform: translateY(110%);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .performance-preview {
     width: 100%;
-    align-self: end;
-    min-height: 0;
   }
 
   .performance-preview h1 {
-    max-width: 340px;
-    margin: 0 0 46px;
-    color: #000000;
-    font-size: clamp(24px, 2vw, 30px);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.055em;
+    max-width: 280px;
+    margin: 0 0 42px;
+    color: var(--performance-color);
+    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: 0.005em;
+    animation: previewTitleIn 0.46s ease both;
+    transition:
+      color 0.28s ease,
+      opacity 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  @keyframes previewTitleIn {
+    0% {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .preview-bottom {
@@ -388,15 +644,27 @@
   }
 
   .preview-info {
-    max-width: 330px;
+    max-width: 265px;
+  }
+
+  .preview-info strong {
+    display: block;
+    margin: 0 0 9px;
+    color: #000000;
+    font-size: clamp(12px, 0.72vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
   }
 
   .preview-info p {
     margin: 0;
     color: #000000;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.2;
+    font-size: clamp(11px, 0.66vw, 12px);
+    font-weight: 500;
+    line-height: 1.16;
+    letter-spacing: 0.006em;
+    text-transform: uppercase;
   }
 
   .performance-description {
@@ -415,6 +683,7 @@
 
   .performance-description p {
     margin: 0;
+    text-transform: uppercase;
   }
 
   .info-toggle {
@@ -423,39 +692,103 @@
     border: 0;
     background: transparent;
     color: #000000;
-    font-family: Arial, Helvetica, sans-serif;
     font-size: 12px;
     font-weight: 900;
     line-height: 1;
-    text-transform: uppercase;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .right-column {
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .image-grid {
+    --image-card-gap: clamp(22px, 1.6vw, 30px);
+
     width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-    row-gap: 12px;
-    padding: 0;
+    align-content: start;
+    gap: var(--image-card-gap);
+    padding: 0 0 var(--last-desktop-offset, 0px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
+  }
+
+  .image-grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-thumb {
+    background: transparent;
   }
 
   .image-card {
     position: relative;
     display: block;
-    min-height: 560px;
+    height: var(--desktop-card-height);
+    min-height: 0;
     overflow: hidden;
     padding: 0;
     border: 0;
     color: #000000;
-    background: #eeeeee;
+    background: #f8f8f6;
     text-align: left;
     cursor: pointer;
+    isolation: isolate;
+    transition:
+      background 0.45s ease,
+      transform 0.45s ease;
+  }
+
+  .image-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.22),
+        rgba(255, 255, 255, 0) 30%
+      ),
+      linear-gradient(to top, rgba(0, 0, 0, 0.055), rgba(0, 0, 0, 0) 42%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.42s ease;
+  }
+
+  .image-card::after {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.985);
+    transition:
+      opacity 0.42s ease,
+      transform 0.42s ease;
   }
 
   .image-card figure {
@@ -465,42 +798,133 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eeeeee;
+    background: #f8f8f6;
   }
 
   .image-card img {
     width: 100%;
     height: 100%;
-    min-height: 560px;
+    min-height: 0;
     display: block;
     object-fit: cover;
     object-position: center;
+    transform: scale(1.01);
     transition:
-      opacity 0.35s ease,
-      width 0.55s ease,
-      height 0.55s ease,
-      filter 0.55s ease;
+      opacity 0.45s ease,
+      width 0.65s ease,
+      height 0.65s ease,
+      transform 0.65s ease,
+      filter 0.65s ease;
   }
 
   .image-grid:hover .image-card img {
-    opacity: 0.12;
-    filter: grayscale(10%);
+    opacity: 0.38;
+    filter: grayscale(12%) contrast(0.94) brightness(1.03);
+  }
+
+  .image-grid:hover .image-card:hover,
+  .image-grid:hover .image-card.active {
+    background: #fbfaf7;
+  }
+
+  .image-grid:hover .image-card:hover::before,
+  .image-grid:hover .image-card.active::before {
+    opacity: 1;
+  }
+
+  .image-grid:hover .image-card:hover::after,
+  .image-grid:hover .image-card.active::after {
+    opacity: 1;
+    transform: scale(1);
   }
 
   .image-grid:hover .image-card:hover img,
   .image-grid:hover .image-card.active img {
-    width: 92%;
-    height: 92%;
+    width: calc(100% - 46px);
+    height: calc(100% - 46px);
     min-height: 0;
     opacity: 1;
     object-fit: contain;
+    transform: scale(1);
     filter: none;
+  }
+
+  .magnify-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 5;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    color: #000000;
+    background: rgba(255, 255, 255, 0.78);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition:
+      opacity 0.32s ease,
+      transform 0.32s ease,
+      background 0.32s ease;
+  }
+
+  .image-card:hover .magnify-icon,
+  .image-card.active .magnify-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .image-number {
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    z-index: 4;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .image-card:hover .image-number,
+  .image-card.active .image-number {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .back-to-top {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin: 48px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    text-transform: uppercase;
   }
 
   .empty-message {
     margin: 0;
+    padding: 120px 0;
     color: #000000;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 900;
     text-transform: uppercase;
   }
@@ -540,11 +964,18 @@
     font-size: 12px;
     font-weight: 400;
     line-height: 1.35;
+  }
+
+  .lightbox-meta span {
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
   }
 
   .lightbox-meta p {
     margin: 0;
+    text-transform: none;
   }
 
   .lightbox-close {
@@ -555,21 +986,19 @@
     border: 0;
     background: transparent;
     color: #000000;
-    font-family: inherit;
     font-size: 13px;
-    text-transform: uppercase;
+    font-weight: 900;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .lightbox-arrow {
     width: 46px;
     height: 46px;
-    border: 1px solid #d8d2cc;
-    border-radius: 50%;
-    background: #ffffff;
+    border: 0;
+    background: transparent;
     color: #000000;
-    font-family: inherit;
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
   }
 
@@ -581,32 +1010,102 @@
     justify-self: end;
   }
 
-  @media (max-width: 1280px) {
+  @media (min-width: 1025px) {
+    .image-card:nth-child(4n + 1) {
+      transform: translateY(0);
+    }
+
+    .image-card:nth-child(4n + 2) {
+      transform: translateY(34px);
+    }
+
+    .image-card:nth-child(4n + 3) {
+      transform: translateY(8px);
+    }
+
+    .image-card:nth-child(4n + 4) {
+      transform: translateY(42px);
+    }
+
+    .image-card:nth-child(4n + 1):hover,
+    .image-card:nth-child(4n + 1).active {
+      transform: translateY(-3px);
+    }
+
+    .image-card:nth-child(4n + 2):hover,
+    .image-card:nth-child(4n + 2).active {
+      transform: translateY(31px);
+    }
+
+    .image-card:nth-child(4n + 3):hover,
+    .image-card:nth-child(4n + 3).active {
+      transform: translateY(5px);
+    }
+
+    .image-card:nth-child(4n + 4):hover,
+    .image-card:nth-child(4n + 4).active {
+      transform: translateY(39px);
+    }
+  }
+
+  @media (min-width: 1440px) {
     .performances-page {
-      padding: 96px 80px 90px 28px;
+      --desktop-card-height: clamp(455px, 27vw, 510px);
+
+      padding-right: 72px;
     }
 
     .performances-layout {
-      grid-template-columns: 21% 79%;
+      grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
+      gap: 14px;
+    }
+  }
+
+  @media (min-width: 1680px) {
+    .performances-page {
+      --desktop-card-height: 510px;
+
+      padding-right: 76px;
+    }
+
+    .performances-layout {
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 14px;
     }
 
     .performance-preview h1 {
-      font-size: clamp(24px, 2vw, 30px);
+      max-width: 270px;
     }
 
-    .image-card,
-    .image-card img {
-      min-height: 500px;
+    .preview-info {
+      max-width: 260px;
+    }
+  }
+
+  @media (max-width: 1280px) {
+    .performances-page {
+      --desktop-card-height: 455px;
+
+      padding: 96px 72px 90px 28px;
+    }
+
+    .performances-layout {
+      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .performance-preview h1 {
+      max-width: 280px;
+      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
+    }
+
+    .image-grid {
+      column-gap: 22px;
+      row-gap: 32px;
     }
   }
 
   @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: 100%;
-      overflow: hidden;
-    }
-
     .performances-page {
       height: 100vh;
       height: 100dvh;
@@ -627,107 +1126,69 @@
     .left-column {
       position: relative;
       top: auto;
+      left: auto;
+      right: auto;
       z-index: 20;
       height: auto;
       min-height: 0;
       flex: 0 0 auto;
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
+      display: block;
       margin: 0;
-      padding-bottom: 22px;
+      padding-top: 116px;
+      padding-bottom: 26px;
       background: #ffffff;
     }
 
-    .navigation-area {
-      width: 100%;
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 12px;
-      margin: 0 0 20px;
-      padding: 0 0 18px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    }
-
-    .section-links {
-      width: 100%;
-      display: block;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .section-button {
-      display: block;
-      width: 100%;
-      min-height: 20px;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-      font-size: 15px;
-      line-height: 1.1;
-    }
-
-    .selected-performance-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 18px;
-      row-gap: 7px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-performance-button {
+    .performance-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
+      width: auto;
+      max-height: 106px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 19px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
       text-align: left;
-      font-size: 14px;
-      line-height: 1.08;
-      white-space: normal;
-      word-break: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
+      background: #ffffff;
     }
 
-    .selected-performance-button.active,
-    .selected-performance-button:hover,
-    .selected-performance-button:focus {
-      color: #000000;
-      transform: none;
-      letter-spacing: 0;
+    .all-performances-button,
+    .selected-performance-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .performance-preview {
       width: 100%;
       max-width: none;
-      align-self: start;
       display: block;
       text-align: left;
     }
 
     .performance-preview h1 {
-      width: 100%;
-      max-width: none;
-      margin: 0 0 10px;
-      font-size: clamp(18px, 3.2vw, 25px);
+      max-width: 520px;
+      margin: 0 0 8px;
+      font-size: 16px;
       text-align: left;
+      line-height: 1;
     }
 
     .preview-bottom {
       width: 100%;
       max-width: none;
-      gap: 8px;
+      gap: 0;
       text-align: left;
     }
 
@@ -738,17 +1199,31 @@
       text-align: left;
     }
 
+    .preview-info strong {
+      font-size: 14px;
+    }
+
+    .preview-info p {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.12;
+    }
+
     .performance-description {
       width: 100%;
       max-width: none;
-      max-height: 80px;
+      max-height: 72px;
       overflow: hidden;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .performance-description.expanded {
-      max-height: 22vh;
+      max-height: 24vh;
       overflow-y: auto;
+      padding-top: 4px;
       padding-right: 8px;
+      padding-bottom: 12px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
@@ -761,11 +1236,16 @@
 
     .info-toggle {
       display: block;
-      margin-top: 8px;
+      margin-top: 12px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
     }
 
     .right-column {
-      height: 100%;
+      width: 100%;
       min-height: 0;
       flex: 1 1 auto;
       display: block;
@@ -787,6 +1267,7 @@
       scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
       overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .image-grid::-webkit-scrollbar {
@@ -796,33 +1277,82 @@
       background: transparent;
     }
 
-    .image-card {
-      min-height: auto;
-      overflow: visible;
-      background: transparent;
+    .image-card,
+    .image-card:nth-child(even),
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 4) {
+      height: 440px;
+      min-height: 0;
+      overflow: hidden;
+      background: #eeeeee;
+      transform: none;
+    }
+
+    .image-card:nth-child(4n + 1):hover,
+    .image-card:nth-child(4n + 1).active,
+    .image-card:nth-child(4n + 2):hover,
+    .image-card:nth-child(4n + 2).active,
+    .image-card:nth-child(4n + 3):hover,
+    .image-card:nth-child(4n + 3).active,
+    .image-card:nth-child(4n + 4):hover,
+    .image-card:nth-child(4n + 4).active {
+      transform: none;
+    }
+
+    .image-card::before,
+    .image-card::after {
+      display: none;
     }
 
     .image-card figure {
-      height: 440px;
+      width: 100%;
+      height: 100%;
       background: #eeeeee;
       overflow: hidden;
     }
 
-    .image-card img {
-      min-height: 440px;
+    .image-card img,
+    .image-card:nth-child(4n + 1) img,
+    .image-card:nth-child(4n + 2) img,
+    .image-card:nth-child(4n + 3) img,
+    .image-card:nth-child(4n + 4) img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      object-fit: cover;
+      transform: none;
     }
 
     .image-grid:hover .image-card img {
-      opacity: 1;
-      filter: none;
+      opacity: 0.42;
+      filter: grayscale(10%) contrast(0.96) brightness(1.02);
     }
 
     .image-grid:hover .image-card:hover img,
     .image-grid:hover .image-card.active img {
-      width: 100%;
-      height: 100%;
-      min-height: 440px;
-      object-fit: cover;
+      width: calc(100% - 36px);
+      height: calc(100% - 36px);
+      min-height: 0;
+      object-fit: contain;
+      opacity: 1;
+      filter: none;
+    }
+
+    .magnify-icon {
+      display: none;
+    }
+
+    .image-number {
+      display: none;
+    }
+
+    .back-to-top {
+      display: block;
+      margin: 44px 0 0;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 14px;
     }
   }
 
@@ -837,109 +1367,76 @@
     }
 
     .left-column {
-      display: grid;
-      grid-template-rows: auto auto;
-      align-content: start;
-      padding-bottom: 18px;
+      padding-top: 104px;
+      padding-bottom: 24px;
     }
 
-    .navigation-area {
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 10px;
-      margin: 0 0 16px;
-      padding: 0 0 16px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .section-links {
-      width: 100%;
-      display: block;
-      text-align: left;
-    }
-
-    .section-button {
-      display: block;
-      width: 100%;
-      min-height: 20px;
-      margin: 0;
-      padding: 0;
-      font-size: 14px;
-      line-height: 1.1;
-      text-align: left;
-    }
-
-    .selected-performance-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 14px;
-      row-gap: 6px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-performance-button {
+    .performance-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
+      width: auto;
+      max-height: 100px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 18px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
+      text-align: left;
+      background: #ffffff;
+    }
+
+    .all-performances-button,
+    .selected-performance-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
       font-size: 12px;
       line-height: 1.08;
-      text-align: left;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
-    }
-
-    .performance-list-number {
-      min-width: 18px;
-    }
-
-    .selected-performance-button.active,
-    .selected-performance-button:hover,
-    .selected-performance-button:focus {
-      transform: none;
-      letter-spacing: 0;
-    }
-
-    .performance-preview h1,
-    .preview-bottom,
-    .preview-info,
-    .performance-description {
-      width: 100%;
-      max-width: none;
     }
 
     .performance-preview h1 {
-      font-size: clamp(15px, 4.2vw, 20px);
+      max-width: 100%;
+      margin: 0 0 8px;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 12px;
+    }
+
+    .preview-info p {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.12;
     }
 
     .performance-description {
-      max-height: 60px;
+      max-height: 58px;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .performance-description.expanded {
-      max-height: 20vh;
+      max-height: 22vh;
       overflow-y: auto;
+      padding-top: 4px;
+      padding-bottom: 14px;
     }
 
     .info-toggle {
+      margin-top: 12px;
+      padding-top: 5px;
+      padding-bottom: 5px;
       font-size: 11px;
-    }
-
-    .right-column {
-      height: 100%;
-      min-height: 0;
-      overflow: hidden;
     }
 
     .image-grid {
@@ -948,12 +1445,34 @@
       padding: 0 0 calc(145px + env(safe-area-inset-bottom));
     }
 
+    .image-card,
+    .image-card:nth-child(even),
+    .image-card:nth-child(4n + 1),
+    .image-card:nth-child(4n + 2),
+    .image-card:nth-child(4n + 3),
+    .image-card:nth-child(4n + 4) {
+      height: auto;
+      min-height: auto;
+      overflow: visible;
+      background: transparent;
+    }
+
     .image-card figure {
       height: 260px;
+      background: #eeeeee;
+      overflow: hidden;
     }
 
     .image-card img {
+      width: 100%;
+      height: 100%;
       min-height: 260px;
+      object-fit: cover;
+    }
+
+    .image-grid:hover .image-card img {
+      opacity: 1;
+      filter: none;
     }
 
     .image-grid:hover .image-card:hover img,
@@ -962,6 +1481,13 @@
       height: 100%;
       min-height: 260px;
       object-fit: cover;
+    }
+
+    .back-to-top {
+      display: block;
+      margin-top: 38px;
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+      font-size: 12px;
     }
 
     .performance-lightbox {
@@ -999,25 +1525,27 @@
 
   @media (max-width: 420px) {
     .left-column {
-      padding-bottom: 16px;
+      padding-top: 100px;
+      padding-bottom: 22px;
     }
 
     .performance-preview h1 {
-      font-size: clamp(14px, 4vw, 18px);
+      font-size: 14px;
     }
 
-    .selected-performance-links {
-      column-gap: 12px;
-      row-gap: 5px;
+    .performance-description {
+      max-height: 54px;
     }
 
-    .selected-performance-button {
-      font-size: 11px;
-      min-height: 17px;
+    .performance-description.expanded {
+      max-height: 21vh;
+      padding-bottom: 14px;
     }
 
-    .performance-list-number {
-      min-width: 17px;
+    .info-toggle {
+      margin-top: 11px;
+      padding-top: 5px;
+      padding-bottom: 5px;
     }
 
     .image-card figure {

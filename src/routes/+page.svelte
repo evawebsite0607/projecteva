@@ -5,10 +5,16 @@
   let { data } = $props();
 
   let activeCategory = $state("ALL WORK");
+  let hoveredCategory = $state(null);
   let hoveredWorkId = $state(null);
+  let previewHasStarted = $state(false);
   let workGridElement = $state(null);
 
   const artistName = "Eva Eichinger ";
+  const welcomeTitle = "Eva Eichinger";
+  const welcomeInfoTitle = "Contemporary Artist in Vienna";
+  const welcomeDescription =
+    '"when going down the rabbit hole prepare to chill with lions" - EVA.';
 
   let allWorks = $derived(data.works || []);
 
@@ -24,6 +30,16 @@
       .replace(/&/g, "and")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+
+  function getCategoryColor(category = "") {
+    const slug = slugify(category);
+
+    if (slug === "painting" || slug === "paintings") return "#ff5c01";
+    if (slug === "exhibition" || slug === "exhibitions") return "#24d480";
+    if (slug === "performance" || slug === "performances") return "#ab9bf2";
+
+    return "#000000";
   }
 
   function normalizeCategorySlug(work) {
@@ -114,6 +130,46 @@
     return ["HOME PAGE"];
   }
 
+  function getPreviewCategory(work) {
+    if (activeCategory !== "ALL WORK") {
+      return activeCategory;
+    }
+
+    return getWorkCategoryNames(work)[0] || "";
+  }
+
+  function isIntroPreview() {
+    return (
+      !previewHasStarted ||
+      hoveredCategory === "ALL WORK" ||
+      (activeCategory === "ALL WORK" && !hoveredWorkId)
+    );
+  }
+
+  function getPreviewColor() {
+    if (isIntroPreview()) {
+      return "#000000";
+    }
+
+    if (hoveredCategory) {
+      return getCategoryColor(hoveredCategory);
+    }
+
+    if (activeWork) {
+      return getCategoryColor(getPreviewCategory(activeWork));
+    }
+
+    return "#000000";
+  }
+
+  function getDesktopPreviewTitle() {
+    if (isIntroPreview()) {
+      return welcomeTitle;
+    }
+
+    return activeWork?.title || welcomeTitle;
+  }
+
   function getDesktopLastCardOffset(count) {
     const position = count % 4;
 
@@ -147,6 +203,7 @@
 
     return ["ALL WORK", ...orderedCategories, ...remainingCategories];
   });
+
   let filteredWorks = $derived.by(() => {
     if (activeCategory === "ALL WORK") {
       return allWorks;
@@ -195,10 +252,30 @@
   function setCategory(category) {
     activeCategory = category;
     hoveredWorkId = null;
+
+    if (category === "ALL WORK") {
+      previewHasStarted = false;
+    } else {
+      previewHasStarted = true;
+    }
+
     scrollGridToTop();
   }
 
+  function setHoveredCategory(category) {
+    hoveredCategory = category;
+
+    if (category !== "ALL WORK") {
+      previewHasStarted = true;
+    }
+  }
+
+  function clearHoveredCategory() {
+    hoveredCategory = null;
+  }
+
   function setHoveredWork(work) {
+    previewHasStarted = true;
     hoveredWorkId = work.id;
   }
 
@@ -247,6 +324,11 @@
             type="button"
             class:active={activeCategory === category}
             class:all-work-button={category === "ALL WORK"}
+            style={`--category-color: ${getCategoryColor(category)};`}
+            onmouseenter={() => setHoveredCategory(category)}
+            onmouseleave={clearHoveredCategory}
+            onfocus={() => setHoveredCategory(category)}
+            onblur={clearHoveredCategory}
             onclick={() => setCategory(category)}
           >
             {#if category !== "ALL WORK"}
@@ -261,23 +343,34 @@
       </div>
 
       {#if activeWork}
-        <div class="project-preview">
+        <div
+          class="project-preview"
+          style={`--preview-category-color: ${getPreviewColor()};`}
+        >
           <h1>
-            <span class="desktop-title">{activeWork.title}</span>
+            <span class="desktop-title">{getDesktopPreviewTitle()}</span>
             <span class="mobile-title">{activeCategory}</span>
           </h1>
 
           <div class="project-preview-bottom">
             <div class="project-preview-info">
-              <strong>{getWorkCategoryNames(activeWork)[0] || "PROJECT"}</strong
-              >
-
-              {#if activeWork.excerpt}
-                <p>{@html cleanHtml(activeWork.excerpt)}</p>
-              {:else if activeWork.description}
-                <p>{@html cleanHtml(activeWork.description)}</p>
+              {#if isIntroPreview()}
+                <strong>{welcomeInfoTitle}</strong>
+                <p>{welcomeDescription}</p>
               {:else}
-                <p>{activeWork.title} is part of the selected works archive.</p>
+                <strong
+                  >{getWorkCategoryNames(activeWork)[0] || "PROJECT"}</strong
+                >
+
+                {#if activeWork.excerpt}
+                  <p>{@html cleanHtml(activeWork.excerpt)}</p>
+                {:else if activeWork.description}
+                  <p>{@html cleanHtml(activeWork.description)}</p>
+                {:else}
+                  <p>
+                    {activeWork.title} is part of the selected works archive.
+                  </p>
+                {/if}
               {/if}
             </div>
 
@@ -420,6 +513,8 @@
   }
 
   .work-filter button {
+    --category-color: #000000;
+
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -429,7 +524,7 @@
     background: transparent;
     color: #b8b8b8;
     font-size: clamp(12px, 0.78vw, 13px);
-    font-weight: 700;
+    font-weight: 900;
     line-height: 1;
     letter-spacing: 0.01em;
     text-align: left;
@@ -460,7 +555,7 @@
 
   .work-filter button.active,
   .work-filter button:hover {
-    color: #000000;
+    color: var(--category-color, #000000);
   }
 
   .work-filter button:hover .filter-label span,
@@ -518,12 +613,13 @@
   .project-preview h1 {
     max-width: 280px;
     margin: 0 0 42px;
-    color: #000000;
-    font-size: clamp(12px, 0.78vw, 14px);
+    color: var(--preview-category-color, #000000);
+    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
     transition:
+      color 0.28s ease,
       opacity 0.35s ease,
       transform 0.35s ease;
   }
@@ -572,7 +668,7 @@
 
   .project-preview-info p {
     margin: 0;
-    color: #262626;
+    color: #000000;
     font-size: clamp(11px, 0.66vw, 12px);
     font-weight: 500;
     line-height: 1.16;
@@ -594,6 +690,8 @@
   }
 
   .work-grid {
+    --work-card-gap: clamp(22px, 1.6vw, 30px);
+
     width: 100%;
     height: 100%;
     min-width: 0;
@@ -603,8 +701,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
-    column-gap: clamp(20px, 1.6vw, 30px);
-    row-gap: clamp(28px, 2vw, 38px);
+    gap: var(--work-card-gap);
     padding: 0 0 var(--last-desktop-offset, 0px);
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -870,7 +967,7 @@
 
     .project-preview h1 {
       max-width: 280px;
-      font-size: clamp(13px, 0.95vw, 15px);
+      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
     }
 
     .work-grid {

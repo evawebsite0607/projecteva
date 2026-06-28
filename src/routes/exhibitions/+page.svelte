@@ -1,8 +1,11 @@
 <script>
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { browser } from "$app/environment";
 
   let { data } = $props();
+
+  const allExhibitionsId = "ALL EXHIBITIONS";
+  const exhibitionColor = "#24d480";
 
   let selectedExhibitionId = $state(null);
   let selectedImageIndex = $state(null);
@@ -20,38 +23,125 @@
   );
 
   $effect(() => {
-    if (selectedExhibitionId === null && initialExhibition) {
-      selectedExhibitionId = initialExhibition.id;
+    if (selectedExhibitionId === null && exhibitions.length) {
+      selectedExhibitionId =
+        data.requestedPostId && initialExhibition
+          ? initialExhibition.id
+          : allExhibitionsId;
     }
   });
 
-  let selectedExhibition = $derived(
-    exhibitions.find((exhibition) => exhibition.id === selectedExhibitionId) ||
-      exhibitions[0],
-  );
+  function isAllExhibitions() {
+    return (
+      selectedExhibitionId === allExhibitionsId || selectedExhibitionId === null
+    );
+  }
 
-  let selectedImages = $derived(selectedExhibition?.images || []);
+  let selectedExhibition = $derived.by(() => {
+    if (isAllExhibitions()) return null;
+
+    return (
+      exhibitions.find(
+        (exhibition) => exhibition.id === selectedExhibitionId,
+      ) || exhibitions[0]
+    );
+  });
+
+  let allExhibitionImages = $derived.by(() => {
+    return exhibitions.flatMap((exhibition) =>
+      (exhibition.images || []).map((image, imageIndex) => ({
+        ...image,
+        imageIndex,
+        exhibitionTitle: exhibition.title,
+        exhibitionId: exhibition.id,
+      })),
+    );
+  });
+
+  let selectedImages = $derived.by(() => {
+    if (isAllExhibitions()) {
+      return allExhibitionImages;
+    }
+
+    return (selectedExhibition?.images || []).map((image, imageIndex) => ({
+      ...image,
+      imageIndex,
+      exhibitionTitle: selectedExhibition?.title || "Exhibition",
+      exhibitionId: selectedExhibition?.id,
+    }));
+  });
 
   let selectedImage = $derived(
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
-  let shouldShowInfoToggle = $derived(
-    (selectedExhibition?.info || "").length > 200,
+  let previewTitle = $derived(
+    isAllExhibitions()
+      ? allExhibitionsId
+      : selectedExhibition?.title || allExhibitionsId,
   );
 
-  function selectExhibition(exhibition) {
-    selectedExhibitionId = exhibition.id;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-    infoExpanded = false;
+  let shouldShowInfoToggle = $derived(
+    !isAllExhibitions() && (selectedExhibition?.info || "").length > 200,
+  );
 
+  function cleanHtml(value) {
+    return value || "";
+  }
+
+  function getDesktopLastCardOffset(count) {
+    const position = count % 4;
+
+    if (position === 1) return 0;
+    if (position === 2) return 34;
+    if (position === 3) return 8;
+
+    return 42;
+  }
+
+  function unlockPageLocks() {
+    if (!browser) return;
+
+    document.documentElement.classList.remove("menu-open-lock");
+    document.body.classList.remove("menu-open-lock");
+
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    document.documentElement.style.position = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.touchAction = "";
+
+    document.body.style.overflow = "";
+    document.body.style.height = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.top = "";
+    document.body.style.touchAction = "";
+  }
+
+  function scrollGridToTop() {
     if (exhibitionGridElement) {
       exhibitionGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
+  }
+
+  function selectAllExhibitions() {
+    selectedExhibitionId = allExhibitionsId;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
+  }
+
+  function selectExhibition(exhibition) {
+    selectedExhibitionId = exhibition.id;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
   }
 
   function setHoveredImage(index) {
@@ -93,12 +183,7 @@
   }
 
   function scrollBackToTop() {
-    if (exhibitionGridElement) {
-      exhibitionGridElement.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
+    scrollGridToTop();
   }
 
   function handleKeydown(event) {
@@ -108,6 +193,22 @@
     if (event.key === "ArrowLeft") showPreviousImage();
     if (event.key === "ArrowRight") showNextImage();
   }
+
+  onMount(() => {
+    unlockPageLocks();
+
+    requestAnimationFrame(() => {
+      unlockPageLocks();
+    });
+
+    setTimeout(() => {
+      unlockPageLocks();
+    }, 0);
+
+    return () => {
+      unlockPageLocks();
+    };
+  });
 
   onDestroy(() => {
     if (browser) {
@@ -119,7 +220,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-  <title>{selectedExhibition?.title || "Exhibitions"} | Eva Eichinger</title>
+  <title>{previewTitle} | Eva Eichinger</title>
 
   <meta
     name="description"
@@ -127,75 +228,87 @@
   />
 </svelte:head>
 
-<main class="exhibitions-page">
+<main
+  class="exhibitions-page"
+  style={`--exhibition-color: ${exhibitionColor};`}
+>
   {#if exhibitions.length > 0}
     <section class="exhibitions-layout" aria-label="Exhibitions">
       <aside class="left-column" aria-label="Exhibition navigation">
-        <div class="navigation-area">
-          <div class="section-links">
-            <button type="button" class="section-button active">
-              <span class="section-label">
-                <span>Selected Exhibitions</span>
+        <div class="exhibition-filter" aria-label="Exhibition categories">
+          <button
+            type="button"
+            class="all-exhibitions-button"
+            class:active={isAllExhibitions()}
+            onclick={selectAllExhibitions}
+          >
+            <span class="exhibition-button-label">
+              <span>ALL EXHIBITIONS</span>
+            </span>
+          </button>
+
+          {#each exhibitions as exhibition, index}
+            <button
+              type="button"
+              class="selected-exhibition-button"
+              class:active={selectedExhibition?.id === exhibition.id}
+              onclick={() => selectExhibition(exhibition)}
+            >
+              <span class="exhibition-list-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+
+              <span class="exhibition-button-label">
+                <span>{exhibition.title}</span>
               </span>
             </button>
-          </div>
-
-          <div class="selected-exhibition-links">
-            {#each exhibitions as exhibition, index}
-              <button
-                type="button"
-                class="selected-exhibition-button"
-                class:active={selectedExhibition?.id === exhibition.id}
-                onclick={() => selectExhibition(exhibition)}
-              >
-                <span class="exhibition-list-number">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <span class="exhibition-button-label">
-                  <span>{exhibition.title}</span>
-                </span>
-              </button>
-            {/each}
-          </div>
+          {/each}
         </div>
 
         <div class="exhibition-preview">
-          {#if selectedExhibition}
-            <h1>{selectedExhibition.title}</h1>
+          <h1>{previewTitle}</h1>
 
-            <div class="preview-bottom">
-              <div class="preview-info">
-                {#if selectedExhibition.info}
-                  <div
-                    class="exhibition-description"
-                    class:expanded={infoExpanded}
+          <div class="preview-bottom">
+            <div class="preview-info">
+              {#if isAllExhibitions()}
+                <strong>EXHIBITIONS</strong>
+                <p>Selected exhibition images and documentation.</p>
+              {:else if selectedExhibition?.info}
+                <strong>EXHIBITION</strong>
+
+                <div
+                  class="exhibition-description"
+                  class:expanded={infoExpanded}
+                >
+                  <p>{@html cleanHtml(selectedExhibition.info)}</p>
+                </div>
+
+                {#if shouldShowInfoToggle}
+                  <button
+                    type="button"
+                    class="info-toggle"
+                    onclick={() => (infoExpanded = !infoExpanded)}
                   >
-                    <p>{selectedExhibition.info}</p>
-                  </div>
-
-                  {#if shouldShowInfoToggle}
-                    <button
-                      type="button"
-                      class="info-toggle"
-                      onclick={() => (infoExpanded = !infoExpanded)}
-                    >
-                      {infoExpanded ? "Less −" : "More +"}
-                    </button>
-                  {/if}
-                {:else}
-                  <p>Selected exhibition images and documentation.</p>
+                    {infoExpanded ? "Less −" : "More +"}
+                  </button>
                 {/if}
-              </div>
+              {:else}
+                <strong>EXHIBITION</strong>
+                <p>Selected exhibition images and documentation.</p>
+              {/if}
             </div>
-          {/if}
+          </div>
         </div>
       </aside>
 
       <section class="right-column" aria-label="Exhibition content">
         {#if selectedImages.length}
-          {#key selectedExhibition.id}
-            <div class="image-grid" bind:this={exhibitionGridElement}>
+          {#key selectedExhibitionId}
+            <div
+              class="image-grid"
+              bind:this={exhibitionGridElement}
+              style={`--last-desktop-offset: ${getDesktopLastCardOffset(selectedImages.length)}px;`}
+            >
               {#each selectedImages as image, index}
                 <button
                   type="button"
@@ -204,14 +317,19 @@
                   onmouseenter={() => setHoveredImage(index)}
                   onfocus={() => setHoveredImage(index)}
                   onclick={() => openLightbox(index)}
-                  aria-label={`Open ${image.alt || selectedExhibition.title}`}
+                  aria-label={`Open ${image.alt || image.exhibitionTitle || "exhibition image"}`}
                 >
                   <figure>
                     <img
                       src={image.src}
-                      alt={image.alt || selectedExhibition.title}
+                      alt={image.alt ||
+                        image.exhibitionTitle ||
+                        "Exhibition image"}
+                      loading={index < 4 ? "eager" : "lazy"}
                     />
                   </figure>
+
+                  <span class="magnify-icon" aria-hidden="true"> ⛶ </span>
 
                   <span class="image-number">
                     {String(index + 1).padStart(2, "0")}
@@ -260,7 +378,9 @@
       <div class="lightbox-content">
         <img
           src={selectedImage.src}
-          alt={selectedImage.alt || selectedExhibition.title}
+          alt={selectedImage.alt ||
+            selectedImage.exhibitionTitle ||
+            "Exhibition image"}
         />
 
         <div class="lightbox-meta">
@@ -272,8 +392,10 @@
 
           {#if selectedImage.alt}
             <p>{selectedImage.alt}</p>
+          {:else if selectedImage.exhibitionTitle}
+            <p>{selectedImage.exhibitionTitle}</p>
           {:else}
-            <p>{selectedExhibition.title}</p>
+            <p>Exhibition image</p>
           {/if}
         </div>
       </div>
@@ -297,6 +419,20 @@
     font-family: Arial, Helvetica, sans-serif;
   }
 
+  :global(html),
+  :global(body) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :global(html::-webkit-scrollbar),
+  :global(body::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
@@ -309,14 +445,20 @@
   }
 
   .exhibitions-page {
+    --desktop-card-height: clamp(455px, 28vw, 515px);
+
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding: 96px 72px 90px 28px;
     background: #ffffff;
     text-transform: uppercase;
   }
 
-  .exhibitions-page button {
+  .exhibitions-page button,
+  .exhibitions-page a {
     font-family: inherit;
   }
 
@@ -326,61 +468,51 @@
 
   .exhibitions-layout {
     width: 100%;
+    height: 100%;
+    min-height: 0;
     display: grid;
     grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
     gap: 16px;
     align-items: start;
+    overflow: hidden;
   }
 
   .left-column {
-    position: sticky;
-    top: 96px;
-    height: calc(100vh - 186px);
-    min-height: 620px;
+    position: relative;
+    top: auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
-  .navigation-area {
+  .exhibition-filter {
     width: 100%;
-    display: grid;
-    grid-template-rows: auto auto;
-    align-content: start;
-    gap: 12px;
-    margin: 0;
-    padding: 0;
-  }
-
-  .section-links,
-  .selected-exhibition-links {
-    width: 100%;
+    max-height: 44vh;
+    overflow-y: auto;
+    padding-right: 4px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 7px;
-    margin: 0;
-    padding: 0;
-    text-align: left;
-  }
-
-  .selected-exhibition-links {
-    max-height: 240px;
-    overflow-y: auto;
-    padding-right: 4px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  .selected-exhibition-links::-webkit-scrollbar {
-    display: none;
+  .exhibition-filter::-webkit-scrollbar {
     width: 0;
     height: 0;
+    display: none;
   }
 
-  .section-button,
+  .all-exhibitions-button,
   .selected-exhibition-button {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     width: auto;
     margin: 0;
     padding: 0;
@@ -392,6 +524,7 @@
     line-height: 1;
     letter-spacing: 0.01em;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     transition:
       color 0.28s ease,
@@ -399,29 +532,28 @@
     text-transform: uppercase;
   }
 
-  .section-button {
-    color: #000000;
+  .all-exhibitions-button .exhibition-button-label > span {
+    text-decoration-line: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
-  .section-button::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -3px;
-    width: 100%;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.65;
+  .all-exhibitions-button.active .exhibition-button-label > span,
+  .all-exhibitions-button:hover .exhibition-button-label > span {
+    text-decoration-line: underline;
   }
 
-  .selected-exhibition-button {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+  .all-exhibitions-button.active,
+  .all-exhibitions-button:hover,
+  .all-exhibitions-button:focus,
+  .selected-exhibition-button.active,
+  .selected-exhibition-button:hover,
+  .selected-exhibition-button:focus {
+    color: var(--exhibition-color);
   }
 
-  .section-button:hover .section-label span,
-  .section-button.active .section-label span,
+  .all-exhibitions-button:hover .exhibition-button-label span,
+  .all-exhibitions-button.active .exhibition-button-label span,
   .selected-exhibition-button:hover .exhibition-button-label span,
   .selected-exhibition-button.active .exhibition-button-label span {
     animation: exhibitionTextLift 0.42s ease both;
@@ -429,35 +561,23 @@
 
   .exhibition-list-number {
     display: inline-block;
-    min-width: 17px;
-    flex-shrink: 0;
+    min-width: 0;
+    margin-right: 0;
     color: inherit;
     font-size: 0.82em;
     font-weight: 700;
-    letter-spacing: 0.04em;
     opacity: 0.62;
     transform: translateY(-0.5px);
   }
 
-  .section-label,
   .exhibition-button-label {
     position: relative;
     display: inline-block;
     overflow: hidden;
   }
 
-  .section-label span,
   .exhibition-button-label span {
     display: inline-block;
-  }
-
-  .section-button.active,
-  .section-button:hover,
-  .section-button:focus,
-  .selected-exhibition-button.active,
-  .selected-exhibition-button:hover,
-  .selected-exhibition-button:focus {
-    color: #000000;
   }
 
   @keyframes exhibitionTextLift {
@@ -489,12 +609,16 @@
   .exhibition-preview h1 {
     max-width: 280px;
     margin: 0 0 42px;
-    color: #000000;
-    font-size: clamp(12px, 0.78vw, 14px);
+    color: var(--exhibition-color);
+    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
     animation: previewTitleIn 0.46s ease both;
+    transition:
+      color 0.28s ease,
+      opacity 0.35s ease,
+      transform 0.35s ease;
   }
 
   @keyframes previewTitleIn {
@@ -520,9 +644,19 @@
     max-width: 265px;
   }
 
+  .preview-info strong {
+    display: block;
+    margin: 0 0 9px;
+    color: #000000;
+    font-size: clamp(12px, 0.72vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
+  }
+
   .preview-info p {
     margin: 0;
-    color: #262626;
+    color: #000000;
     font-size: clamp(11px, 0.66vw, 12px);
     font-weight: 500;
     line-height: 1.16;
@@ -564,23 +698,52 @@
 
   .right-column {
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .image-grid {
+    --image-card-gap: clamp(22px, 1.6vw, 30px);
+
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(20px, 1.6vw, 30px);
-    row-gap: clamp(28px, 2vw, 38px);
-    padding: 6px 0 40px;
+    align-content: start;
+    gap: var(--image-card-gap);
+    padding: 0 0 var(--last-desktop-offset, 0px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
+  }
+
+  .image-grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-thumb {
+    background: transparent;
   }
 
   .image-card {
     position: relative;
     display: block;
-    height: clamp(455px, 28vw, 515px);
+    height: var(--desktop-card-height);
     min-height: 0;
     overflow: hidden;
     padding: 0;
@@ -683,6 +846,38 @@
     filter: none;
   }
 
+  .magnify-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 5;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    color: #000000;
+    background: rgba(255, 255, 255, 0.78);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition:
+      opacity 0.32s ease,
+      transform 0.32s ease,
+      background 0.32s ease;
+  }
+
+  .image-card:hover .magnify-icon,
+  .image-card.active .magnify-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
   .image-number {
     position: absolute;
     top: 22px;
@@ -719,6 +914,7 @@
     font-weight: 900;
     line-height: 1;
     cursor: pointer;
+    text-transform: uppercase;
   }
 
   .empty-message {
@@ -727,6 +923,7 @@
     color: #000000;
     font-size: 15px;
     font-weight: 900;
+    text-transform: uppercase;
   }
 
   .exhibition-lightbox {
@@ -850,6 +1047,8 @@
 
   @media (min-width: 1440px) {
     .exhibitions-page {
+      --desktop-card-height: clamp(455px, 27vw, 510px);
+
       padding-right: 72px;
     }
 
@@ -857,14 +1056,12 @@
       grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
       gap: 14px;
     }
-
-    .image-card {
-      height: clamp(455px, 27vw, 510px);
-    }
   }
 
   @media (min-width: 1680px) {
     .exhibitions-page {
+      --desktop-card-height: 510px;
+
       padding-right: 76px;
     }
 
@@ -880,14 +1077,12 @@
     .preview-info {
       max-width: 260px;
     }
-
-    .image-card {
-      height: 510px;
-    }
   }
 
   @media (max-width: 1280px) {
     .exhibitions-page {
+      --desktop-card-height: 455px;
+
       padding: 96px 72px 90px 28px;
     }
 
@@ -898,26 +1093,16 @@
 
     .exhibition-preview h1 {
       max-width: 280px;
-      font-size: clamp(13px, 0.95vw, 15px);
+      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
     }
 
     .image-grid {
       column-gap: 22px;
       row-gap: 32px;
     }
-
-    .image-card {
-      height: 455px;
-    }
   }
 
   @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: 100%;
-      overflow: hidden;
-    }
-
     .exhibitions-page {
       height: 100vh;
       height: 100dvh;
@@ -931,8 +1116,8 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 0;
       overflow: hidden;
+      gap: 0;
     }
 
     .left-column {
@@ -946,86 +1131,40 @@
       flex: 0 0 auto;
       display: block;
       margin: 0;
-      padding-bottom: 28px;
+      padding-top: 116px;
+      padding-bottom: 26px;
       background: #ffffff;
     }
 
-    .navigation-area {
-      width: 100%;
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 10px;
-      margin: 0 0 24px;
-      padding: 0;
-      border-bottom: 0;
-    }
-
-    .section-links {
-      width: 100%;
-      display: block;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .section-button {
-      display: block;
+    .exhibition-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
       width: auto;
-      min-height: 0;
-      margin: 0;
-      padding: 0;
-      color: #000000;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1;
-      text-align: left;
-    }
-
-    .selected-exhibition-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 12px;
-      row-gap: 7px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-exhibition-button {
+      max-height: 106px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
-      color: #b8b8b8;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.08;
       text-align: left;
-      white-space: normal;
-      word-break: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
+      background: #ffffff;
     }
 
-    .exhibition-list-number {
-      min-width: 22px;
-      font-size: 0.82em;
-    }
-
-    .selected-exhibition-button.active,
-    .selected-exhibition-button:hover,
-    .selected-exhibition-button:focus {
-      color: #000000;
-      transform: none;
-      letter-spacing: 0;
+    .all-exhibitions-button,
+    .selected-exhibition-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .exhibition-preview {
@@ -1036,14 +1175,11 @@
     }
 
     .exhibition-preview h1 {
-      width: 100%;
       max-width: 520px;
       margin: 0 0 8px;
       font-size: 16px;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: 0;
       text-align: left;
+      line-height: 1;
     }
 
     .preview-bottom {
@@ -1058,6 +1194,10 @@
       max-width: none;
       margin-bottom: 0;
       text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 14px;
     }
 
     .preview-info p {
@@ -1102,7 +1242,7 @@
     }
 
     .right-column {
-      height: 100%;
+      width: 100%;
       min-height: 0;
       flex: 1 1 auto;
       display: block;
@@ -1119,16 +1259,19 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 18px 12px;
-      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
       scrollbar-width: none;
+      scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
       overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     .image-grid::-webkit-scrollbar {
-      display: none;
       width: 0;
       height: 0;
+      display: none;
+      background: transparent;
     }
 
     .image-card,
@@ -1194,6 +1337,10 @@
       filter: none;
     }
 
+    .magnify-icon {
+      display: none;
+    }
+
     .image-number {
       display: none;
     }
@@ -1217,79 +1364,50 @@
     }
 
     .left-column {
+      padding-top: 104px;
       padding-bottom: 24px;
     }
 
-    .navigation-area {
-      gap: 9px;
-      margin: 0 0 22px;
-      padding: 0;
-      border-bottom: 0;
-    }
-
-    .section-button {
-      font-size: 12px;
-      line-height: 1.08;
-    }
-
-    .selected-exhibition-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 10px;
-      row-gap: 6px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-exhibition-button {
+    .exhibition-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
+      width: auto;
+      max-height: 100px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.08;
       text-align: left;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
+      background: #ffffff;
     }
 
-    .exhibition-list-number {
-      min-width: 18px;
-      font-size: 0.82em;
-    }
-
-    .selected-exhibition-button.active,
-    .selected-exhibition-button:hover,
-    .selected-exhibition-button:focus {
-      transform: none;
-      letter-spacing: 0;
-    }
-
-    .exhibition-preview h1,
-    .preview-bottom,
-    .preview-info,
-    .exhibition-description {
-      width: 100%;
-      max-width: none;
+    .all-exhibitions-button,
+    .selected-exhibition-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .exhibition-preview h1 {
+      max-width: 100%;
       margin: 0 0 8px;
       font-size: 14px;
-      font-weight: 700;
-      line-height: 1;
       text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 12px;
     }
 
     .preview-info p {
@@ -1318,18 +1436,10 @@
       font-size: 11px;
     }
 
-    .right-column {
-      height: 100%;
-      min-height: 0;
-      overflow: hidden;
-    }
-
     .image-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 0 0 calc(120px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
     }
 
     .image-card,
@@ -1412,29 +1522,12 @@
 
   @media (max-width: 420px) {
     .left-column {
+      padding-top: 100px;
       padding-bottom: 22px;
-    }
-
-    .navigation-area {
-      margin-bottom: 20px;
     }
 
     .exhibition-preview h1 {
       font-size: 14px;
-    }
-
-    .selected-exhibition-links {
-      column-gap: 9px;
-      row-gap: 5px;
-    }
-
-    .selected-exhibition-button {
-      font-size: 11px;
-      line-height: 1.08;
-    }
-
-    .exhibition-list-number {
-      min-width: 17px;
     }
 
     .exhibition-description {

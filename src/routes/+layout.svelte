@@ -17,6 +17,12 @@
 
   const desktopSubmenuLabels = ["paintings", "exhibitions", "performances"];
 
+  const submenuAccentColors = {
+    paintings: "#ff5c01",
+    exhibitions: "#24d480",
+    performances: "#ab9bf2",
+  };
+
   let menuItems = $derived.by(() => [
     { label: "Home", href: "/", children: [] },
     { label: "About", href: "/about", children: aboutItems },
@@ -172,16 +178,16 @@
     }
 
     if (parentLabel === "exhibitions") {
-      const year = getYearFromItem(child);
-
-      if (year) {
-        return `/exhibitions/${year}`;
-      }
-
-      return child?.href || "/exhibitions";
+      return "/exhibitions";
     }
 
     return child?.href || child?.frontendLink || child?.link || "#";
+  }
+
+  function getSubmenuAccentColor(item) {
+    const label = getItemLabel(item).toLowerCase();
+
+    return submenuAccentColors[label] || "#ffffff";
   }
 
   function hasDesktopSubmenu(item) {
@@ -334,6 +340,7 @@
             <div
               class="menu-grid-item"
               class:has-desktop-submenu={hasDesktopSubmenu(item)}
+              style={`--submenu-accent-color: ${getSubmenuAccentColor(item)};`}
             >
               <a
                 href={item.href}
@@ -361,9 +368,7 @@
                     <div class="desktop-submenu-list">
                       {#each item.children as child, childIndex}
                         <a
-                          href={item.label === "Exhibitions"
-                            ? "/exhibitions"
-                            : child.href}
+                          href={getSubmenuHref(item, child)}
                           class="desktop-submenu-link"
                           onclick={closeMenu}
                         >
@@ -728,6 +733,8 @@
   }
 
   .menu-grid-item {
+    --submenu-accent-color: #ffffff;
+
     position: relative;
     width: fit-content;
     margin: 0;
@@ -749,6 +756,7 @@
     line-height: 0.96;
     letter-spacing: -0.022em;
     transition:
+      color 0.3s ease,
       opacity 0.3s ease,
       transform 0.3s ease;
   }
@@ -757,6 +765,12 @@
   .main-menu-link:focus {
     opacity: 0.6;
     transform: translateX(8px);
+  }
+
+  .menu-grid-item.has-desktop-submenu:hover .main-menu-link,
+  .menu-grid-item.has-desktop-submenu:focus-within .main-menu-link {
+    color: var(--submenu-accent-color);
+    opacity: 1;
   }
 
   .desktop-menu-arrow {
@@ -777,7 +791,7 @@
 
   .menu-grid-item.has-desktop-submenu:hover .desktop-menu-arrow,
   .menu-grid-item.has-desktop-submenu:focus-within .desktop-menu-arrow {
-    color: #ffffff;
+    color: var(--submenu-accent-color);
     opacity: 1;
     transform: translateY(-0.01em) translateX(4px);
   }
@@ -827,12 +841,13 @@
 
   .desktop-submenu-kicker {
     margin: 0 0 18px;
-    color: rgba(255, 255, 255, 0.42);
+    color: var(--submenu-accent-color);
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    opacity: 0.75;
   }
 
   .desktop-submenu-list {
@@ -849,12 +864,13 @@
     align-items: center;
     width: 100%;
     min-width: 0;
-    color: rgba(255, 255, 255, 0.72);
+    color: var(--submenu-accent-color);
     font-size: clamp(12px, 0.78vw, 14px);
     font-weight: 700;
     line-height: 1.08;
     letter-spacing: 0.01em;
     text-transform: uppercase;
+    opacity: 0.68;
     transition:
       color 0.24s ease,
       opacity 0.24s ease,
@@ -863,7 +879,8 @@
 
   .desktop-submenu-link:hover,
   .desktop-submenu-link:focus {
-    color: #ffffff;
+    color: var(--submenu-accent-color);
+    opacity: 1;
     transform: translateX(5px);
   }
 
@@ -872,7 +889,7 @@
     font-size: 0.82em;
     font-weight: 700;
     line-height: 1;
-    opacity: 0.5;
+    opacity: 0.62;
   }
 
   .desktop-submenu-title {
@@ -1087,7 +1104,10 @@
     }
 
     .main-menu-link:hover,
-    .main-menu-link:focus {
+    .main-menu-link:focus,
+    .menu-grid-item.has-desktop-submenu:hover .main-menu-link,
+    .menu-grid-item.has-desktop-submenu:focus-within .main-menu-link {
+      color: #ffffff;
       opacity: 0.65;
       transform: none;
     }

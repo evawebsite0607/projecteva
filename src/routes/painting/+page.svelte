@@ -1,8 +1,11 @@
 <script>
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { browser } from "$app/environment";
 
   let { data } = $props();
+
+  const allPaintingsSlug = "ALL PAINTINGS";
+  const paintingColor = "#ff5c01";
 
   let selectedPaintingSlug = $state("");
   let selectedImageIndex = $state(null);
@@ -16,39 +19,123 @@
   );
 
   $effect(() => {
-    if (!selectedPaintingSlug && initialPainting) {
-      selectedPaintingSlug = initialPainting.postSlug;
+    if (!selectedPaintingSlug && data.paintings?.length) {
+      selectedPaintingSlug =
+        data.requestedPostId && initialPainting
+          ? initialPainting.postSlug
+          : allPaintingsSlug;
     }
   });
 
-  let selectedPainting = $derived(
-    data.paintings?.find(
-      (painting) => painting.postSlug === selectedPaintingSlug,
-    ) || data.paintings?.[0],
-  );
+  function isAllPaintings() {
+    return selectedPaintingSlug === allPaintingsSlug || !selectedPaintingSlug;
+  }
 
-  let selectedImages = $derived(selectedPainting?.images || []);
+  let selectedPainting = $derived.by(() => {
+    if (isAllPaintings()) return null;
+
+    return (
+      data.paintings?.find(
+        (painting) => painting.postSlug === selectedPaintingSlug,
+      ) || data.paintings?.[0]
+    );
+  });
+
+  let allPaintingImages = $derived.by(() => {
+    return (data.paintings || []).flatMap((painting) =>
+      (painting.images || []).map((image, imageIndex) => ({
+        ...image,
+        imageIndex,
+        paintingTitle: painting.title,
+        paintingPostSlug: painting.postSlug,
+      })),
+    );
+  });
+
+  let selectedImages = $derived.by(() => {
+    if (isAllPaintings()) {
+      return allPaintingImages;
+    }
+
+    return (selectedPainting?.images || []).map((image, imageIndex) => ({
+      ...image,
+      imageIndex,
+      paintingTitle: selectedPainting?.title || "Painting",
+      paintingPostSlug: selectedPainting?.postSlug || "",
+    }));
+  });
 
   let selectedImage = $derived(
     selectedImageIndex !== null ? selectedImages[selectedImageIndex] : null,
   );
 
-  let shouldShowInfoToggle = $derived(
-    (selectedPainting?.info || "").length > 200,
+  let previewTitle = $derived(
+    isAllPaintings()
+      ? allPaintingsSlug
+      : selectedPainting?.title || allPaintingsSlug,
   );
 
-  function selectPainting(painting) {
-    selectedPaintingSlug = painting.postSlug;
-    selectedImageIndex = null;
-    hoveredImageIndex = null;
-    infoExpanded = false;
+  let shouldShowInfoToggle = $derived(
+    !isAllPaintings() && (selectedPainting?.info || "").length > 200,
+  );
 
+  function cleanHtml(value) {
+    return value || "";
+  }
+
+  function getDesktopLastCardOffset(count) {
+    const position = count % 4;
+
+    if (position === 1) return 0;
+    if (position === 2) return 34;
+    if (position === 3) return 8;
+
+    return 42;
+  }
+
+  function unlockPageLocks() {
+    if (!browser) return;
+
+    document.documentElement.classList.remove("menu-open-lock");
+    document.body.classList.remove("menu-open-lock");
+
+    document.documentElement.style.overflow = "";
+    document.documentElement.style.height = "";
+    document.documentElement.style.position = "";
+    document.documentElement.style.width = "";
+    document.documentElement.style.touchAction = "";
+
+    document.body.style.overflow = "";
+    document.body.style.height = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.top = "";
+    document.body.style.touchAction = "";
+  }
+
+  function scrollGridToTop() {
     if (paintingGridElement) {
       paintingGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
+  }
+
+  function selectAllPaintings() {
+    selectedPaintingSlug = allPaintingsSlug;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
+  }
+
+  function selectPainting(painting) {
+    selectedPaintingSlug = painting.postSlug;
+    selectedImageIndex = null;
+    hoveredImageIndex = null;
+    infoExpanded = false;
+    scrollGridToTop();
   }
 
   function setHoveredImage(index) {
@@ -90,12 +177,7 @@
   }
 
   function scrollBackToTop() {
-    if (paintingGridElement) {
-      paintingGridElement.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
+    scrollGridToTop();
   }
 
   function handleKeydown(event) {
@@ -105,6 +187,22 @@
     if (event.key === "ArrowLeft") showPreviousImage();
     if (event.key === "ArrowRight") showNextImage();
   }
+
+  onMount(() => {
+    unlockPageLocks();
+
+    requestAnimationFrame(() => {
+      unlockPageLocks();
+    });
+
+    setTimeout(() => {
+      unlockPageLocks();
+    }, 0);
+
+    return () => {
+      unlockPageLocks();
+    };
+  });
 
   onDestroy(() => {
     if (browser) {
@@ -124,76 +222,82 @@
   />
 </svelte:head>
 
-<main class="paintings-page">
+<main class="paintings-page" style={`--painting-color: ${paintingColor};`}>
   {#if data.paintings && data.paintings.length > 0}
     <section class="paintings-layout" aria-label="Paintings">
       <aside class="left-column" aria-label="Painting navigation">
-        <div class="navigation-area">
-          <div class="section-links">
-            <button type="button" class="section-button active">
-              <span class="section-label">
-                <span>Selected Paintings</span>
+        <div class="painting-filter" aria-label="Painting categories">
+          <button
+            type="button"
+            class="all-paintings-button"
+            class:active={isAllPaintings()}
+            onclick={selectAllPaintings}
+          >
+            <span class="painting-button-label">
+              <span>ALL PAINTINGS</span>
+            </span>
+          </button>
+
+          {#each data.paintings as painting, index}
+            <button
+              type="button"
+              class="selected-painting-button"
+              class:active={selectedPainting?.postSlug === painting.postSlug}
+              onclick={() => selectPainting(painting)}
+            >
+              <span class="painting-list-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+
+              <span class="painting-button-label">
+                <span>{painting.title}</span>
               </span>
             </button>
-          </div>
-
-          <div class="selected-painting-links">
-            {#each data.paintings as painting, index}
-              <button
-                type="button"
-                class="selected-painting-button"
-                class:active={selectedPainting?.postSlug === painting.postSlug}
-                onclick={() => selectPainting(painting)}
-              >
-                <span class="painting-list-number">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <span class="painting-button-label">
-                  <span>{painting.title}</span>
-                </span>
-              </button>
-            {/each}
-          </div>
+          {/each}
         </div>
 
         <div class="painting-preview">
-          {#if selectedPainting}
-            <h1>{selectedPainting.title}</h1>
+          <h1>{previewTitle}</h1>
 
-            <div class="preview-bottom">
-              <div class="preview-info">
-                {#if selectedPainting.info}
-                  <div
-                    class="painting-description"
-                    class:expanded={infoExpanded}
+          <div class="preview-bottom">
+            <div class="preview-info">
+              {#if isAllPaintings()}
+                <strong>PAINTINGS</strong>
+                <p>Selected painting images and documentation.</p>
+              {:else if selectedPainting?.info}
+                <strong>PAINTING</strong>
+
+                <div class="painting-description" class:expanded={infoExpanded}>
+                  <p>{@html cleanHtml(selectedPainting.info)}</p>
+                </div>
+
+                {#if shouldShowInfoToggle}
+                  <button
+                    type="button"
+                    class="info-toggle"
+                    onclick={() => (infoExpanded = !infoExpanded)}
                   >
-                    <p>{selectedPainting.info}</p>
-                  </div>
-
-                  {#if shouldShowInfoToggle}
-                    <button
-                      type="button"
-                      class="info-toggle"
-                      onclick={() => (infoExpanded = !infoExpanded)}
-                    >
-                      {infoExpanded ? "Less −" : "More +"}
-                    </button>
-                  {/if}
-                {:else}
-                  <p>Selected painting images and documentation.</p>
+                    {infoExpanded ? "Less −" : "More +"}
+                  </button>
                 {/if}
-              </div>
+              {:else}
+                <strong>PAINTING</strong>
+                <p>Selected painting images and documentation.</p>
+              {/if}
             </div>
-          {/if}
+          </div>
         </div>
       </aside>
 
       <section class="right-column" aria-label="Painting content">
-        {#if selectedPainting?.images?.length}
-          {#key selectedPainting.postSlug}
-            <div class="image-grid" bind:this={paintingGridElement}>
-              {#each selectedPainting.images as image, index}
+        {#if selectedImages.length}
+          {#key selectedPaintingSlug}
+            <div
+              class="image-grid"
+              bind:this={paintingGridElement}
+              style={`--last-desktop-offset: ${getDesktopLastCardOffset(selectedImages.length)}px;`}
+            >
+              {#each selectedImages as image, index}
                 <button
                   type="button"
                   class="image-card"
@@ -201,14 +305,21 @@
                   onmouseenter={() => setHoveredImage(index)}
                   onfocus={() => setHoveredImage(index)}
                   onclick={() => openLightbox(index)}
-                  aria-label={`Open ${image.alt || selectedPainting.title}`}
+                  aria-label={`Open ${image.alt || image.paintingTitle || "painting image"}`}
                 >
                   <figure>
                     <img
                       src={image.src}
-                      alt={image.alt || selectedPainting.title}
+                      alt={image.alt || image.paintingTitle || "Painting image"}
+                      loading={index < 4 ? "eager" : "lazy"}
                     />
                   </figure>
+
+                  <span class="magnify-icon" aria-hidden="true"> ⛶ </span>
+
+                  <span class="image-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
 
                   <span class="image-number">
                     {String(index + 1).padStart(2, "0")}
@@ -257,14 +368,18 @@
       <div class="lightbox-content">
         <img
           src={selectedImage.src}
-          alt={selectedImage.alt || selectedPainting.title}
+          alt={selectedImage.alt ||
+            selectedImage.paintingTitle ||
+            "Painting image"}
         />
 
         <div class="lightbox-meta">
           {#if selectedImage.alt}
             <p>{selectedImage.alt}</p>
+          {:else if selectedImage.paintingTitle}
+            <p>{selectedImage.paintingTitle}</p>
           {:else}
-            <p>{selectedPainting.title}</p>
+            <p>Painting image</p>
           {/if}
         </div>
       </div>
@@ -288,6 +403,20 @@
     font-family: Arial, Helvetica, sans-serif;
   }
 
+  :global(html),
+  :global(body) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :global(html::-webkit-scrollbar),
+  :global(body::-webkit-scrollbar) {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
@@ -300,8 +429,13 @@
   }
 
   .paintings-page {
+    --desktop-card-height: clamp(455px, 28vw, 515px);
+
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding: 96px 72px 90px 28px;
     background: #ffffff;
     text-transform: uppercase;
@@ -317,69 +451,59 @@
 
   .paintings-layout {
     width: 100%;
+    height: 100%;
+    min-height: 0;
     display: grid;
     grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
     gap: 16px;
     align-items: start;
+    overflow: hidden;
   }
 
   .left-column {
-    position: sticky;
-    top: 96px;
-    height: calc(100vh - 186px);
-    min-height: 620px;
+    position: relative;
+    top: auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
-  .navigation-area {
+  .painting-filter {
     width: 100%;
-    display: grid;
-    grid-template-rows: auto auto;
-    align-content: start;
-    gap: 12px;
-    margin: 0;
-    padding: 0;
-  }
-
-  .section-links,
-  .selected-painting-links {
-    width: 100%;
+    max-height: 44vh;
+    overflow-y: auto;
+    padding-right: 4px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 7px;
-    margin: 0;
-    padding: 0;
-    text-align: left;
-  }
-
-  .selected-painting-links {
-    max-height: 240px;
-    overflow-y: auto;
-    padding-right: 4px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
 
-  .selected-painting-links::-webkit-scrollbar {
-    display: none;
+  .painting-filter::-webkit-scrollbar {
     width: 0;
     height: 0;
+    display: none;
   }
 
-  .section-button,
+  .all-paintings-button,
   .selected-painting-button {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     width: auto;
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
     color: #b8b8b8;
-    font-size: clamp(12px, 0.78vw, 13px);
-    font-weight: 700;
+    font-size: clamp(12px, 0.78vw, 12px);
+    font-weight: 800;
     line-height: 1;
     letter-spacing: 0.01em;
     text-align: left;
@@ -390,29 +514,28 @@
     text-transform: uppercase;
   }
 
-  .section-button {
-    color: #000000;
+  .all-paintings-button .painting-button-label > span {
+    text-decoration-line: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
 
-  .section-button::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -3px;
-    width: 100%;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.65;
+  .all-paintings-button.active .painting-button-label > span,
+  .all-paintings-button:hover .painting-button-label > span {
+    text-decoration-line: underline;
   }
 
-  .selected-painting-button {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+  .all-paintings-button.active,
+  .all-paintings-button:hover,
+  .all-paintings-button:focus,
+  .selected-painting-button.active,
+  .selected-painting-button:hover,
+  .selected-painting-button:focus {
+    color: var(--painting-color);
   }
 
-  .section-button:hover .section-label span,
-  .section-button.active .section-label span,
+  .all-paintings-button:hover .painting-button-label span,
+  .all-paintings-button.active .painting-button-label span,
   .selected-painting-button:hover .painting-button-label span,
   .selected-painting-button.active .painting-button-label span {
     animation: paintingTextLift 0.42s ease both;
@@ -420,35 +543,23 @@
 
   .painting-list-number {
     display: inline-block;
-    min-width: 17px;
-    flex-shrink: 0;
+    min-width: 0;
+    margin-right: 0;
     color: inherit;
     font-size: 0.82em;
     font-weight: 700;
-    letter-spacing: 0.04em;
     opacity: 0.62;
     transform: translateY(-0.5px);
   }
 
-  .section-label,
   .painting-button-label {
     position: relative;
     display: inline-block;
     overflow: hidden;
   }
 
-  .section-label span,
   .painting-button-label span {
     display: inline-block;
-  }
-
-  .section-button.active,
-  .section-button:hover,
-  .section-button:focus,
-  .selected-painting-button.active,
-  .selected-painting-button:hover,
-  .selected-painting-button:focus {
-    color: #000000;
   }
 
   @keyframes paintingTextLift {
@@ -480,12 +591,16 @@
   .painting-preview h1 {
     max-width: 280px;
     margin: 0 0 42px;
-    color: #000000;
-    font-size: clamp(12px, 0.78vw, 14px);
+    color: var(--painting-color);
+    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
     animation: previewTitleIn 0.46s ease both;
+    transition:
+      color 0.28s ease,
+      opacity 0.35s ease,
+      transform 0.35s ease;
   }
 
   @keyframes previewTitleIn {
@@ -511,9 +626,19 @@
     max-width: 265px;
   }
 
+  .preview-info strong {
+    display: block;
+    margin: 0 0 9px;
+    color: #000000;
+    font-size: clamp(12px, 0.72vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
+  }
+
   .preview-info p {
     margin: 0;
-    color: #262626;
+    color: #000000;
     font-size: clamp(11px, 0.66vw, 12px);
     font-weight: 500;
     line-height: 1.16;
@@ -555,23 +680,52 @@
 
   .right-column {
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .image-grid {
+    --image-card-gap: clamp(22px, 1.6vw, 30px);
+
     width: 100%;
+    height: 100%;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(20px, 1.6vw, 30px);
-    row-gap: clamp(28px, 2vw, 38px);
-    padding: 6px 0 40px;
+    align-content: start;
+    gap: var(--image-card-gap);
+    padding: 0 0 var(--last-desktop-offset, 0px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
+  }
+
+  .image-grid::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .image-grid::-webkit-scrollbar-thumb {
+    background: transparent;
   }
 
   .image-card {
     position: relative;
     display: block;
-    height: clamp(455px, 28vw, 515px);
+    height: var(--desktop-card-height);
     min-height: 0;
     overflow: hidden;
     padding: 0;
@@ -624,6 +778,38 @@
     align-items: center;
     justify-content: center;
     background: #f8f8f6;
+  }
+
+  .magnify-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 5;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000000;
+    border-radius: 50%;
+    color: #000000;
+    background: rgba(255, 255, 255, 0.76);
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.92);
+    transition:
+      opacity 0.32s ease,
+      transform 0.32s ease,
+      background 0.32s ease;
+  }
+
+  .image-card:hover .magnify-icon,
+  .image-card.active .magnify-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 
   .image-card img {
@@ -834,6 +1020,8 @@
 
   @media (min-width: 1440px) {
     .paintings-page {
+      --desktop-card-height: clamp(455px, 27vw, 510px);
+
       padding-right: 72px;
     }
 
@@ -841,14 +1029,12 @@
       grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
       gap: 14px;
     }
-
-    .image-card {
-      height: clamp(455px, 27vw, 510px);
-    }
   }
 
   @media (min-width: 1680px) {
     .paintings-page {
+      --desktop-card-height: 510px;
+
       padding-right: 76px;
     }
 
@@ -864,14 +1050,12 @@
     .preview-info {
       max-width: 260px;
     }
-
-    .image-card {
-      height: 510px;
-    }
   }
 
   @media (max-width: 1280px) {
     .paintings-page {
+      --desktop-card-height: 455px;
+
       padding: 96px 72px 90px 28px;
     }
 
@@ -882,32 +1066,31 @@
 
     .painting-preview h1 {
       max-width: 280px;
-      font-size: clamp(13px, 0.95vw, 15px);
+      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
     }
 
     .image-grid {
       column-gap: 22px;
       row-gap: 32px;
     }
-
-    .image-card {
-      height: 455px;
-    }
   }
 
   @media (max-width: 1024px) {
     .paintings-page {
+      height: 100vh;
+      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: visible;
-      padding: 118px 24px 90px;
+      overflow: hidden;
+      padding: 118px 24px 0;
     }
 
     .paintings-layout {
+      height: 100%;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       gap: 0;
-      overflow: visible;
     }
 
     .left-column {
@@ -921,86 +1104,40 @@
       flex: 0 0 auto;
       display: block;
       margin: 0;
-      padding-bottom: 28px;
+      padding-top: 116px;
+      padding-bottom: 26px;
       background: #ffffff;
     }
 
-    .navigation-area {
-      width: 100%;
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 10px;
-      margin: 0 0 24px;
-      padding: 0;
-      border-bottom: 0;
-    }
-
-    .section-links {
-      width: 100%;
-      display: block;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .section-button {
-      display: block;
+    .painting-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
       width: auto;
-      min-height: 0;
-      margin: 0;
-      padding: 0;
-      color: #000000;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1;
-      text-align: left;
-    }
-
-    .selected-painting-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 12px;
-      row-gap: 7px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-painting-button {
+      max-height: 106px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
-      color: #b8b8b8;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.08;
       text-align: left;
-      white-space: normal;
-      word-break: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
+      background: #ffffff;
     }
 
-    .painting-list-number {
-      min-width: 22px;
-      font-size: 0.82em;
-    }
-
-    .selected-painting-button.active,
-    .selected-painting-button:hover,
-    .selected-painting-button:focus {
-      color: #000000;
-      transform: none;
-      letter-spacing: 0;
+    .all-paintings-button,
+    .selected-painting-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .painting-preview {
@@ -1011,14 +1148,11 @@
     }
 
     .painting-preview h1 {
-      width: 100%;
       max-width: 520px;
       margin: 0 0 8px;
       font-size: 16px;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: 0;
       text-align: left;
+      line-height: 1;
     }
 
     .preview-bottom {
@@ -1033,6 +1167,10 @@
       max-width: none;
       margin-bottom: 0;
       text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 14px;
     }
 
     .preview-info p {
@@ -1077,20 +1215,36 @@
     }
 
     .right-column {
+      width: 100%;
       min-height: 0;
+      flex: 1 1 auto;
       display: block;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .image-grid {
       width: 100%;
+      height: 100%;
       min-height: 0;
-      overflow: visible;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 18px 12px;
-      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
+      scrollbar-width: none;
+      scrollbar-color: transparent transparent;
+      -ms-overflow-style: none;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .image-grid::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
     }
 
     .image-card,
@@ -1170,86 +1324,59 @@
 
   @media (max-width: 700px) {
     .paintings-page {
+      height: 100vh;
+      height: 100dvh;
       min-height: 100vh;
       min-height: 100dvh;
-      overflow: visible;
-      padding: 108px 16px 90px;
+      overflow: hidden;
+      padding: 108px 16px 0;
     }
 
     .left-column {
+      padding-top: 104px;
       padding-bottom: 24px;
     }
 
-    .navigation-area {
-      gap: 9px;
-      margin: 0 0 22px;
-      padding: 0;
-      border-bottom: 0;
-    }
-
-    .section-button {
-      font-size: 12px;
-      line-height: 1.08;
-    }
-
-    .selected-painting-links {
-      width: 100%;
-      max-height: none;
-      overflow: visible;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 10px;
-      row-gap: 6px;
-      align-items: start;
-      justify-items: stretch;
-      margin: 0;
-      padding: 0;
-      text-align: left;
-    }
-
-    .selected-painting-button {
+    .painting-filter {
+      position: fixed;
+      top: 108px;
+      left: 16px;
+      right: 16px;
+      z-index: 40;
+      width: auto;
+      max-height: 100px;
+      overflow-y: auto;
       display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
       margin: 0;
       padding: 0;
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.08;
       text-align: left;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      transform: none;
-      letter-spacing: 0;
+      background: #ffffff;
     }
 
-    .painting-list-number {
-      min-width: 18px;
-      font-size: 0.82em;
-    }
-
-    .selected-painting-button.active,
-    .selected-painting-button:hover,
-    .selected-painting-button:focus {
-      transform: none;
-      letter-spacing: 0;
-    }
-
-    .painting-preview h1,
-    .preview-bottom,
-    .preview-info,
-    .painting-description {
-      width: 100%;
-      max-width: none;
+    .all-paintings-button,
+    .selected-painting-button {
+      display: inline-flex;
+      justify-content: flex-start;
+      width: clamp(125px, 42vw, 180px);
+      margin: 0;
+      padding: 0;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.08;
     }
 
     .painting-preview h1 {
+      max-width: 100%;
       margin: 0 0 8px;
       font-size: 14px;
-      font-weight: 700;
-      line-height: 1;
       text-align: left;
+    }
+
+    .preview-info strong {
+      font-size: 12px;
     }
 
     .preview-info p {
@@ -1278,16 +1405,10 @@
       font-size: 11px;
     }
 
-    .right-column {
-      min-height: 0;
-      overflow: visible;
-    }
-
     .image-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      overflow: visible;
-      padding: 0 0 calc(90px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
     }
 
     .image-card,
@@ -1370,29 +1491,12 @@
 
   @media (max-width: 420px) {
     .left-column {
+      padding-top: 100px;
       padding-bottom: 22px;
-    }
-
-    .navigation-area {
-      margin-bottom: 20px;
     }
 
     .painting-preview h1 {
       font-size: 14px;
-    }
-
-    .selected-painting-links {
-      column-gap: 9px;
-      row-gap: 5px;
-    }
-
-    .selected-painting-button {
-      font-size: 11px;
-      line-height: 1.08;
-    }
-
-    .painting-list-number {
-      min-width: 17px;
     }
 
     .painting-description {
