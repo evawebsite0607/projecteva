@@ -4,6 +4,19 @@
   let posts = $derived(data.posts || []);
   let activePostId = $state(null);
 
+  const desktopPositions = [
+    { top: "8vh", left: "41vw" },
+    { top: "8vh", left: "73vw" },
+    { top: "27vh", left: "21vw" },
+    { top: "27vh", left: "58vw" },
+    { top: "46vh", left: "28px" },
+    { top: "46vh", left: "65vw" },
+    { top: "66vh", left: "55vw" },
+    { top: "66vh", left: "77vw" },
+    { top: "84vh", left: "30vw" },
+    { top: "84vh", left: "58vw" },
+  ];
+
   let activePost = $derived(
     posts.find((post) => post.id === activePostId) || null,
   );
@@ -73,6 +86,25 @@
     return `/archive?post=${post.id}`;
   }
 
+  function getArchiveItemStyle(index) {
+    const position = desktopPositions[index % desktopPositions.length];
+    const row = Math.floor(index / desktopPositions.length);
+    const verticalOffset = row * 96;
+
+    return `
+      --archive-item-top: calc(${position.top} + ${verticalOffset}vh);
+      --archive-item-left: ${position.left};
+    `;
+  }
+
+  function getArchiveItemsStyle(count) {
+    const rows = Math.max(1, Math.ceil(count / desktopPositions.length));
+
+    return `
+      --archive-items-height: calc(${rows} * 100vh);
+    `;
+  }
+
   function canUseDesktopHover() {
     if (typeof window === "undefined") return false;
 
@@ -119,12 +151,13 @@
     </div>
 
     {#if posts.length > 0}
-      <div class="archive-items">
-        {#each posts.slice(0, 10) as post, index}
+      <div class="archive-items" style={getArchiveItemsStyle(posts.length)}>
+        {#each posts as post, index}
           <a
             href={getArchivePostLink(post)}
-            class={`archive-item archive-position-${index + 1}`}
+            class="archive-item"
             class:active={activePost?.id === post.id}
+            style={getArchiveItemStyle(index)}
             onmouseenter={() => selectPost(post)}
             onfocus={() => selectPost(post)}
             onmouseleave={clearPost}
@@ -147,9 +180,14 @@
     --site-font-family: Arial, Helvetica, sans-serif;
   }
 
+  :global(html) {
+    background: #000000;
+  }
+
   :global(body) {
     margin: 0;
     overflow-x: hidden;
+    overflow-y: auto;
     background: #000000;
     color: #ffffff;
     font-family: var(--site-font-family);
@@ -173,7 +211,7 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    overflow: hidden;
+    overflow: visible;
     background: #000000;
   }
 
@@ -210,12 +248,14 @@
   .archive-items {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: var(--archive-items-height, 100vh);
     padding: 78px 120px 150px 28px;
   }
 
   .archive-item {
     position: absolute;
+    top: var(--archive-item-top);
+    left: var(--archive-item-left);
     z-index: 4;
     width: min(330px, 21vw);
     min-height: 80px;
@@ -265,56 +305,6 @@
     text-transform: uppercase;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
-  }
-
-  .archive-position-1 {
-    top: 8vh;
-    left: 41vw;
-  }
-
-  .archive-position-2 {
-    top: 8vh;
-    left: 73vw;
-  }
-
-  .archive-position-3 {
-    top: 27vh;
-    left: 21vw;
-  }
-
-  .archive-position-4 {
-    top: 27vh;
-    left: 58vw;
-  }
-
-  .archive-position-5 {
-    top: 46vh;
-    left: 28px;
-  }
-
-  .archive-position-6 {
-    top: 46vh;
-    left: 65vw;
-  }
-
-  .archive-position-7 {
-    top: 66vh;
-    left: 55vw;
-  }
-
-  .archive-position-8 {
-    top: 66vh;
-    left: 77vw;
-  }
-
-  .archive-position-9 {
-    top: 84vh;
-    left: 30vw;
-  }
-
-  .archive-position-10 {
-    top: 84vh;
-    left: 58vw;
   }
 
   .active-image-preview {
@@ -425,17 +415,7 @@
       height: 0;
     }
 
-    .archive-item,
-    .archive-position-1,
-    .archive-position-2,
-    .archive-position-3,
-    .archive-position-4,
-    .archive-position-5,
-    .archive-position-6,
-    .archive-position-7,
-    .archive-position-8,
-    .archive-position-9,
-    .archive-position-10 {
+    .archive-item {
       position: relative;
       top: auto;
       left: auto;
@@ -443,9 +423,6 @@
       width: 100%;
       min-height: auto;
       margin: 0;
-    }
-
-    .archive-item {
       display: block;
       padding-left: 18px;
       color: rgba(255, 255, 255, 0.72);
