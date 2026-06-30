@@ -647,7 +647,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 96px 72px 72px 28px;
+    padding: 96px 28px 106px;
     background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/paper-installation1_result.webp");
     background-size: cover;
     background-position: center;
@@ -718,11 +718,11 @@
   }
 
   .hero-side-link-left {
-    left: 30px;
+    left: 28px;
   }
 
   .hero-side-link-right {
-    right: 90px;
+    right: 28px;
   }
 
   .hero-center {
@@ -778,8 +778,8 @@
   .hero-bottom-type {
     position: absolute;
     left: 28px;
-    right: 72px;
-    bottom: 48px;
+    right: 28px;
+    bottom: 88px;
     z-index: 3;
     display: flex;
     align-items: flex-end;
@@ -825,7 +825,7 @@
   .hero-scroll-indicator {
     position: absolute;
     left: 50%;
-    bottom: 12px;
+    bottom: 22px;
     z-index: 5;
     display: flex;
     flex-direction: column;
@@ -861,7 +861,7 @@
     min-height: 100vh;
     min-height: 100dvh;
     overflow: hidden;
-    padding: 96px 72px 90px 28px;
+    padding: 96px 28px 90px;
     background: #ffffff;
     text-transform: uppercase;
     scroll-margin-top: 0;
@@ -1316,7 +1316,7 @@
     .work-page {
       --desktop-card-height: clamp(455px, 27vw, 510px);
 
-      padding-right: 72px;
+      padding-right: 28px;
     }
 
     .work-layout {
@@ -1329,7 +1329,7 @@
     .work-page {
       --desktop-card-height: 510px;
 
-      padding-right: 76px;
+      padding-right: 28px;
     }
 
     .work-layout {
@@ -1350,7 +1350,7 @@
     .work-page {
       --desktop-card-height: 455px;
 
-      padding: 96px 72px 90px 28px;
+      padding: 96px 28px 90px;
     }
 
     .work-layout {
@@ -1371,9 +1371,9 @@
 
   @media (max-width: 1024px) {
     .announcement-hero {
-      height: calc(100svh - 118px);
-      min-height: calc(100svh - 118px);
-      margin-top: 118px;
+      height: calc(100svh - 70px);
+      min-height: calc(100svh - 70px);
+      margin-top: 70px;
       padding: 24px 24px 64px;
       background-position: center;
     }
@@ -1427,7 +1427,7 @@
       height: auto;
       min-height: 100svh;
       overflow: visible;
-      padding: 118px 24px 80px;
+      padding: 70px 24px 80px;
     }
 
     .work-layout {
@@ -1441,7 +1441,7 @@
 
     .left-column {
       position: sticky;
-      top: 118px;
+      top: 70px;
       left: auto;
       right: auto;
       z-index: 60;
@@ -1670,10 +1670,10 @@
 
   @media (max-width: 700px) {
     .announcement-hero {
-      height: calc(100svh - 108px);
-      min-height: calc(100svh - 108px);
-      margin-top: 108px;
-      padding: 24px 16px 54px;
+      height: calc(100svh - 66px);
+      min-height: calc(100svh - 66px);
+      margin-top: 66px;
+      padding: 24px 20px 54px;
       align-items: center;
       background-position: center;
     }
@@ -1689,11 +1689,11 @@
     }
 
     .hero-side-link-left {
-      left: 16px;
+      left: 20px;
     }
 
     .hero-side-link-right {
-      right: 16px;
+      right: 20px;
     }
 
     .hero-center {
@@ -1722,8 +1722,8 @@
     }
 
     .hero-bottom-type {
-      left: 16px;
-      right: 16px;
+      left: 20px;
+      right: 20px;
       bottom: 36px;
       font-size: clamp(19px, 7vw, 34px);
       letter-spacing: -0.07em;
@@ -1750,12 +1750,12 @@
       height: auto;
       min-height: 100svh;
       overflow: visible;
-      padding: 108px 16px 80px;
+      padding: 66px 20px 80px;
     }
 
     .left-column {
       position: sticky;
-      top: 108px;
+      top: 66px;
       padding: 0 0 22px;
     }
 
