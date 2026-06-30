@@ -10,7 +10,6 @@
   let previewHasStarted = $state(false);
   let workGridElement = $state(null);
   let workSectionElement = $state(null);
-  let touchStartY = $state(0);
 
   const artistName = "Eva Eichinger ";
   const welcomeTitle = "Eva Eichinger";
@@ -245,9 +244,11 @@
   function scrollToWorks() {
     if (!browser || !workSectionElement) return;
 
-    workSectionElement.scrollIntoView({
+    const top = workSectionElement.getBoundingClientRect().top + window.scrollY;
+
+    window.scrollTo({
+      top,
       behavior: "smooth",
-      block: "start",
     });
   }
 
@@ -257,76 +258,6 @@
         top: 0,
         behavior: "smooth",
       });
-    }
-  }
-
-  function getGridMaxScroll() {
-    if (!workGridElement) return 0;
-
-    return Math.max(
-      0,
-      workGridElement.scrollHeight - workGridElement.clientHeight,
-    );
-  }
-
-  function isWorkSectionReadyForInternalScroll() {
-    if (!browser || !workSectionElement) return false;
-
-    const rect = workSectionElement.getBoundingClientRect();
-    const viewportHeight =
-      window.innerHeight || document.documentElement.clientHeight;
-
-    return rect.top <= 4 && rect.bottom >= viewportHeight - 4;
-  }
-
-  function canRouteGridScroll(deltaY) {
-    if (!workGridElement) return false;
-
-    const maxScroll = getGridMaxScroll();
-
-    if (maxScroll <= 1) return false;
-
-    if (deltaY > 0) {
-      return workGridElement.scrollTop < maxScroll - 1;
-    }
-
-    if (deltaY < 0) {
-      return workGridElement.scrollTop > 1;
-    }
-
-    return false;
-  }
-
-  function routeWorkSectionWheel(event) {
-    if (!isWorkSectionReadyForInternalScroll()) return;
-
-    const deltaY = event.deltaY;
-
-    if (canRouteGridScroll(deltaY)) {
-      event.preventDefault();
-      workGridElement.scrollTop += deltaY;
-    }
-  }
-
-  function routeWorkSectionTouchStart(event) {
-    if (!event.touches || event.touches.length === 0) return;
-
-    touchStartY = event.touches[0].clientY;
-  }
-
-  function routeWorkSectionTouchMove(event) {
-    if (!isWorkSectionReadyForInternalScroll()) return;
-    if (!event.touches || event.touches.length === 0) return;
-
-    const currentY = event.touches[0].clientY;
-    const deltaY = touchStartY - currentY;
-
-    if (Math.abs(deltaY) < 2) return;
-
-    if (canRouteGridScroll(deltaY)) {
-      event.preventDefault();
-      workGridElement.scrollTop += deltaY;
-      touchStartY = currentY;
     }
   }
 
@@ -375,32 +306,8 @@
       unlockPageLocks();
     }, 0);
 
-    const wheelHandler = (event) => routeWorkSectionWheel(event);
-    const touchStartHandler = (event) => routeWorkSectionTouchStart(event);
-    const touchMoveHandler = (event) => routeWorkSectionTouchMove(event);
-
-    if (workSectionElement) {
-      workSectionElement.addEventListener("wheel", wheelHandler, {
-        passive: false,
-      });
-
-      workSectionElement.addEventListener("touchstart", touchStartHandler, {
-        passive: true,
-      });
-
-      workSectionElement.addEventListener("touchmove", touchMoveHandler, {
-        passive: false,
-      });
-    }
-
     return () => {
       unlockPageLocks();
-
-      if (workSectionElement) {
-        workSectionElement.removeEventListener("wheel", wheelHandler);
-        workSectionElement.removeEventListener("touchstart", touchStartHandler);
-        workSectionElement.removeEventListener("touchmove", touchMoveHandler);
-      }
     };
   });
 </script>
@@ -635,6 +542,7 @@
     overflow-x: hidden;
     background: #ffffff;
     color: #000000;
+    overscroll-behavior-y: auto;
   }
 
   :global(*) {
@@ -1382,11 +1290,13 @@
   }
 
   @media (max-width: 1024px) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+
     .announcement-hero {
-      height: 100vh;
-      height: 100dvh;
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100svh;
+      min-height: 100svh;
       padding: 112px 24px 64px;
       background-position: center;
     }
@@ -1437,19 +1347,18 @@
     }
 
     .work-page {
-      height: 100vh;
-      height: 100dvh;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: hidden;
-      padding: 118px 24px 0;
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+      padding: 118px 24px 80px;
     }
 
     .work-layout {
-      height: 100%;
+      height: auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow: visible;
       gap: 0;
     }
 
@@ -1464,38 +1373,53 @@
       flex: 0 0 auto;
       display: block;
       margin: 0;
-      padding-top: 116px;
+      padding-top: 0;
       padding-bottom: 26px;
       background: #ffffff;
       overflow: visible;
     }
 
     .work-filter {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
       z-index: 40;
-      width: auto;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 7px;
-      margin: 0;
+      margin: 0 0 24px;
       padding: 0;
       text-align: left;
       background: #ffffff;
+      overflow: visible;
     }
 
     .work-filter button {
       display: inline-flex;
+      align-items: center;
       justify-content: flex-start;
-      width: clamp(125px, 42vw, 180px);
+      width: auto;
+      max-width: 100%;
       margin: 0;
       padding: 0;
       text-align: left;
       font-size: 12px;
       line-height: 1.08;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .filter-label {
+      display: inline-block;
+      overflow: visible;
+    }
+
+    .filter-label span {
+      display: inline-block;
+      white-space: nowrap;
     }
 
     .work-filter button.all-work-button::before {
@@ -1542,16 +1466,16 @@
 
     .work-grid {
       width: 100%;
+      height: auto;
       min-height: 0;
-      flex: 1 1 auto;
+      flex: none;
       margin-left: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: visible;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
       gap: 18px 12px;
-      padding: 0 0 calc(150px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(110px + env(safe-area-inset-bottom));
       scrollbar-width: none;
       scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
@@ -1669,10 +1593,8 @@
 
   @media (max-width: 700px) {
     .announcement-hero {
-      height: 100vh;
-      height: 100dvh;
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100svh;
+      min-height: 100svh;
       padding: 108px 16px 54px;
       align-items: center;
       background-position: center;
@@ -1747,45 +1669,58 @@
     }
 
     .work-page {
-      height: 100vh;
-      height: 100dvh;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: hidden;
-      padding: 108px 16px 0;
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+      padding: 108px 16px 80px;
     }
 
     .left-column {
-      padding-top: 104px;
+      padding-top: 0;
       padding-bottom: 24px;
     }
 
     .work-filter {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
       z-index: 40;
-      width: auto;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 7px;
-      margin: 0;
+      margin: 0 0 24px;
       padding: 0;
       text-align: left;
       background: #ffffff;
+      overflow: visible;
     }
 
     .work-filter button {
       display: inline-flex;
+      align-items: center;
       justify-content: flex-start;
-      width: clamp(125px, 42vw, 180px);
+      width: auto;
+      max-width: 100%;
       margin: 0;
       padding: 0;
       text-align: left;
       font-size: 12px;
       line-height: 1.08;
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .filter-label {
+      display: inline-block;
+      overflow: visible;
+    }
+
+    .filter-label span {
+      display: inline-block;
+      white-space: nowrap;
     }
 
     .project-preview h1 {
@@ -1801,9 +1736,11 @@
     }
 
     .work-grid {
+      height: auto;
+      overflow: visible;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
-      padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(100px + env(safe-area-inset-bottom));
       overscroll-behavior: auto;
     }
 
@@ -1877,7 +1814,7 @@
     }
 
     .left-column {
-      padding-top: 100px;
+      padding-top: 0;
       padding-bottom: 22px;
     }
 
