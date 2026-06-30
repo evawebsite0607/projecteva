@@ -7,6 +7,7 @@
   let { children, data } = $props();
 
   let menuOpen = $state(false);
+  let headerScrolled = $state(false);
 
   let aboutItems = $derived(data?.aboutMenuItems || []);
   let paintingItems = $derived(data?.paintingMenuItems || []);
@@ -56,22 +57,6 @@
     return images;
   });
 
-  let currentPageLabel = $derived.by(() => {
-    if (pathname === "/") return "Home";
-    if (pathname.startsWith("/about")) return "About";
-    if (pathname.startsWith("/painting")) return "Paintings";
-    if (pathname.startsWith("/exhibitions")) return "Exhibitions";
-    if (pathname.startsWith("/performances")) return "Performances";
-    if (pathname.startsWith("/event")) return "Events";
-    if (pathname.startsWith("/archive")) return "Archive";
-    if (pathname.startsWith("/contact")) return "Contact";
-
-    return "Work";
-  });
-
-  let isHomePage = $derived(pathname === "/");
-  let isAboutPage = $derived(pathname.startsWith("/about"));
-  let isPaintingPage = $derived(pathname.startsWith("/painting"));
   let isArchivePage = $derived(pathname.startsWith("/archive"));
 
   function stripHtml(html = "") {
@@ -172,6 +157,12 @@
     }
   }
 
+  function updateHeaderScrolled() {
+    if (!browser) return;
+
+    headerScrolled = window.scrollY > 8;
+  }
+
   function toggleMenu() {
     menuOpen = !menuOpen;
   }
@@ -184,11 +175,26 @@
     updateScrollLock(menuOpen);
   });
 
+  $effect(() => {
+    if (!browser) return;
+
+    updateHeaderScrolled();
+
+    window.addEventListener("scroll", updateHeaderScrolled, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("scroll", updateHeaderScrolled);
+    };
+  });
+
   afterNavigate(() => {
     menuOpen = false;
 
     if (browser) {
       document.body.classList.remove("menu-open-lock");
+      updateHeaderScrolled();
     }
   });
 
@@ -202,47 +208,23 @@
   class:menu-is-open={menuOpen}
   class:is-archive-page={isArchivePage}
 >
-  <a href="/" class="logo" onclick={closeMenu}>Eva Eichinger</a>
+  <div
+    class="top-header-background"
+    class:is-visible={headerScrolled && !menuOpen}
+  ></div>
 
-  <div class="desktop-page-label" aria-label={currentPageLabel}>
-    {#if isHomePage}
-      <lord-icon
-        src="https://cdn.lordicon.com/exymduqj.json"
-        trigger="in"
-        delay="1500"
-        stroke="light"
-        state="in-reveal"
-        colors="primary:#000000,secondary:#000000"
-        style="width:60px;height:60px"
-      >
-      </lord-icon>
-    {:else if isAboutPage}
-      <lord-icon
-        src="https://cdn.lordicon.com/mtuudzxm.json"
-        trigger="in"
-        delay="1500"
-        stroke="light"
-        state="in-reveal"
-        colors="primary:#000000,secondary:#000000"
-        style="width:60px;height:60px"
-      >
-      </lord-icon>
-    {:else if isPaintingPage}
-      <lord-icon
-        src="https://cdn.lordicon.com/snxksidl.json"
-        trigger="hover"
-        stroke="light"
-        colors="primary:#000000,secondary:#000000"
-        style="width:60px;height:60px"
-      >
-      </lord-icon>
-    {:else}
-      {currentPageLabel}
-    {/if}
-  </div>
+  <a
+    href="/"
+    class="logo"
+    class:top-is-scrolled={headerScrolled && !menuOpen}
+    onclick={closeMenu}
+  >
+    Eva Eichinger
+  </a>
 
   <button
     class="desktop-menu-control"
+    class:top-is-scrolled={headerScrolled && !menuOpen}
     type="button"
     aria-label={menuOpen ? "Close menu" : "Open menu"}
     aria-expanded={menuOpen}
@@ -258,12 +240,17 @@
     </span>
   </button>
 
+  <a href="/contact" class="desktop-contact-fixed" onclick={closeMenu}>
+    CONTACT
+  </a>
+
   <a href="/archive" class="desktop-archive-fixed" onclick={closeMenu}>
-    BIBLO
+    ARCHIVE
   </a>
 
   <button
     class="menu-toggle"
+    class:top-is-scrolled={headerScrolled && !menuOpen}
     type="button"
     aria-label={menuOpen ? "Close menu" : "Open menu"}
     aria-expanded={menuOpen}
@@ -447,6 +434,23 @@
     pointer-events: none;
   }
 
+  .top-header-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 101;
+    width: 100%;
+    height: 82px;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .top-header-background.is-visible {
+    opacity: 1;
+  }
+
   .logo {
     position: fixed;
     top: 32px;
@@ -471,54 +475,49 @@
     opacity: 0.7;
   }
 
-  .desktop-page-label {
-    position: fixed;
-    top: 26px;
-    right: 28px;
-    z-index: 105;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4e4e4e;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    text-transform: uppercase;
-    pointer-events: auto;
-  }
-
-  .desktop-page-label lord-icon {
-    display: block;
-    width: 24px;
-    height: 24px;
+  .logo.top-is-scrolled {
+    color: #2f2d2b;
   }
 
   .desktop-menu-control {
     position: fixed;
-    top: 50%;
+    top: 24px;
     right: 28px;
     z-index: 105;
-    display: flex;
-    width: 40px;
-    padding: 0;
+    display: inline-flex;
+    width: auto;
+    min-height: 34px;
+    padding: 7px 9px;
     border: 0;
     background: transparent;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     color: #2f2d2b;
     cursor: pointer;
     pointer-events: auto;
-    transform: translateY(-50%);
+    transition:
+      background 0.25s ease,
+      color 0.25s ease,
+      opacity 0.25s ease;
+  }
+
+  .desktop-menu-control.top-is-scrolled {
+    color: #2f2d2b;
+  }
+
+  .desktop-menu-control:hover,
+  .desktop-menu-control:focus-visible {
+    background: #ffffff;
+    color: #2f2d2b;
+    outline: none;
   }
 
   .desktop-menu-control-text {
     color: currentColor;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 0.08em;
+    letter-spacing: -0.04em;
     text-transform: uppercase;
   }
 
@@ -545,6 +544,12 @@
     color: #ffffff;
   }
 
+  .desktop-menu-control[aria-expanded="true"]:hover,
+  .desktop-menu-control[aria-expanded="true"]:focus-visible {
+    background: #ffffff;
+    color: #2f2d2b;
+  }
+
   .desktop-menu-control[aria-expanded="true"]
     .desktop-menu-control-icon
     span:nth-child(1) {
@@ -557,10 +562,10 @@
     transform: translateY(-7.5px) rotate(-45deg);
   }
 
+  .desktop-contact-fixed,
   .desktop-archive-fixed {
     position: fixed;
-    right: 28px;
-    bottom: 120px;
+    bottom: 32px;
     z-index: 105;
     color: #2f2d2b;
     text-decoration: underline;
@@ -570,24 +575,45 @@
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.04em;
+    text-transform: uppercase;
     pointer-events: auto;
     transition:
       color 0.25s ease,
       opacity 0.25s ease;
   }
 
+  .desktop-contact-fixed {
+    left: 28px;
+  }
+
+  .desktop-archive-fixed {
+    right: 28px;
+  }
+
+  .desktop-contact-fixed:hover,
+  .desktop-archive-fixed:hover {
+    opacity: 0.7;
+  }
+
   .site-header.is-archive-page .logo,
-  .site-header.is-archive-page .desktop-page-label,
   .site-header.is-archive-page .desktop-menu-control,
+  .site-header.is-archive-page .desktop-contact-fixed,
   .site-header.is-archive-page .desktop-archive-fixed {
     color: #ffffff;
   }
 
-  .site-header.is-archive-page .desktop-page-label lord-icon {
-    filter: invert(1);
+  .site-header.is-archive-page .logo.top-is-scrolled,
+  .site-header.is-archive-page .desktop-menu-control.top-is-scrolled {
+    color: #2f2d2b;
   }
 
-  .site-header.menu-is-open .desktop-page-label,
+  .site-header.is-archive-page .desktop-menu-control:hover,
+  .site-header.is-archive-page .desktop-menu-control:focus-visible {
+    background: #ffffff;
+    color: #2f2d2b;
+  }
+
+  .site-header.menu-is-open .desktop-contact-fixed,
   .site-header.menu-is-open .desktop-archive-fixed,
   .site-header.menu-is-open .logo {
     opacity: 0;
@@ -949,6 +975,10 @@
   }
 
   @media (max-width: 1024px) {
+    .top-header-background {
+      height: 70px;
+    }
+
     .logo {
       top: 20px;
       left: 24px;
@@ -962,8 +992,8 @@
       text-underline-offset: 7px;
     }
 
-    .desktop-page-label,
     .desktop-menu-control,
+    .desktop-contact-fixed,
     .desktop-archive-fixed,
     .desktop-menu-brand-block,
     .desktop-menu-images,
@@ -977,6 +1007,10 @@
 
     .site-header.is-archive-page .logo {
       color: #ffffff;
+    }
+
+    .site-header.is-archive-page .logo.top-is-scrolled {
+      color: #2f2d2b;
     }
 
     .site-header.menu-is-open .logo {
@@ -1017,7 +1051,13 @@
       background: #ffffff;
     }
 
-    .menu-toggle[aria-expanded="true"] span {
+    .menu-toggle.top-is-scrolled span,
+    .site-header.is-archive-page .menu-toggle.top-is-scrolled span {
+      background: #2f2d2b;
+    }
+
+    .menu-toggle[aria-expanded="true"] span,
+    .site-header.is-archive-page .menu-toggle[aria-expanded="true"] span {
       background: #ffffff;
     }
 
@@ -1167,6 +1207,10 @@
   }
 
   @media (max-width: 600px) {
+    .top-header-background {
+      height: 66px;
+    }
+
     .logo {
       top: 18px;
       left: 20px;
