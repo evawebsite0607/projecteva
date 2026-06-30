@@ -9,6 +9,8 @@
   let hoveredWorkId = $state(null);
   let previewHasStarted = $state(false);
   let workGridElement = $state(null);
+  let workSectionElement = $state(null);
+  let touchStartY = $state(0);
 
   const artistName = "Eva Eichinger ";
   const welcomeTitle = "Eva Eichinger";
@@ -240,12 +242,91 @@
     document.body.style.touchAction = "";
   }
 
+  function scrollToWorks() {
+    if (!browser || !workSectionElement) return;
+
+    workSectionElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   function scrollGridToTop() {
     if (workGridElement) {
       workGridElement.scrollTo({
         top: 0,
         behavior: "smooth",
       });
+    }
+  }
+
+  function getGridMaxScroll() {
+    if (!workGridElement) return 0;
+
+    return Math.max(
+      0,
+      workGridElement.scrollHeight - workGridElement.clientHeight,
+    );
+  }
+
+  function isWorkSectionReadyForInternalScroll() {
+    if (!browser || !workSectionElement) return false;
+
+    const rect = workSectionElement.getBoundingClientRect();
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+
+    return rect.top <= 4 && rect.bottom >= viewportHeight - 4;
+  }
+
+  function canRouteGridScroll(deltaY) {
+    if (!workGridElement) return false;
+
+    const maxScroll = getGridMaxScroll();
+
+    if (maxScroll <= 1) return false;
+
+    if (deltaY > 0) {
+      return workGridElement.scrollTop < maxScroll - 1;
+    }
+
+    if (deltaY < 0) {
+      return workGridElement.scrollTop > 1;
+    }
+
+    return false;
+  }
+
+  function routeWorkSectionWheel(event) {
+    if (!isWorkSectionReadyForInternalScroll()) return;
+
+    const deltaY = event.deltaY;
+
+    if (canRouteGridScroll(deltaY)) {
+      event.preventDefault();
+      workGridElement.scrollTop += deltaY;
+    }
+  }
+
+  function routeWorkSectionTouchStart(event) {
+    if (!event.touches || event.touches.length === 0) return;
+
+    touchStartY = event.touches[0].clientY;
+  }
+
+  function routeWorkSectionTouchMove(event) {
+    if (!isWorkSectionReadyForInternalScroll()) return;
+    if (!event.touches || event.touches.length === 0) return;
+
+    const currentY = event.touches[0].clientY;
+    const deltaY = touchStartY - currentY;
+
+    if (Math.abs(deltaY) < 2) return;
+
+    if (canRouteGridScroll(deltaY)) {
+      event.preventDefault();
+      workGridElement.scrollTop += deltaY;
+      touchStartY = currentY;
     }
   }
 
@@ -294,8 +375,32 @@
       unlockPageLocks();
     }, 0);
 
+    const wheelHandler = (event) => routeWorkSectionWheel(event);
+    const touchStartHandler = (event) => routeWorkSectionTouchStart(event);
+    const touchMoveHandler = (event) => routeWorkSectionTouchMove(event);
+
+    if (workSectionElement) {
+      workSectionElement.addEventListener("wheel", wheelHandler, {
+        passive: false,
+      });
+
+      workSectionElement.addEventListener("touchstart", touchStartHandler, {
+        passive: true,
+      });
+
+      workSectionElement.addEventListener("touchmove", touchMoveHandler, {
+        passive: false,
+      });
+    }
+
     return () => {
       unlockPageLocks();
+
+      if (workSectionElement) {
+        workSectionElement.removeEventListener("wheel", wheelHandler);
+        workSectionElement.removeEventListener("touchstart", touchStartHandler);
+        workSectionElement.removeEventListener("touchmove", touchMoveHandler);
+      }
     };
   });
 </script>
@@ -315,125 +420,200 @@
   {/if}
 </svelte:head>
 
-<main class="work-page">
-  <section class="work-layout" aria-label="Selected works">
-    <aside class="left-column" aria-label="Project information">
-      <div class="work-filter" aria-label="Work categories">
-        {#each categories as category, index}
-          <button
-            type="button"
-            class:active={activeCategory === category}
-            class:all-work-button={category === "ALL WORK"}
-            style={`--category-color: ${getCategoryColor(category)};`}
-            onmouseenter={() => setHoveredCategory(category)}
-            onmouseleave={clearHoveredCategory}
-            onfocus={() => setHoveredCategory(category)}
-            onblur={clearHoveredCategory}
-            onclick={() => setCategory(category)}
-          >
-            {#if category !== "ALL WORK"}
-              <span class="filter-number">
-                {String(index).padStart(2, "0")}
-              </span>
-            {/if}<span class="filter-label">
-              <span>{category}</span>
-            </span>
-          </button>
-        {/each}
+<main class="home-page">
+  <section class="announcement-hero" aria-label="Linz exhibition announcement">
+    <a href="/event" class="hero-side-link hero-side-link-left">
+      VIEW THE FULL SCHEDULE ↗
+    </a>
+
+    <a href="/flyer.pdf" class="hero-side-link hero-side-link-right" download>
+      DOWNLOAD THE FLYER ↗
+    </a>
+
+    <div class="hero-center">
+      <p class="hero-kicker">UPCOMING</p>
+
+      <h1>
+        <span>LINZ</span>
+        <span>EXHIBITION</span>
+      </h1>
+
+      <div class="hero-details">
+        <p>SEPTEMBER, 10TH-15TH 2026</p>
+        <p>OÖ KULTURQUARTIER</p>
+        <p>OK PLATZ 1, 4020 LINZ</p>
       </div>
 
-      {#if activeWork}
-        <div
-          class="project-preview"
-          style={`--preview-category-color: ${getPreviewColor()};`}
-        >
-          <h1>
-            <span class="desktop-title">{getDesktopPreviewTitle()}</span>
-            <span class="mobile-title">{activeCategory}</span>
-          </h1>
+      <div class="hero-list">
+        <p>↗ OPENING 10 SEPTEMBER</p>
+        <p>↗ ARTIST TALK 12 SEPTEMBER</p>
+        <p>↗ SELECTED WORKS 2026</p>
+      </div>
+    </div>
 
-          <div class="project-preview-bottom">
-            <div class="project-preview-info">
-              {#if isIntroPreview()}
-                <strong>{welcomeInfoTitle}</strong>
-                <p>{welcomeDescription}</p>
-              {:else}
-                <strong
-                  >{getWorkCategoryNames(activeWork)[0] || "PROJECT"}</strong
-                >
+    <div class="hero-bottom-type">
+      <div class="hero-bottom-item">
+        <span class="hero-bottom-main">RELATIONS</span>
+        <span class="hero-bottom-label">NEW EXHIBITION ANNOUNCEMENT</span>
+      </div>
 
-                {#if activeWork.excerpt}
-                  <p>{@html cleanHtml(activeWork.excerpt)}</p>
-                {:else if activeWork.description}
-                  <p>{@html cleanHtml(activeWork.description)}</p>
+      <div class="hero-bottom-item hero-bottom-item-right">
+        <span class="hero-bottom-main">2026</span>
+        <span class="hero-bottom-label">LINZ / AUSTRIA</span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="hero-scroll-indicator"
+      aria-label="Scroll to selected works"
+      onclick={scrollToWorks}
+    >
+      <lord-icon
+        src="https://cdn.lordicon.com/evxithfv.json"
+        trigger="in"
+        delay="1500"
+        stroke="light"
+        state="in-reveal"
+        colors="primary:#000000,secondary:#000000"
+        style="width:60px;height:60px"
+      >
+      </lord-icon>
+
+      <span>⌵</span>
+    </button>
+  </section>
+
+  <section
+    class="work-page"
+    id="selected-works"
+    aria-label="Selected works"
+    bind:this={workSectionElement}
+  >
+    <section class="work-layout" aria-label="Selected works">
+      <aside class="left-column" aria-label="Project information">
+        <div class="work-filter" aria-label="Work categories">
+          {#each categories as category, index}
+            <button
+              type="button"
+              class:active={activeCategory === category}
+              class:all-work-button={category === "ALL WORK"}
+              style={`--category-color: ${getCategoryColor(category)};`}
+              onmouseenter={() => setHoveredCategory(category)}
+              onmouseleave={clearHoveredCategory}
+              onfocus={() => setHoveredCategory(category)}
+              onblur={clearHoveredCategory}
+              onclick={() => setCategory(category)}
+            >
+              {#if category !== "ALL WORK"}
+                <span class="filter-number">
+                  {String(index).padStart(2, "0")}
+                </span>
+              {/if}<span class="filter-label">
+                <span>{category}</span>
+              </span>
+            </button>
+          {/each}
+        </div>
+
+        {#if activeWork}
+          <div
+            class="project-preview"
+            style={`--preview-category-color: ${getPreviewColor()};`}
+          >
+            <h1>
+              <span class="desktop-title">{getDesktopPreviewTitle()}</span>
+              <span class="mobile-title">{activeCategory}</span>
+            </h1>
+
+            <div class="project-preview-bottom">
+              <div class="project-preview-info">
+                {#if isIntroPreview()}
+                  <strong>{welcomeInfoTitle}</strong>
+                  <p>{welcomeDescription}</p>
                 {:else}
-                  <p>
-                    {activeWork.title} is part of the selected works archive.
-                  </p>
-                {/if}
-              {/if}
-            </div>
+                  <strong>
+                    {getWorkCategoryNames(activeWork)[0] || "PROJECT"}
+                  </strong>
 
-            <div class="case-count">
-              CASE STUDIES({filteredWorks.length})
+                  {#if activeWork.excerpt}
+                    <p>{@html cleanHtml(activeWork.excerpt)}</p>
+                  {:else if activeWork.description}
+                    <p>{@html cleanHtml(activeWork.description)}</p>
+                  {:else}
+                    <p>
+                      {activeWork.title} is part of the selected works archive.
+                    </p>
+                  {/if}
+                {/if}
+              </div>
+
+              <div class="case-count">
+                CASE STUDIES({filteredWorks.length})
+              </div>
             </div>
           </div>
-        </div>
+        {/if}
+      </aside>
+
+      {#if filteredWorks.length > 0}
+        <section
+          class="work-grid"
+          aria-label="Work gallery"
+          bind:this={workGridElement}
+          style={`--last-desktop-offset: ${getDesktopLastCardOffset(filteredWorks.length)}px;`}
+        >
+          {#each filteredWorks as work, index}
+            <a
+              href={getWorkLink(work)}
+              class="work-card"
+              class:active={activeWork?.id === work.id}
+              onmouseenter={() => setHoveredWork(work)}
+              onfocus={() => setHoveredWork(work)}
+            >
+              {#if work.featuredImage}
+                <figure>
+                  <img
+                    src={work.featuredImage}
+                    alt={work.title}
+                    loading={index < 4 ? "eager" : "lazy"}
+                  />
+                </figure>
+              {/if}
+
+              <div class="mobile-card-text">
+                <span class="work-number">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <span class="mobile-work-title">
+                  {work.title}
+                </span>
+              </div>
+            </a>
+          {/each}
+
+          <button type="button" class="back-to-top" onclick={scrollBackToTop}>
+            BACK TO TOP
+          </button>
+        </section>
+      {:else}
+        <p class="empty-message">No works found.</p>
       {/if}
-    </aside>
-
-    {#if filteredWorks.length > 0}
-      <section
-        class="work-grid"
-        aria-label="Work gallery"
-        bind:this={workGridElement}
-        style={`--last-desktop-offset: ${getDesktopLastCardOffset(filteredWorks.length)}px;`}
-      >
-        {#each filteredWorks as work, index}
-          <a
-            href={getWorkLink(work)}
-            class="work-card"
-            class:active={activeWork?.id === work.id}
-            onmouseenter={() => setHoveredWork(work)}
-            onfocus={() => setHoveredWork(work)}
-          >
-            {#if work.featuredImage}
-              <figure>
-                <img
-                  src={work.featuredImage}
-                  alt={work.title}
-                  loading={index < 4 ? "eager" : "lazy"}
-                />
-              </figure>
-            {/if}
-
-            <div class="mobile-card-text">
-              <span class="work-number">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              <span class="mobile-work-title">
-                {work.title}
-              </span>
-            </div>
-          </a>
-        {/each}
-
-        <button type="button" class="back-to-top" onclick={scrollBackToTop}>
-          BACK TO TOP
-        </button>
-      </section>
-    {:else}
-      <p class="empty-message">No works found.</p>
-    {/if}
+    </section>
   </section>
 </main>
 
 <style>
   :global(html),
   :global(body),
+  .home-page,
   .work-page {
     font-family: Arial, Helvetica, sans-serif;
+  }
+
+  :global(html) {
+    scroll-behavior: smooth;
   }
 
   :global(html),
@@ -461,17 +641,242 @@
     box-sizing: border-box;
   }
 
+  .home-page {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: #ffffff;
+  }
+
+  .announcement-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 96px 72px 72px 28px;
+    background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/paper-installation1_result.webp");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #000000;
+    text-transform: uppercase;
+    isolation: isolate;
+  }
+
+  .announcement-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: none;
+  }
+
+  .announcement-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.16),
+        rgba(255, 255, 255, 0.02) 34%,
+        rgba(255, 255, 255, 0.02) 66%,
+        rgba(255, 255, 255, 0.16)
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.01) 42%,
+        rgba(255, 255, 255, 0.12)
+      );
+    pointer-events: none;
+  }
+
+  .hero-side-link {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    color: #ffffff;
+    font-size: clamp(18px, 1.45vw, 28px);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    text-decoration-line: underline;
+    text-decoration-color: #ffffff;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+    writing-mode: vertical-rl;
+    transform: translateY(-50%) rotate(180deg);
+    opacity: 0.96;
+    mix-blend-mode: normal;
+    transition: opacity 0.3s ease;
+  }
+
+  .hero-side-link:hover {
+    opacity: 0.96;
+    color: #ffffff;
+    text-decoration-line: underline;
+    text-decoration-color: #ffffff;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .hero-side-link-left {
+    left: 30px;
+  }
+
+  .hero-side-link-right {
+    right: 90px;
+  }
+
+  .hero-center {
+    position: relative;
+    z-index: 3;
+    width: min(520px, 72vw);
+    margin: 0 auto;
+    color: #000000;
+  }
+
+  .hero-kicker {
+    margin: 0 0 12px;
+    font-size: clamp(11px, 0.72vw, 13px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-center h1 {
+    margin: 0 0 18px;
+    font-size: clamp(38px, 4.4vw, 88px);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: -0.055em;
+  }
+
+  .hero-center h1 span {
+    display: block;
+  }
+
+  .hero-details,
+  .hero-list {
+    color: #000000;
+    font-size: clamp(13px, 1vw, 18px);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-details {
+    margin-top: 0;
+  }
+
+  .hero-details p,
+  .hero-list p {
+    margin: 0;
+  }
+
+  .hero-list {
+    margin-top: 28px;
+  }
+
+  .hero-bottom-type {
+    position: absolute;
+    left: 28px;
+    right: 72px;
+    bottom: 48px;
+    z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    color: #000000;
+    font-size: clamp(40px, 4.4vw, 60px);
+    font-weight: 400;
+    line-height: 0.78;
+    letter-spacing: -0.065em;
+    pointer-events: none;
+  }
+
+  .hero-bottom-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hero-bottom-item-right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .hero-bottom-main {
+    display: block;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
+
+  .hero-bottom-label {
+    display: block;
+    color: #000000;
+    font-size: clamp(10px, 0.72vw, 12px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.012em;
+  }
+
+  .hero-scroll-indicator {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: 30px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #000000;
+    transform: translateX(-50%);
+    cursor: pointer;
+  }
+
+  .hero-scroll-indicator span {
+    display: block;
+    margin-top: -3px;
+    color: #000000;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .work-page {
     --desktop-card-height: clamp(455px, 28vw, 515px);
 
     width: 100%;
     height: 100vh;
     height: 100dvh;
-    min-height: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
     overflow: hidden;
     padding: 96px 72px 90px 28px;
     background: #ffffff;
     text-transform: uppercase;
+    scroll-margin-top: 0;
   }
 
   .work-page button,
@@ -703,7 +1108,7 @@
     align-content: start;
     gap: var(--work-card-gap);
     padding: 0 0 var(--last-desktop-offset, 0px);
-    overscroll-behavior: contain;
+    overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     scrollbar-color: transparent transparent;
@@ -977,6 +1382,60 @@
   }
 
   @media (max-width: 1024px) {
+    .announcement-hero {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 112px 24px 64px;
+      background-position: center;
+    }
+
+    .hero-side-link {
+      font-size: clamp(11px, 2vw, 18px);
+      line-height: 0.95;
+    }
+
+    .hero-side-link-left {
+      left: 24px;
+    }
+
+    .hero-side-link-right {
+      right: 68px;
+    }
+
+    .hero-center {
+      width: min(460px, 68vw);
+    }
+
+    .hero-center h1 {
+      font-size: clamp(42px, 8.2vw, 84px);
+    }
+
+    .hero-details,
+    .hero-list {
+      font-size: clamp(13px, 2vw, 17px);
+    }
+
+    .hero-bottom-type {
+      left: 24px;
+      right: 24px;
+      bottom: 42px;
+      font-size: clamp(23px, 4.5vw, 46px);
+    }
+
+    .hero-bottom-item {
+      gap: 6px;
+    }
+
+    .hero-bottom-label {
+      font-size: clamp(8px, 1.1vw, 10px);
+    }
+
+    .hero-scroll-indicator {
+      bottom: 12px;
+    }
+
     .work-page {
       height: 100vh;
       height: 100dvh;
@@ -1008,18 +1467,19 @@
       padding-top: 116px;
       padding-bottom: 26px;
       background: #ffffff;
+      overflow: visible;
     }
 
     .work-filter {
-      position: fixed;
-      top: 108px;
-      left: 16px;
-      right: 16px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       z-index: 40;
       width: auto;
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
+      align-items: flex-start;
       gap: 7px;
       margin: 0;
       padding: 0;
@@ -1095,7 +1555,7 @@
       scrollbar-width: none;
       scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
-      overscroll-behavior: contain;
+      overscroll-behavior: auto;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -1208,6 +1668,84 @@
   }
 
   @media (max-width: 700px) {
+    .announcement-hero {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 108px 16px 54px;
+      align-items: center;
+      background-position: center;
+    }
+
+    .announcement-hero::before {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .hero-side-link {
+      font-size: clamp(9px, 3.2vw, 14px);
+      line-height: 0.95;
+      text-underline-offset: 4px;
+    }
+
+    .hero-side-link-left {
+      left: 16px;
+    }
+
+    .hero-side-link-right {
+      right: 52px;
+    }
+
+    .hero-center {
+      width: min(320px, 66vw);
+    }
+
+    .hero-kicker {
+      margin-bottom: 10px;
+      font-size: 10px;
+    }
+
+    .hero-center h1 {
+      margin-bottom: 14px;
+      font-size: clamp(37px, 14vw, 66px);
+      line-height: 0.88;
+    }
+
+    .hero-details,
+    .hero-list {
+      font-size: 12px;
+      line-height: 1.08;
+    }
+
+    .hero-list {
+      margin-top: 22px;
+    }
+
+    .hero-bottom-type {
+      left: 16px;
+      right: 16px;
+      bottom: 36px;
+      font-size: clamp(19px, 7vw, 34px);
+      letter-spacing: -0.07em;
+    }
+
+    .hero-bottom-item {
+      gap: 5px;
+    }
+
+    .hero-bottom-label {
+      font-size: clamp(7px, 2vw, 9px);
+      line-height: 1.05;
+    }
+
+    .hero-scroll-indicator {
+      bottom: 10px;
+    }
+
+    .hero-scroll-indicator span {
+      font-size: 12px;
+    }
+
     .work-page {
       height: 100vh;
       height: 100dvh;
@@ -1223,15 +1761,15 @@
     }
 
     .work-filter {
-      position: fixed;
-      top: 108px;
-      left: 16px;
-      right: 16px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
       z-index: 40;
       width: auto;
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
+      align-items: flex-start;
       gap: 7px;
       margin: 0;
       padding: 0;
@@ -1266,6 +1804,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px 10px;
       padding: 0 0 calc(145px + env(safe-area-inset-bottom));
+      overscroll-behavior: auto;
     }
 
     .work-card,
@@ -1325,6 +1864,18 @@
   }
 
   @media (max-width: 420px) {
+    .hero-center {
+      width: min(280px, 64vw);
+    }
+
+    .hero-bottom-type {
+      font-size: clamp(17px, 7vw, 28px);
+    }
+
+    .hero-bottom-label {
+      max-width: 120px;
+    }
+
     .left-column {
       padding-top: 100px;
       padding-bottom: 22px;
