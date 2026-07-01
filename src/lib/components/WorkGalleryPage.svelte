@@ -441,12 +441,7 @@
         >
           {#if showScrollHint}
             <span class="painting-scroll-hint" aria-hidden="true">
-              <span
-                class="scroll-hint-icon scroll-hint-icon-up"
-                class:visible={filterScrolledDown}
-              >
-                ↑
-              </span>
+              <span class="scroll-hint-icon scroll-hint-icon-up"> ↑ </span>
 
               <span class="scroll-hint-text">SCROLL</span>
 
@@ -1549,13 +1544,8 @@
 
     .scroll-hint-icon-up {
       grid-row: 1;
-      opacity: 0;
-      animation: scrollHintArrowUp 1.15s ease-in-out infinite;
-      transition: opacity 0.22s ease;
-    }
-
-    .scroll-hint-icon-up.visible {
       opacity: 1;
+      animation: scrollHintArrowUp 1.15s ease-in-out infinite;
     }
 
     .scroll-hint-icon-down {
