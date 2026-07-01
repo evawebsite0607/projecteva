@@ -8,6 +8,7 @@
 
   let menuOpen = $state(false);
   let headerScrolled = $state(false);
+  let openMobileSubmenus = $state({});
 
   let aboutItems = $derived(data?.aboutMenuItems || []);
   let paintingItems = $derived(data?.paintingMenuItems || []);
@@ -147,6 +148,20 @@
     );
   }
 
+  function getMobileSubmenuKey(item) {
+    return getItemLabel(item).toLowerCase();
+  }
+
+  function isMobileSubmenuOpen(item) {
+    return !!openMobileSubmenus[getMobileSubmenuKey(item)];
+  }
+
+  function toggleMobileSubmenu(item) {
+    const key = getMobileSubmenuKey(item);
+
+    openMobileSubmenus[key] = !openMobileSubmenus[key];
+  }
+
   function updateScrollLock(shouldLock) {
     if (!browser) return;
 
@@ -165,10 +180,15 @@
 
   function toggleMenu() {
     menuOpen = !menuOpen;
+
+    if (!menuOpen) {
+      openMobileSubmenus = {};
+    }
   }
 
   function closeMenu() {
     menuOpen = false;
+    openMobileSubmenus = {};
   }
 
   $effect(() => {
@@ -191,6 +211,7 @@
 
   afterNavigate(() => {
     menuOpen = false;
+    openMobileSubmenus = {};
 
     if (browser) {
       document.body.classList.remove("menu-open-lock");
@@ -240,14 +261,6 @@
     </span>
   </button>
 
-  <a href="/contact" class="desktop-contact-fixed" onclick={closeMenu}>
-    CONTACT
-  </a>
-
-  <a href="/archive" class="desktop-archive-fixed" onclick={closeMenu}>
-    ARCHIVE
-  </a>
-
   <button
     class="menu-toggle"
     class:top-is-scrolled={headerScrolled && !menuOpen}
@@ -294,18 +307,35 @@
             class:has-desktop-submenu={hasDesktopSubmenu(item)}
             style={`--submenu-accent-color: ${getSubmenuAccentColor(item)};`}
           >
-            <a
-              href={item.href}
-              class="main-menu-link"
-              class:has-arrow={hasDesktopSubmenu(item)}
-              onclick={closeMenu}
-            >
-              <span>{item.label}</span>
+            <div class="menu-link-row">
+              <a
+                href={item.href}
+                class="main-menu-link"
+                class:has-arrow={hasDesktopSubmenu(item)}
+                onclick={closeMenu}
+              >
+                <span>{item.label}</span>
+
+                {#if hasDesktopSubmenu(item)}
+                  <span class="desktop-menu-arrow" aria-hidden="true">→</span>
+                {/if}
+              </a>
 
               {#if hasDesktopSubmenu(item)}
-                <span class="desktop-menu-arrow" aria-hidden="true">→</span>
+                <button
+                  type="button"
+                  class="mobile-submenu-toggle"
+                  class:is-open={isMobileSubmenuOpen(item)}
+                  aria-label={`${isMobileSubmenuOpen(item) ? "Close" : "Open"} ${item.label} submenu`}
+                  aria-expanded={isMobileSubmenuOpen(item)}
+                  onclick={() => toggleMobileSubmenu(item)}
+                >
+                  <span aria-hidden="true">
+                    {isMobileSubmenuOpen(item) ? "−" : "+"}
+                  </span>
+                </button>
               {/if}
-            </a>
+            </div>
 
             {#if hasDesktopSubmenu(item)}
               <div
@@ -345,6 +375,28 @@
                     {/each}
                   </div>
                 </div>
+              </div>
+
+              <div
+                class="mobile-submenu"
+                class:open={isMobileSubmenuOpen(item)}
+                aria-label={`${item.label} submenu`}
+              >
+                {#each item.children as child, childIndex}
+                  <a
+                    href={getSubmenuHref(item, child)}
+                    class="mobile-submenu-link"
+                    onclick={closeMenu}
+                  >
+                    <span class="mobile-submenu-number">
+                      {String(childIndex + 1).padStart(2, "0")}
+                    </span>
+
+                    <span class="mobile-submenu-title">
+                      {getItemLabel(child)}
+                    </span>
+                  </a>
+                {/each}
               </div>
             {/if}
           </div>
@@ -397,6 +449,20 @@
 
 {@render children()}
 
+<footer
+  class="site-footer"
+  class:is-visible={headerScrolled}
+  aria-label="Footer navigation"
+>
+  <a href="/contact" class="footer-link footer-link-left" onclick={closeMenu}>
+    CONTACT
+  </a>
+
+  <a href="/archive" class="footer-link footer-link-right" onclick={closeMenu}>
+    ARCHIVE
+  </a>
+</footer>
+
 <style>
   :global(:root) {
     --site-font-family: Arial, Helvetica, sans-serif;
@@ -422,7 +488,9 @@
   .site-header,
   .site-header *,
   .main-nav,
-  .main-nav * {
+  .main-nav *,
+  .site-footer,
+  .site-footer * {
     font-family: var(--site-font-family);
   }
 
@@ -562,43 +630,8 @@
     transform: translateY(-7.5px) rotate(-45deg);
   }
 
-  .desktop-contact-fixed,
-  .desktop-archive-fixed {
-    position: fixed;
-    bottom: 32px;
-    z-index: 105;
-    color: #2f2d2b;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    text-transform: uppercase;
-    pointer-events: auto;
-    transition:
-      color 0.25s ease,
-      opacity 0.25s ease;
-  }
-
-  .desktop-contact-fixed {
-    left: 28px;
-  }
-
-  .desktop-archive-fixed {
-    right: 28px;
-  }
-
-  .desktop-contact-fixed:hover,
-  .desktop-archive-fixed:hover {
-    opacity: 0.7;
-  }
-
   .site-header.is-archive-page .logo,
-  .site-header.is-archive-page .desktop-menu-control,
-  .site-header.is-archive-page .desktop-contact-fixed,
-  .site-header.is-archive-page .desktop-archive-fixed {
+  .site-header.is-archive-page .desktop-menu-control {
     color: #ffffff;
   }
 
@@ -613,8 +646,6 @@
     color: #2f2d2b;
   }
 
-  .site-header.menu-is-open .desktop-contact-fixed,
-  .site-header.menu-is-open .desktop-archive-fixed,
   .site-header.menu-is-open .logo {
     opacity: 0;
     visibility: hidden;
@@ -740,6 +771,12 @@
     width: fit-content;
     margin: 0;
     padding: 0;
+  }
+
+  .menu-link-row {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
   }
 
   .main-nav a {
@@ -924,7 +961,8 @@
     opacity: 1;
   }
 
-  .submenu-grid {
+  .mobile-submenu-toggle,
+  .mobile-submenu {
     display: none;
   }
 
@@ -974,6 +1012,55 @@
     display: none;
   }
 
+  .site-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    width: 100%;
+    min-height: 72px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 0 28px;
+    background: transparent;
+    pointer-events: auto;
+    transition: background 0.25s ease;
+  }
+
+  .site-footer.is-visible {
+    background: #ffffff;
+  }
+
+  .footer-link {
+    color: #2f2d2b;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    transition: opacity 0.25s ease;
+  }
+
+  .footer-link:hover,
+  .footer-link:focus {
+    opacity: 0.7;
+  }
+
+  .footer-link-left {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .footer-link-right {
+    justify-self: end;
+    text-align: right;
+  }
+
   @media (max-width: 1024px) {
     .top-header-background {
       height: 70px;
@@ -993,8 +1080,6 @@
     }
 
     .desktop-menu-control,
-    .desktop-contact-fixed,
-    .desktop-archive-fixed,
     .desktop-menu-brand-block,
     .desktop-menu-images,
     .desktop-social-links,
@@ -1110,7 +1195,15 @@
     }
 
     .menu-grid-item {
-      width: auto;
+      width: 100%;
+    }
+
+    .menu-link-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
     }
 
     .main-nav a {
@@ -1118,6 +1211,7 @@
     }
 
     .main-menu-link {
+      width: fit-content;
       color: #ffffff;
       font-size: 16px;
       font-weight: 600;
@@ -1135,12 +1229,96 @@
       transform: none;
     }
 
-    .submenu-grid {
-      display: none;
+    .mobile-submenu-toggle {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      justify-self: end;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .mobile-submenu-toggle span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+    }
+
+    .mobile-submenu-toggle:hover span,
+    .mobile-submenu-toggle:focus-visible span {
+      opacity: 0.65;
+    }
+
+    .mobile-submenu-toggle.is-open span {
+      transform: translateY(-1px);
+    }
+
+    .mobile-submenu {
+      max-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      margin: 0;
+      padding: 0 0 0 12px;
+      border-left: 1px solid rgba(255, 255, 255, 0.22);
+      opacity: 0;
+      transition:
+        max-height 0.28s ease,
+        margin 0.28s ease,
+        opacity 0.22s ease;
+    }
+
+    .mobile-submenu.open {
+      max-height: 360px;
+      margin-top: 10px;
+      opacity: 1;
+    }
+
+    .mobile-submenu-link {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.18;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .mobile-submenu-link:hover,
+    .mobile-submenu-link:focus {
+      color: #ffffff;
+    }
+
+    .mobile-submenu-number {
+      opacity: 0.58;
+    }
+
+    .mobile-submenu-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mobile-menu-extra {
       display: block;
+      margin-top: auto;
       padding-top: 20px;
       border-top: 1px solid rgba(255, 255, 255, 0.22);
       flex-shrink: 0;
@@ -1195,14 +1373,37 @@
 
     .mobile-design-credit {
       display: block;
-      margin-top: auto;
-      padding-top: 18px;
+      margin-top: 18px;
       color: rgba(255, 255, 255, 0.65);
       font-size: 11px;
       font-weight: 400;
       line-height: 1;
       letter-spacing: 0.04em;
       flex-shrink: 0;
+    }
+
+    .site-footer {
+      min-height: 58px;
+      padding: 0 24px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-link {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .footer-link-left {
+      justify-self: start;
+      text-align: left;
+    }
+
+    .footer-link-right {
+      justify-self: end;
+      text-align: right;
     }
   }
 
@@ -1240,6 +1441,23 @@
       line-height: 1;
     }
 
+    .mobile-submenu-toggle {
+      width: 26px;
+      height: 26px;
+      font-size: 16px;
+    }
+
+    .mobile-submenu.open {
+      max-height: 340px;
+      margin-top: 9px;
+    }
+
+    .mobile-submenu-link {
+      grid-template-columns: 26px minmax(0, 1fr);
+      font-size: 10px;
+      line-height: 1.18;
+    }
+
     .mobile-menu-extra {
       padding-top: 18px;
     }
@@ -1266,8 +1484,18 @@
     }
 
     .mobile-design-credit {
-      padding-top: 14px;
+      margin-top: 14px;
       font-size: 10px;
+    }
+
+    .site-footer {
+      min-height: 58px;
+      padding: 0 24px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-link {
+      font-size: 11px;
     }
   }
 
@@ -1285,6 +1513,16 @@
       font-size: 15px;
       font-weight: 600;
       line-height: 0.95;
+    }
+
+    .mobile-submenu.open {
+      max-height: 250px;
+      margin-top: 8px;
+    }
+
+    .mobile-submenu-link {
+      font-size: 9px;
+      line-height: 1.15;
     }
 
     .mobile-menu-extra {
@@ -1307,7 +1545,7 @@
     }
 
     .mobile-design-credit {
-      padding-top: 8px;
+      margin-top: 8px;
       font-size: 9px;
     }
   }

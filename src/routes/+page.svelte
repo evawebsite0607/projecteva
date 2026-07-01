@@ -1421,9 +1421,10 @@
 
   @media (max-width: 1024px) {
     .announcement-hero {
-      height: calc(100svh - 70px);
-      min-height: calc(100svh - 70px);
+      height: calc(100svh - 70px - 58px);
+      min-height: calc(100svh - 70px - 58px);
       margin-top: 70px;
+      margin-bottom: 58px;
       padding: 24px 24px 64px;
       background-position: center;
     }
@@ -1720,9 +1721,10 @@
 
   @media (max-width: 700px) {
     .announcement-hero {
-      height: calc(100svh - 66px);
-      min-height: calc(100svh - 66px);
+      height: calc(100svh - 66px - 54px);
+      min-height: calc(100svh - 66px - 54px);
       margin-top: 66px;
+      margin-bottom: 54px;
       padding: 24px 20px 54px;
       align-items: center;
       background-position: center;
