@@ -1047,8 +1047,8 @@
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     line-height: 1;
     letter-spacing: -0.04em;
     text-transform: uppercase;
@@ -1403,9 +1403,9 @@
     }
 
     .footer-link {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
       text-decoration-thickness: 1px;
       text-underline-offset: 4px;
     }
@@ -1570,13 +1570,20 @@
 
     .site-footer {
       min-height: 58px;
-      padding: 0 24px;
-      grid-template-columns: 1fr 1fr;
+      padding: 0 10px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
       background: transparent;
     }
 
     .site-footer.is-visible {
       background: #ffffff;
+    }
+
+    .footer-link {
+      font-size: clamp(8px, 2.35vw, 10px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
     }
   }
 </style>
