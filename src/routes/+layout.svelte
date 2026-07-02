@@ -549,17 +549,19 @@
 
   .desktop-menu-control {
     position: fixed;
-    top: 24px;
+    top: 18px;
     right: 28px;
     z-index: 105;
     display: inline-flex;
     width: auto;
-    min-height: 34px;
+    min-height: 44px;
     padding: 7px 9px;
     border: 0;
     background: transparent;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 6px;
     color: #2f2d2b;
     cursor: pointer;
     pointer-events: auto;
@@ -1386,6 +1388,11 @@
       min-height: 58px;
       padding: 0 24px;
       grid-template-columns: 1fr 1fr;
+      background: transparent;
+    }
+
+    .site-footer.is-visible {
+      background: #ffffff;
     }
 
     .footer-link {
@@ -1492,6 +1499,11 @@
       min-height: 58px;
       padding: 0 24px;
       grid-template-columns: 1fr 1fr;
+      background: transparent;
+    }
+
+    .site-footer.is-visible {
+      background: #ffffff;
     }
 
     .footer-link {
@@ -1547,6 +1559,17 @@
     .mobile-design-credit {
       margin-top: 8px;
       font-size: 9px;
+    }
+
+    .site-footer {
+      min-height: 58px;
+      padding: 0 24px;
+      grid-template-columns: 1fr 1fr;
+      background: transparent;
+    }
+
+    .site-footer.is-visible {
+      background: #ffffff;
     }
   }
 </style>

@@ -1421,11 +1421,11 @@
 
   @media (max-width: 1024px) {
     .announcement-hero {
-      height: calc(100svh - 70px - 58px);
-      min-height: calc(100svh - 70px - 58px);
-      margin-top: 70px;
-      margin-bottom: 58px;
-      padding: 24px 24px 64px;
+      height: 100svh;
+      min-height: 100svh;
+      margin-top: 0;
+      margin-bottom: 0;
+      padding: 94px 24px 82px;
       background-position: center;
     }
 
@@ -1458,7 +1458,7 @@
     .hero-bottom-type {
       left: 24px;
       right: 24px;
-      bottom: 42px;
+      bottom: 82px;
       font-size: clamp(23px, 4.5vw, 46px);
     }
 
@@ -1471,7 +1471,7 @@
     }
 
     .hero-scroll-indicator {
-      bottom: 12px;
+      bottom: 26px;
     }
 
     .work-page {
@@ -1721,11 +1721,11 @@
 
   @media (max-width: 700px) {
     .announcement-hero {
-      height: calc(100svh - 66px - 54px);
-      min-height: calc(100svh - 66px - 54px);
-      margin-top: 66px;
-      margin-bottom: 54px;
-      padding: 24px 20px 54px;
+      height: 100svh;
+      min-height: 100svh;
+      margin-top: 0;
+      margin-bottom: 0;
+      padding: 90px 20px 76px;
       align-items: center;
       background-position: center;
     }
@@ -1776,7 +1776,7 @@
     .hero-bottom-type {
       left: 20px;
       right: 20px;
-      bottom: 36px;
+      bottom: 74px;
       font-size: clamp(19px, 7vw, 34px);
       letter-spacing: -0.07em;
     }
@@ -1791,7 +1791,7 @@
     }
 
     .hero-scroll-indicator {
-      bottom: 10px;
+      bottom: 24px;
     }
 
     .hero-scroll-indicator span {
