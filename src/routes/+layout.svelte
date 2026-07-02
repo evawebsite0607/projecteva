@@ -32,7 +32,7 @@
     { label: "Paintings", href: "/painting", children: paintingItems },
     { label: "Exhibitions", href: "/exhibitions", children: exhibitionItems },
     {
-      label: "Public viewings",
+      label: "Performance views",
       href: "/performances",
       children: performanceItems,
     },
@@ -806,7 +806,7 @@
     align-items: center;
     gap: 14px;
     color: #ffffff;
-    font-size: clamp(36px, 2.45vw, 54px);
+    font-size: clamp(30px, 2.4vw, 38px);
     font-weight: 400;
     line-height: 0.96;
     letter-spacing: -0.022em;
@@ -853,13 +853,13 @@
 
   .desktop-submenu-panel {
     position: absolute;
-    left: 100%;
+    left: calc(100% + 42px);
     top: 50%;
     z-index: 20;
-    width: calc(clamp(64px, 7vw, 124px) + min(31vw, 430px));
+    width: min(26vw, 360px);
     max-height: 62vh;
     overflow: visible;
-    padding-left: clamp(64px, 7vw, 124px);
+    padding-left: 0;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -871,7 +871,7 @@
   }
 
   .desktop-submenu-inner {
-    width: min(31vw, 430px);
+    width: 100%;
     max-height: 62vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -1082,6 +1082,7 @@
   .footer-link-center {
     justify-self: center;
     text-align: center;
+    transform: translateX(-120px);
   }
 
   .footer-link-right {

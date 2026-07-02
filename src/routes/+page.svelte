@@ -781,6 +781,7 @@
     width: min(520px, 72vw);
     margin: 0 auto;
     color: #000000;
+    transform: translateY(-34px);
   }
 
   .hero-kicker {
@@ -829,7 +830,7 @@
     position: absolute;
     left: 28px;
     right: 28px;
-    bottom: 88px;
+    bottom: 128px;
     z-index: 3;
     display: flex;
     align-items: flex-end;
@@ -875,7 +876,7 @@
   .hero-scroll-indicator {
     position: absolute;
     left: 50%;
-    bottom: 22px;
+    bottom: 62px;
     z-index: 5;
     display: flex;
     flex-direction: column;
