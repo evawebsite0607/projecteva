@@ -790,6 +790,16 @@
     padding: 0;
   }
 
+  .menu-grid-item.has-desktop-submenu::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 100%;
+    width: 52px;
+    height: calc(100% + 24px);
+    z-index: 19;
+  }
+
   .menu-link-row {
     display: inline-flex;
     align-items: center;
@@ -853,13 +863,14 @@
 
   .desktop-submenu-panel {
     position: absolute;
-    left: calc(100% + 42px);
+    left: calc(100% + 12px);
     top: 50%;
-    z-index: 20;
+    z-index: 999;
     width: min(26vw, 360px);
     max-height: 62vh;
     overflow: visible;
-    padding-left: 0;
+    padding: 18px;
+    background: #000000;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
