@@ -303,6 +303,7 @@
     font-weight: 400;
     line-height: 1.15;
     text-transform: uppercase;
+    line-clamp: 4;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
   }
@@ -310,7 +311,7 @@
   .active-image-preview {
     position: fixed;
     left: 28px;
-    bottom: 34px;
+    bottom: 90px;
     z-index: 6;
     width: 335px;
     height: 225px;
@@ -340,12 +341,6 @@
   }
 
   @media (max-width: 1024px) {
-    :global(html),
-    :global(body) {
-      height: 100%;
-      overflow: hidden;
-    }
-
     .archive-page {
       height: 100vh;
       height: 100dvh;
@@ -454,6 +449,7 @@
       overflow: visible;
       font-size: 13px;
       line-height: 1.35;
+      line-clamp: unset;
       -webkit-line-clamp: unset;
       -webkit-box-orient: unset;
     }
