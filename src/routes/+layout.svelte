@@ -32,7 +32,7 @@
     { label: "Paintings", href: "/painting", children: paintingItems },
     { label: "Exhibitions", href: "/exhibitions", children: exhibitionItems },
     {
-      label: "Performance views",
+      label: "Performance -<br>views",
       href: "/performances",
       children: performanceItems,
     },
@@ -320,7 +320,7 @@
                 class:has-arrow={hasDesktopSubmenu(item)}
                 onclick={closeMenu}
               >
-                <span>{item.label}</span>
+                <span>{@html item.label}</span>
 
                 {#if hasDesktopSubmenu(item)}
                   <span class="desktop-menu-arrow" aria-hidden="true">→</span>
@@ -1070,7 +1070,7 @@
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 500;
     line-height: 1;
     letter-spacing: -0.02em;
     text-transform: uppercase;
@@ -1078,6 +1078,13 @@
     overflow: hidden;
     text-overflow: clip;
     transition: opacity 0.25s ease;
+  }
+
+  .footer-link {
+    text-decoration: none;
+    display: inline-block;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 3px;
   }
 
   .footer-link:hover,
@@ -1093,7 +1100,7 @@
   .footer-link-center {
     justify-self: center;
     text-align: center;
-    transform: translateX(-120px);
+    transform: translateX(-80px);
   }
 
   .footer-link-right {
@@ -1101,6 +1108,29 @@
     text-align: right;
   }
 
+  /* Desktop only - Performance Views */
+  .main-menu-link span {
+    display: block;
+  }
+
+  .main-menu-link[href="/performances"] span {
+    display: inline-block;
+    line-height: 0.9;
+  }
+
+  .main-menu-link[href="/performances"] {
+    padding-left: 2px;
+    border-left: 1px solid #ffffff;
+    transition: border-color 0.3s ease;
+  }
+
+  .main-menu-link[href="/performances"]:hover,
+  .menu-grid-item.has-desktop-submenu:hover
+    .main-menu-link[href="/performances"],
+  .menu-grid-item.has-desktop-submenu:focus-within
+    .main-menu-link[href="/performances"] {
+    border-left-color: #ab9bf2;
+  }
   @media (max-width: 1024px) {
     .top-header-background {
       height: 70px;
@@ -1444,6 +1474,13 @@
       text-underline-offset: 4px;
     }
 
+    .footer-link {
+      text-decoration: none;
+      display: inline-block;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 3px;
+    }
+
     .footer-link-left {
       justify-self: start;
       text-align: left;
@@ -1452,6 +1489,7 @@
     .footer-link-center {
       justify-self: center;
       text-align: center;
+      transform: translateX(-124px);
     }
 
     .footer-link-right {
@@ -1560,6 +1598,18 @@
       overflow: hidden;
       text-overflow: clip;
     }
+    .footer-link {
+      text-decoration: none;
+      display: inline-block;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 3px;
+    }
+
+    .footer-link-center {
+      justify-self: center;
+      text-align: center;
+      transform: translateX(-60px);
+    }
   }
 
   @media (max-height: 700px) and (max-width: 1024px) {
@@ -1630,6 +1680,17 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: clip;
+    }
+    .footer-link {
+      text-decoration: none;
+      display: inline-block;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 3px;
+    }
+    .footer-link-center {
+      justify-self: center;
+      text-align: center;
+      transform: translateX(-60px);
     }
   }
 </style>
