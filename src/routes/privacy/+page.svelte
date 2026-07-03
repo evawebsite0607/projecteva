@@ -10,14 +10,13 @@
   <div class="privacy-feature">
     <aside class="privacy-intro-column">
       <div class="privacy-heading">
-        <p class="privacy-label">Privacy</p>
         <h1>Privacy Policy</h1>
       </div>
     </aside>
 
     <div class="privacy-content-column">
       <div class="privacy-section">
-        <h2>Privacy Policy</h2>
+        <h2>Privacy</h2>
         <p>
           /// The protection of your personal data is important. This section
           contains information about the types of personal data which is
@@ -74,8 +73,8 @@
       <div class="privacy-section">
         <h2>Imprint</h2>
         <p>
-          /// Mag.art. Eva Eichinger, info(at)evaeichinger.com, Westbahnstraße
-          27-29, 1070 Wien /// page by unspecified.design
+          /// Mag.art. Eva Eichinger, info@evaeichinger.com, Westbahnstraße
+          27-29, 1070 Wien /// web development by zorawebdesign
         </p>
       </div>
     </div>
@@ -132,15 +131,6 @@
 
   .privacy-heading {
     margin: 0;
-  }
-
-  .privacy-label {
-    margin: 0 0 9px;
-    color: #000000;
-    font-size: clamp(12px, 0.72vw, 13px);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.012em;
   }
 
   .privacy-heading h1 {
@@ -213,10 +203,6 @@
       gap: 44px;
     }
 
-    .privacy-label {
-      font-size: 14px;
-    }
-
     .privacy-heading h1 {
       max-width: 520px;
       font-size: 16px;
@@ -256,17 +242,13 @@
       gap: 34px;
     }
 
-    .privacy-label {
-      font-size: 12px;
-    }
-
     .privacy-heading h1 {
       font-size: 14px;
     }
 
     .privacy-content-column {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 34px 12px;
+      gap: 42px 20px;
     }
 
     .privacy-section {
@@ -288,7 +270,7 @@
 
   @media (max-width: 420px) {
     .privacy-content-column {
-      gap: 32px 10px;
+      gap: 42px 20px;
     }
 
     .privacy-section h2 {
