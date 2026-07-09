@@ -453,11 +453,11 @@
     position: absolute;
     inset: 0;
     z-index: 2;
-    object-position: var(--about-video-thumbnail-focus-x)
-      var(--about-video-thumbnail-focus-y);
-    transform: scale(var(--about-video-thumbnail-scale));
-    transform-origin: center center;
-    will-change: transform;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    transform: none;
   }
 
   @media (min-width: 1025px) and (max-width: 1280px) {
