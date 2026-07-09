@@ -36,7 +36,7 @@
       children: exhibitionItems,
     },
     {
-      label: "Performance -<br>views",
+      label: "Performance -<br>installations",
       href: "/performances",
       children: performanceItems,
     },
