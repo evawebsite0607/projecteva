@@ -10,7 +10,7 @@
   let videoStartTimer;
 
   const aboutVideoSrc =
-    "https://testing.zorawebdesign.com/wp-content/uploads/2026/06/Video-Project-eva.mp4";
+    "https://testing.zorawebdesign.com/wp-content/uploads/2026/07/B78154AD-F779-4A4B-A00E-E9FA050FE9E1.mp4";
 
   const aboutVideoThumbnail =
     "https://testing.zorawebdesign.com/wp-content/uploads/2026/06/atelierportrait.webp";
@@ -417,6 +417,10 @@
     min-height: 0;
     overflow: hidden;
     background: #ffffff;
+    --about-video-scale: 1.12;
+    --about-video-thumbnail-scale: 1.12;
+    --about-video-focus-y: 44%;
+    --about-video-thumbnail-focus-y: 44%;
   }
 
   .about-video-frame video,
@@ -425,17 +429,20 @@
     height: 100%;
     display: block;
     object-fit: cover;
-    object-position: center;
+    object-position: center var(--about-video-focus-y);
   }
 
   .about-video-frame video {
     background: #ffffff;
+    transform: scale(var(--about-video-scale));
   }
 
   .about-video-thumbnail {
     position: absolute;
     inset: 0;
     z-index: 2;
+    transform: scale(var(--about-video-thumbnail-scale));
+    object-position: center var(--about-video-thumbnail-focus-y);
   }
 
   @media (min-width: 1025px) and (max-width: 1280px) {
@@ -451,6 +458,13 @@
 
     .about-left {
       gap: clamp(40px, 6vh, 70px);
+    }
+
+    .about-video-frame {
+      --about-video-scale: 1.16;
+      --about-video-thumbnail-scale: 1.16;
+      --about-video-focus-y: 40%;
+      --about-video-thumbnail-focus-y: 40%;
     }
 
     .about-links {
@@ -555,6 +569,10 @@
       margin: 0;
       background: #ffffff;
       overflow: hidden;
+      --about-video-scale: 1.38;
+      --about-video-focus-y: 50%;
+      --about-video-thumbnail-scale: 1.34;
+      --about-video-thumbnail-focus-y: 42%;
     }
 
     .about-video-frame video {
@@ -562,8 +580,9 @@
       height: 100%;
       display: block;
       object-fit: cover;
-      object-position: center;
+      object-position: center var(--about-video-focus-y);
       background: #ffffff;
+      transform: scale(var(--about-video-scale));
     }
 
     .about-left {
@@ -731,6 +750,13 @@
       margin-bottom: 14px;
     }
 
+    .about-video-frame {
+      --about-video-scale: 4.8;
+      --about-video-thumbnail-scale: 4.8;
+      --about-video-focus-y: 50%;
+      --about-video-thumbnail-focus-y: 50%;
+    }
+
     .about-links {
       max-height: 23vh;
       max-height: 23dvh;
@@ -780,6 +806,13 @@
       flex: 0 0 40vh;
       flex-basis: 40dvh;
       margin-bottom: 13px;
+    }
+
+    .about-video-frame {
+      --about-video-scale: 1.45;
+      --about-video-thumbnail-scale: 1.45;
+      --about-video-focus-y: 50%;
+      --about-video-thumbnail-focus-y: 50%;
     }
 
     .about-links {

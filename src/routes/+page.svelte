@@ -457,7 +457,12 @@
 
 <main class="home-page">
   <section class="announcement-hero" aria-label="Linz exhibition announcement">
-    <a href="/event" class="hero-side-link hero-side-link-left">
+    <a
+      href="https://www.forumpresents.com/ausstellungen/eva-eichinger-2"
+      class="hero-side-link hero-side-link-left"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       VIEW THE FULL SCHEDULE ↗
     </a>
 
@@ -474,22 +479,22 @@
       </h1>
 
       <div class="hero-details">
-        <p>SEPTEMBER, 10TH-15TH 2026</p>
-        <p>OÖ KULTURQUARTIER</p>
-        <p>OK PLATZ 1, 4020 LINZ</p>
+        <p>ERÖFFNUNG:16.09.2026, 18.00 UHR</p>
+        <p>SPLACE AM HAUPTPLATZ 6, 4020 LINZ</p>
+        <p>DAUER DER AUSSTELLUNG BIS 27.09.2026</p>
       </div>
 
       <div class="hero-list">
-        <p>↗ OPENING 10 SEPTEMBER</p>
-        <p>↗ ARTIST TALK 12 SEPTEMBER</p>
-        <p>↗ SELECTED WORKS 2026</p>
+        <p>↗ OPENNING: 17.09.2026 AT 18:00</p>
+        <p>↗ PERSONAL PRESENTATION TALK: TBA</p>
+        <p>↗ OPENNING INTRO SPEECH BY: TBA</p>
       </div>
     </div>
 
     <div class="hero-bottom-type">
       <div class="hero-bottom-item">
-        <span class="hero-bottom-main">RELATIONS</span>
         <span class="hero-bottom-label">NEW EXHIBITION ANNOUNCEMENT</span>
+        <span class="hero-bottom-main">EVERYTHING I LOVE</span>
       </div>
 
       <div class="hero-bottom-item hero-bottom-item-right">
@@ -698,7 +703,8 @@
     align-items: center;
     justify-content: center;
     padding: 96px 28px 106px;
-    background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/paper-installation1_result.webp");
+    background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love3_result-1.webp");
+    background-color: transparent;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -708,46 +714,24 @@
   }
 
   .announcement-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: none;
+    content: none;
   }
 
   .announcement-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0.16),
-        rgba(255, 255, 255, 0.02) 34%,
-        rgba(255, 255, 255, 0.02) 66%,
-        rgba(255, 255, 255, 0.16)
-      ),
-      linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.12),
-        rgba(255, 255, 255, 0.01) 42%,
-        rgba(255, 255, 255, 0.12)
-      );
-    pointer-events: none;
+    content: none;
   }
 
   .hero-side-link {
     position: absolute;
     top: 50%;
     z-index: 4;
-    color: #ffffff;
+    color: #000000;
     font-size: clamp(18px, 1.45vw, 28px);
     font-weight: 400;
     line-height: 0.95;
     letter-spacing: 0.01em;
     text-decoration-line: underline;
-    text-decoration-color: #ffffff;
+    text-decoration-color: #000000;
     text-decoration-thickness: 1px;
     text-underline-offset: 6px;
     writing-mode: vertical-rl;
@@ -759,9 +743,9 @@
 
   .hero-side-link:hover {
     opacity: 0.96;
-    color: #ffffff;
+    color: #000000;
     text-decoration-line: underline;
-    text-decoration-color: #ffffff;
+    text-decoration-color: #000000;
     text-decoration-thickness: 1px;
     text-underline-offset: 6px;
     transform: translateY(-50%) rotate(180deg);
@@ -780,6 +764,15 @@
     z-index: 3;
     width: min(520px, 72vw);
     margin: 0 auto;
+    padding: 14px 16px;
+    border-radius: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.58),
+      rgba(255, 255, 255, 0.28)
+    );
+    box-shadow: none;
+    backdrop-filter: none;
     color: #000000;
     transform: translateY(-34px);
   }
@@ -836,6 +829,11 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 24px;
+    padding: 8px 10px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
     color: #000000;
     font-size: clamp(40px, 4.4vw, 60px);
     font-weight: 400;
@@ -856,8 +854,14 @@
     text-align: right;
   }
 
+  .hero-bottom-item-right .hero-bottom-main,
+  .hero-bottom-item-right .hero-bottom-label {
+    color: #000000;
+  }
+
   .hero-bottom-main {
     display: block;
+    color: #ffffff;
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit;
@@ -866,7 +870,7 @@
 
   .hero-bottom-label {
     display: block;
-    color: #000000;
+    color: #ffffff;
     font-size: clamp(10px, 0.72vw, 12px);
     font-weight: 700;
     line-height: 1;
@@ -883,12 +887,15 @@
     align-items: center;
     justify-content: center;
     gap: 0;
-    width: 30px;
-    height: auto;
+    width: 56px;
+    height: 56px;
     margin: 0;
     padding: 0;
     border: 0;
-    background: transparent;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+    backdrop-filter: none;
     color: #000000;
     transform: translateX(-50%);
     cursor: pointer;
@@ -896,7 +903,7 @@
 
   .hero-scroll-indicator span {
     display: block;
-    margin-top: -3px;
+    margin-top: -8px;
     color: #000000;
     font-size: 24px;
     font-weight: 700;
@@ -1436,8 +1443,10 @@
     }
 
     .hero-side-link {
+      color: #ffffff;
       font-size: clamp(11px, 2vw, 18px);
       line-height: 0.95;
+      text-decoration-color: #ffffff;
     }
 
     .hero-side-link-left {
@@ -1448,8 +1457,14 @@
       right: 24px;
     }
 
+    .hero-side-link:hover {
+      color: #ffffff;
+      text-decoration-color: #ffffff;
+    }
+
     .hero-center {
       width: min(460px, 68vw);
+      padding: 12px 14px;
       transform: translateY(-38px);
     }
 
@@ -1466,6 +1481,7 @@
       left: 24px;
       right: 24px;
       bottom: 138px;
+      padding: 6px 8px;
       font-size: clamp(23px, 4.5vw, 46px);
     }
 
@@ -1761,6 +1777,7 @@
 
     .hero-center {
       width: min(320px, 66vw);
+      padding: 10px 10px;
       transform: translateY(-34px);
     }
 
@@ -1789,6 +1806,7 @@
       left: 20px;
       right: 20px;
       bottom: 132px;
+      padding: 6px 7px;
     }
 
     .hero-bottom-item {
