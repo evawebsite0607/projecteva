@@ -470,52 +470,24 @@
       DOWNLOAD THE FLYER ↗
     </a>
 
-    <div class="hero-content-grid">
-      <div class="hero-center">
-        <p class="hero-kicker">UPCOMING</p>
+    <div class="hero-center">
+      <p class="hero-kicker">UPCOMING</p>
 
-        <h1>
-          <span>LINZ</span>
-          <span>EXHIBITION</span>
-        </h1>
+      <h1>
+        <span>LINZ</span>
+        <span>EXHIBITION</span>
+      </h1>
 
-        <div class="hero-details">
-          <p>ERÖFFNUNG:16.09.2026, 18.00 UHR</p>
-          <p>SPLACE AM HAUPTPLATZ 6, 4020 LINZ</p>
-          <p>DAUER DER AUSSTELLUNG BIS 27.09.2026</p>
-        </div>
-
-        <div class="hero-list">
-          <p>↗ OPENNING: 17.09.2026 AT 18:00</p>
-          <p>↗ PERSONAL PRESENTATION TALK: TBA</p>
-          <p>↗ OPENNING INTRO SPEECH BY: TBA</p>
-        </div>
+      <div class="hero-details">
+        <p>ERÖFFNUNG:16.09.2026, 18.00 UHR</p>
+        <p>SPLACE AM HAUPTPLATZ 6, 4020 LINZ</p>
+        <p>DAUER DER AUSSTELLUNG BIS 27.09.2026</p>
       </div>
 
-      <div class="hero-gallery" aria-hidden="true">
-        <figure class="hero-gallery-image hero-gallery-left">
-          <img
-            src="https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love2_result.webp"
-            alt=""
-            loading="eager"
-          />
-        </figure>
-
-        <figure class="hero-gallery-image hero-gallery-center">
-          <img
-            src="https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love1_result.webp"
-            alt=""
-            loading="eager"
-          />
-        </figure>
-
-        <figure class="hero-gallery-image hero-gallery-right">
-          <img
-            src="https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love3_result-1.webp"
-            alt=""
-            loading="eager"
-          />
-        </figure>
+      <div class="hero-list">
+        <p>↗ OPENNING: 17.09.2026 AT 18:00</p>
+        <p>↗ PERSONAL PRESENTATION TALK: TBA</p>
+        <p>↗ OPENNING INTRO SPEECH BY: TBA</p>
       </div>
     </div>
 
@@ -731,55 +703,14 @@
     align-items: center;
     justify-content: center;
     padding: 96px 28px 106px;
-    background: #fcfcfc;
+    background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love3_result.webp");
+    background-color: transparent;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: #000000;
     text-transform: uppercase;
     isolation: isolate;
-  }
-
-  .hero-gallery {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(14px, 1.4vw, 24px);
-    align-items: stretch;
-    pointer-events: none;
-  }
-
-  .hero-content-grid {
-    position: relative;
-    z-index: 3;
-    width: min(1560px, calc(100% - 120px));
-    height: min(76vh, 760px);
-    display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(0, 3fr);
-    gap: clamp(36px, 3vw, 56px);
-    align-items: center;
-  }
-
-  .hero-gallery-image {
-    position: relative;
-    margin: 0;
-    overflow: hidden;
-    border-radius: 0;
-    box-shadow: none;
-    width: 100%;
-  }
-
-  .hero-gallery-image img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-  }
-
-  .hero-gallery-left,
-  .hero-gallery-center,
-  .hero-gallery-right {
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    align-self: center;
-    transform: none;
   }
 
   .announcement-hero::before {
@@ -830,13 +761,16 @@
 
   .hero-center {
     position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 520px;
-    margin: 0;
+    z-index: 3;
+    width: min(520px, 72vw);
+    margin: 0 auto;
     padding: 14px 16px;
     border-radius: 0;
-    background: #ffffff;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.58),
+      rgba(255, 255, 255, 0.28)
+    );
     box-shadow: none;
     backdrop-filter: none;
     color: #000000;
@@ -853,7 +787,7 @@
 
   .hero-center h1 {
     margin: 0 0 18px;
-    font-size: clamp(30px, 3.2vw, 58px);
+    font-size: clamp(38px, 4.4vw, 88px);
     font-weight: 400;
     line-height: 0.88;
     letter-spacing: -0.055em;
@@ -905,7 +839,6 @@
     font-weight: 400;
     line-height: 0.78;
     letter-spacing: -0.065em;
-    transform: translateY(40px);
     pointer-events: none;
   }
 
@@ -928,7 +861,7 @@
 
   .hero-bottom-main {
     display: block;
-    color: #000000;
+    color: #ffffff;
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit;
@@ -937,7 +870,7 @@
 
   .hero-bottom-label {
     display: block;
-    color: #000000;
+    color: #ffffff;
     font-size: clamp(10px, 0.72vw, 12px);
     font-weight: 700;
     line-height: 1;
@@ -964,7 +897,7 @@
     box-shadow: none;
     backdrop-filter: none;
     color: #000000;
-    transform: translate(-50%, 40px);
+    transform: translateX(-50%);
     cursor: pointer;
   }
 
@@ -1495,34 +1428,9 @@
   }
 
   @media (max-width: 1024px) {
-    .hero-content-grid {
-      width: 100%;
-      height: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 28px;
-    }
-
-    .hero-gallery {
-      display: grid;
-      width: min(760px, calc(100% - 120px));
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      order: 2;
-      margin-inline: auto;
-    }
-
-    .hero-gallery-left,
-    .hero-gallery-center,
-    .hero-gallery-right {
-      aspect-ratio: 3 / 4;
-    }
-
     @media (max-width: 1024px) {
       .announcement-hero {
         padding: 94px 24px 128px;
-        background: #fcfcfc;
       }
 
       .hero-bottom-type {
@@ -1535,10 +1443,10 @@
     }
 
     .hero-side-link {
-      color: #000000;
+      color: #ffffff;
       font-size: clamp(11px, 2vw, 18px);
       line-height: 0.95;
-      text-decoration-color: #000000;
+      text-decoration-color: #ffffff;
     }
 
     .hero-side-link-left {
@@ -1550,14 +1458,14 @@
     }
 
     .hero-side-link:hover {
-      color: #000000;
-      text-decoration-color: #000000;
+      color: #ffffff;
+      text-decoration-color: #ffffff;
     }
 
     .hero-center {
       width: min(460px, 68vw);
       padding: 12px 14px;
-      transform: translateY(8px);
+      transform: translateY(-38px);
     }
 
     .hero-center h1 {
@@ -1867,16 +1775,10 @@
       right: 20px;
     }
 
-    .hero-gallery {
-      width: calc(100% - 88px);
-      gap: 8px;
-      margin-inline: auto;
-    }
-
     .hero-center {
       width: min(320px, 66vw);
       padding: 10px 10px;
-      transform: translateY(12px);
+      transform: translateY(-34px);
     }
 
     .hero-kicker {
@@ -1886,7 +1788,7 @@
 
     .hero-center h1 {
       margin-bottom: 14px;
-      font-size: clamp(21px, 8.8vw, 44px);
+      font-size: clamp(37px, 14vw, 66px);
       line-height: 0.88;
     }
 
@@ -2044,7 +1946,7 @@
     }
 
     .mobile-work-title {
-      font-size: 8px;
+      font-size: 10px;
       font-weight: 700;
       line-height: 1.08;
     }
@@ -2077,7 +1979,7 @@
     }
 
     .hero-center {
-      transform: translateY(14px);
+      transform: translateY(-28px);
     }
 
     .hero-bottom-type {
