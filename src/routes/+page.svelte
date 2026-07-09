@@ -309,18 +309,6 @@
   function scrollGridToTop() {
     if (!browser) return;
 
-    if (!isDesktopViewport() && workSectionElement) {
-      const top =
-        workSectionElement.getBoundingClientRect().top + window.scrollY;
-
-      window.scrollTo({
-        top,
-        behavior: "smooth",
-      });
-
-      return;
-    }
-
     if (workGridElement) {
       workGridElement.scrollTo({
         top: 0,
@@ -1546,6 +1534,10 @@
       text-align: left;
       background: #ffffff;
       overflow: visible;
+    }
+
+    .work-filter::-webkit-scrollbar {
+      display: none;
     }
 
     .work-filter button {
