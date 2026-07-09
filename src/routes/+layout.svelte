@@ -30,7 +30,11 @@
     { label: "Home", href: "/", children: [] },
     { label: "About", href: "/about", children: aboutItems },
     { label: "Paintings", href: "/painting", children: paintingItems },
-    { label: "Exhibitions", href: "/exhibitions", children: exhibitionItems },
+    {
+      label: "Exhibition views",
+      href: "/exhibitions",
+      children: exhibitionItems,
+    },
     {
       label: "Performance -<br>views",
       href: "/performances",
