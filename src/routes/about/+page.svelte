@@ -417,9 +417,16 @@
     min-height: 0;
     overflow: hidden;
     background: #ffffff;
-    --about-video-scale: 1.12;
-    --about-video-thumbnail-scale: 1.12;
-    --about-video-focus-y: 44%;
+
+    /*
+      The video is 1280 x 720, but it contains black empty areas.
+      This zoom crops those black areas away inside the visible frame.
+    */
+    --about-video-scale: 1.34;
+    --about-video-thumbnail-scale: 1.18;
+    --about-video-focus-x: 50%;
+    --about-video-focus-y: 50%;
+    --about-video-thumbnail-focus-x: 50%;
     --about-video-thumbnail-focus-y: 44%;
   }
 
@@ -429,20 +436,28 @@
     height: 100%;
     display: block;
     object-fit: cover;
-    object-position: center var(--about-video-focus-y);
   }
 
   .about-video-frame video {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     background: #ffffff;
+    object-position: var(--about-video-focus-x) var(--about-video-focus-y);
     transform: scale(var(--about-video-scale));
+    transform-origin: center center;
+    will-change: transform;
   }
 
   .about-video-thumbnail {
     position: absolute;
     inset: 0;
     z-index: 2;
+    object-position: var(--about-video-thumbnail-focus-x)
+      var(--about-video-thumbnail-focus-y);
     transform: scale(var(--about-video-thumbnail-scale));
-    object-position: center var(--about-video-thumbnail-focus-y);
+    transform-origin: center center;
+    will-change: transform;
   }
 
   @media (min-width: 1025px) and (max-width: 1280px) {
@@ -461,10 +476,12 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.16;
-      --about-video-thumbnail-scale: 1.16;
-      --about-video-focus-y: 40%;
-      --about-video-thumbnail-focus-y: 40%;
+      --about-video-scale: 1.38;
+      --about-video-thumbnail-scale: 1.2;
+      --about-video-focus-x: 50%;
+      --about-video-focus-y: 50%;
+      --about-video-thumbnail-focus-x: 50%;
+      --about-video-thumbnail-focus-y: 42%;
     }
 
     .about-links {
@@ -495,6 +512,11 @@
       gap: clamp(26px, 2.4vw, 50px);
     }
 
+    .about-video-frame {
+      --about-video-scale: 1.32;
+      --about-video-thumbnail-scale: 1.18;
+    }
+
     .about-text-block,
     .about-text-block h1,
     .about-section-text,
@@ -513,6 +535,11 @@
       height: calc(100vh - 186px);
       grid-template-columns: 540px minmax(0, 1fr);
       gap: 52px;
+    }
+
+    .about-video-frame {
+      --about-video-scale: 1.3;
+      --about-video-thumbnail-scale: 1.16;
     }
 
     .about-links {
@@ -569,20 +596,12 @@
       margin: 0;
       background: #ffffff;
       overflow: hidden;
-      --about-video-scale: 1.38;
+      --about-video-scale: 1.55;
+      --about-video-thumbnail-scale: 1.28;
+      --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
-      --about-video-thumbnail-scale: 1.34;
+      --about-video-thumbnail-focus-x: 50%;
       --about-video-thumbnail-focus-y: 42%;
-    }
-
-    .about-video-frame video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      object-position: center var(--about-video-focus-y);
-      background: #ffffff;
-      transform: scale(var(--about-video-scale));
     }
 
     .about-left {
@@ -751,9 +770,11 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 4.8;
-      --about-video-thumbnail-scale: 4.8;
+      --about-video-scale: 1.75;
+      --about-video-thumbnail-scale: 1.32;
+      --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
+      --about-video-thumbnail-focus-x: 50%;
       --about-video-thumbnail-focus-y: 50%;
     }
 
@@ -809,9 +830,11 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.45;
-      --about-video-thumbnail-scale: 1.45;
+      --about-video-scale: 1.9;
+      --about-video-thumbnail-scale: 1.38;
+      --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
+      --about-video-thumbnail-focus-x: 50%;
       --about-video-thumbnail-focus-y: 50%;
     }
 
