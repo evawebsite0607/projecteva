@@ -484,7 +484,9 @@
             {/each}
           </div>
         </div>
+      </aside>
 
+      <section class="right-column" aria-label={`${itemLabel} content`}>
         <div class="painting-preview">
           <h1>{previewTitle}</h1>
 
@@ -513,9 +515,7 @@
             </div>
           </div>
         </div>
-      </aside>
 
-      <section class="right-column" aria-label={`${itemLabel} content`}>
         {#if selectedImages.length}
           {#key selectedItemSlug}
             <div
@@ -859,13 +859,17 @@
 
   .painting-preview {
     width: 100%;
+    flex: 0 0 auto;
+    display: block;
+    margin-bottom: 28px;
   }
 
   .painting-preview h1 {
-    max-width: 280px;
-    margin: 0 0 42px;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 12px;
     color: var(--painting-color);
-    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
@@ -885,14 +889,13 @@
   }
 
   .preview-bottom {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    align-items: start;
+    width: 100%;
+    display: block;
   }
 
   .preview-info {
-    max-width: 265px;
+    width: 100%;
+    max-width: none;
   }
 
   .preview-info strong {
@@ -908,19 +911,17 @@
   .preview-info p {
     margin: 0;
     color: #000000;
-    font-size: clamp(11px, 0.66vw, 12px);
+    font-size: clamp(14px, 1vw, 14px);
     font-weight: 500;
-    line-height: 1.16;
-    letter-spacing: 0.006em;
+    line-height: 1.19;
+    letter-spacing: 0.009em;
     text-transform: uppercase;
   }
 
   .painting-description {
-    max-height: 120px;
-    overflow-y: auto;
-    padding-right: 6px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .painting-description::-webkit-scrollbar {
@@ -953,13 +954,16 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .image-grid {
     --image-card-gap: clamp(22px, 1.6vw, 30px);
 
     width: 100%;
-    height: 100%;
+    height: auto;
+    flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
     overflow-y: auto;
@@ -968,7 +972,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
     gap: var(--image-card-gap);
-    padding: 0 0 var(--last-desktop-offset, 0px);
+    padding: 0;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -1246,42 +1250,6 @@
   }
 
   @media (min-width: 1025px) {
-    .image-card:nth-child(4n + 1) {
-      transform: translateY(0);
-    }
-
-    .image-card:nth-child(4n + 2) {
-      transform: translateY(34px);
-    }
-
-    .image-card:nth-child(4n + 3) {
-      transform: translateY(8px);
-    }
-
-    .image-card:nth-child(4n + 4) {
-      transform: translateY(42px);
-    }
-
-    .image-card:nth-child(4n + 1):hover,
-    .image-card:nth-child(4n + 1).active {
-      transform: translateY(-3px);
-    }
-
-    .image-card:nth-child(4n + 2):hover,
-    .image-card:nth-child(4n + 2).active {
-      transform: translateY(31px);
-    }
-
-    .image-card:nth-child(4n + 3):hover,
-    .image-card:nth-child(4n + 3).active {
-      transform: translateY(5px);
-    }
-
-    .image-card:nth-child(4n + 4):hover,
-    .image-card:nth-child(4n + 4).active {
-      transform: translateY(39px);
-    }
-
     .image-grid.single-image-grid {
       display: block;
       height: 100%;
@@ -1399,12 +1367,9 @@
       gap: 14px;
     }
 
-    .painting-preview h1 {
-      max-width: 270px;
-    }
-
+    .painting-preview h1,
     .preview-info {
-      max-width: 260px;
+      max-width: none;
     }
   }
 
@@ -1420,7 +1385,7 @@
     }
 
     .painting-preview h1 {
-      max-width: 280px;
+      max-width: none;
       font-size: clamp(19px, calc(0.95vw + 6px), 21px);
     }
 
@@ -1648,7 +1613,8 @@
       width: 100%;
       min-height: 0;
       flex: 1 1 auto;
-      display: block;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
