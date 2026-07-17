@@ -9,7 +9,6 @@
   let hoveredWorkId = $state(null);
   let previewHasStarted = $state(false);
   let workGridElement = $state(null);
-  let workSectionElement = $state(null);
 
   const artistName = "Eva Eichinger ";
   const welcomeTitle = "Eva Eichinger";
@@ -289,23 +288,6 @@
     document.body.style.touchAction = "";
   }
 
-  function isDesktopViewport() {
-    if (!browser) return false;
-
-    return window.matchMedia("(min-width: 1025px)").matches;
-  }
-
-  function scrollToWorks() {
-    if (!browser || !workSectionElement) return;
-
-    const top = workSectionElement.getBoundingClientRect().top + window.scrollY;
-
-    window.scrollTo({
-      top,
-      behavior: "smooth",
-    });
-  }
-
   function scrollGridToTop() {
     if (!browser) return;
 
@@ -326,16 +308,6 @@
     );
   }
 
-  function isWorkSectionReadyForInternalScroll() {
-    if (!browser || !workSectionElement || !isDesktopViewport()) return false;
-
-    const rect = workSectionElement.getBoundingClientRect();
-    const viewportHeight =
-      window.innerHeight || document.documentElement.clientHeight;
-
-    return rect.top <= 4 && rect.bottom >= viewportHeight - 4;
-  }
-
   function canRouteGridScroll(deltaY) {
     if (!workGridElement) return false;
 
@@ -352,17 +324,6 @@
     }
 
     return false;
-  }
-
-  function routeWorkSectionWheel(event) {
-    if (!isWorkSectionReadyForInternalScroll()) return;
-
-    const deltaY = event.deltaY;
-
-    if (canRouteGridScroll(deltaY)) {
-      event.preventDefault();
-      workGridElement.scrollTop += deltaY;
-    }
   }
 
   function setCategory(category) {
@@ -410,20 +371,8 @@
       unlockPageLocks();
     }, 0);
 
-    const wheelHandler = (event) => routeWorkSectionWheel(event);
-
-    if (workSectionElement) {
-      workSectionElement.addEventListener("wheel", wheelHandler, {
-        passive: false,
-      });
-    }
-
     return () => {
       unlockPageLocks();
-
-      if (workSectionElement) {
-        workSectionElement.removeEventListener("wheel", wheelHandler);
-      }
     };
   });
 </script>
@@ -444,74 +393,6 @@
 </svelte:head>
 
 <main class="home-page">
-  <section class="announcement-hero" aria-label="Linz exhibition announcement">
-    <a
-      href="https://www.forumpresents.com/ausstellungen/eva-eichinger-2"
-      class="hero-side-link hero-side-link-left"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      VIEW THE FULL SCHEDULE ↗
-    </a>
-
-    <a href="/flyer.pdf" class="hero-side-link hero-side-link-right" download>
-      DOWNLOAD THE FLYER ↗
-    </a>
-
-    <div class="hero-center">
-      <p class="hero-kicker">UPCOMING</p>
-
-      <h1>
-        <span>LINZ</span>
-        <span>EXHIBITION</span>
-      </h1>
-
-      <div class="hero-details">
-        <p>ERÖFFNUNG:16.09.2026, 18.00 UHR</p>
-        <p>SPLACE AM HAUPTPLATZ 6, 4020 LINZ</p>
-        <p>DAUER DER AUSSTELLUNG BIS 27.09.2026</p>
-      </div>
-
-      <div class="hero-list">
-        <p>↗ OPENNING: 17.09.2026 AT 18:00</p>
-        <p>↗ PERSONAL PRESENTATION TALK: TBA</p>
-        <p>↗ OPENNING INTRO SPEECH BY: TBA</p>
-      </div>
-    </div>
-
-    <div class="hero-bottom-type">
-      <div class="hero-bottom-item">
-        <span class="hero-bottom-label">NEW EXHIBITION ANNOUNCEMENT</span>
-        <span class="hero-bottom-main">EVERYTHING I LOVE</span>
-      </div>
-
-      <div class="hero-bottom-item hero-bottom-item-right">
-        <span class="hero-bottom-main">2026</span>
-        <span class="hero-bottom-label">LINZ / AUSTRIA</span>
-      </div>
-    </div>
-
-    <button
-      type="button"
-      class="hero-scroll-indicator"
-      aria-label="Scroll to selected works"
-      onclick={scrollToWorks}
-    >
-      <lord-icon
-        src="https://cdn.lordicon.com/evxithfv.json"
-        trigger="in"
-        delay="1500"
-        stroke="light"
-        state="in-reveal"
-        colors="primary:#000000,secondary:#000000"
-        style="width:60px;height:60px"
-      >
-      </lord-icon>
-
-      <span>⌵</span>
-    </button>
-  </section>
-
   <section
     class="work-page"
     id="selected-works"
@@ -537,10 +418,17 @@
                 <span class="filter-number">
                   {String(index).padStart(2, "0")}
                 </span>
-              {/if}<span class="filter-label">
-                <span
-                  >{category === "ALL WORK" ? "SELECTED WORKS" : category}</span
-                >
+              {/if}
+              <span class="filter-label">
+                <span>
+                  {category === "ALL WORK"
+                    ? "SELECTED WORKS"
+                    : category === "EXHIBITIONS"
+                      ? "EXHIBITION VIEWS"
+                      : category === "PERFORMANCES"
+                        ? "PERFORMANCE INSTALLATIONS"
+                        : category}
+                </span>
               </span>
             </button>
           {/each}
@@ -679,227 +567,9 @@
     background: #ffffff;
   }
 
-  .announcement-hero {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 96px 28px 106px;
-    background-image: url("https://testing.zorawebdesign.com/wp-content/uploads/2026/06/everything-I-love3_result.webp");
-    background-color: transparent;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    color: #000000;
-    text-transform: uppercase;
-    isolation: isolate;
-  }
-
-  .announcement-hero::before {
-    content: none;
-  }
-
-  .announcement-hero::after {
-    content: none;
-  }
-
-  .hero-side-link {
-    position: absolute;
-    top: 50%;
-    z-index: 4;
-    color: #000000;
-    font-size: clamp(18px, 1.45vw, 28px);
-    font-weight: 400;
-    line-height: 0.95;
-    letter-spacing: 0.01em;
-    text-decoration-line: underline;
-    text-decoration-color: #000000;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 6px;
-    writing-mode: vertical-rl;
-    transform: translateY(-50%) rotate(180deg);
-    opacity: 0.96;
-    mix-blend-mode: normal;
-    transition: opacity 0.3s ease;
-  }
-
-  .hero-side-link:hover {
-    opacity: 0.96;
-    color: #000000;
-    text-decoration-line: underline;
-    text-decoration-color: #000000;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 6px;
-    transform: translateY(-50%) rotate(180deg);
-  }
-
-  .hero-side-link-left {
-    left: 28px;
-  }
-
-  .hero-side-link-right {
-    right: 28px;
-  }
-
-  .hero-center {
-    position: relative;
-    z-index: 3;
-    width: min(520px, 72vw);
-    margin: 0 auto;
-    padding: 14px 16px;
-    border-radius: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.58),
-      rgba(255, 255, 255, 0.28)
-    );
-    box-shadow: none;
-    backdrop-filter: none;
-    color: #000000;
-    transform: translateY(-34px);
-  }
-
-  .hero-kicker {
-    margin: 0 0 12px;
-    font-size: clamp(11px, 0.72vw, 13px);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.02em;
-  }
-
-  .hero-center h1 {
-    margin: 0 0 18px;
-    font-size: clamp(38px, 4.4vw, 88px);
-    font-weight: 400;
-    line-height: 0.88;
-    letter-spacing: -0.055em;
-  }
-
-  .hero-center h1 span {
-    display: block;
-  }
-
-  .hero-details,
-  .hero-list {
-    color: #000000;
-    font-size: clamp(13px, 1vw, 18px);
-    font-weight: 500;
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-  }
-
-  .hero-details {
-    margin-top: 0;
-  }
-
-  .hero-details p,
-  .hero-list p {
-    margin: 0;
-  }
-
-  .hero-list {
-    margin-top: 28px;
-  }
-
-  .hero-bottom-type {
-    position: absolute;
-    left: 28px;
-    right: 28px;
-    bottom: 128px;
-    z-index: 3;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 8px 10px;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    color: #000000;
-    font-size: clamp(40px, 4.4vw, 60px);
-    font-weight: 400;
-    line-height: 0.78;
-    letter-spacing: -0.065em;
-    pointer-events: none;
-  }
-
-  .hero-bottom-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .hero-bottom-item-right {
-    align-items: flex-end;
-    text-align: right;
-  }
-
-  .hero-bottom-item-right .hero-bottom-main,
-  .hero-bottom-item-right .hero-bottom-label {
-    color: #000000;
-  }
-
-  .hero-bottom-main {
-    display: block;
-    color: #ffffff;
-    font-size: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-    letter-spacing: inherit;
-  }
-
-  .hero-bottom-label {
-    display: block;
-    color: #ffffff;
-    font-size: clamp(10px, 0.72vw, 12px);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.012em;
-  }
-
-  .hero-scroll-indicator {
-    position: absolute;
-    left: 50%;
-    bottom: 62px;
-    z-index: 5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    width: 56px;
-    height: 56px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: none;
-    backdrop-filter: none;
-    color: #000000;
-    transform: translateX(-50%);
-    cursor: pointer;
-  }
-
-  .hero-scroll-indicator span {
-    display: block;
-    margin-top: -8px;
-    color: #000000;
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1;
-  }
-
   .work-page {
-    --desktop-card-height: clamp(455px, 28vw, 515px);
+    --desktop-card-height: clamp(420px, 25vw, 500px);
+    --desktop-card-gap: clamp(18px, 1.35vw, 26px);
 
     width: 100%;
     height: 100vh;
@@ -973,10 +643,7 @@
       opacity 0.28s ease;
   }
 
-  .work-filter button::before {
-    content: none;
-  }
-
+  .work-filter button::before,
   .work-filter button.all-work-button::before {
     content: none;
   }
@@ -1129,8 +796,6 @@
   }
 
   .work-grid {
-    --work-card-gap: clamp(22px, 1.6vw, 30px);
-
     width: 100%;
     height: 100%;
     min-width: 0;
@@ -1138,10 +803,11 @@
     overflow-y: auto;
     overflow-x: hidden;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
-    gap: var(--work-card-gap);
-    padding: 0 0 var(--last-desktop-offset, 0px);
+    column-gap: var(--desktop-card-gap);
+    row-gap: var(--desktop-card-gap);
+    padding: 0;
     overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -1156,10 +822,7 @@
     background: transparent;
   }
 
-  .work-grid::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+  .work-grid::-webkit-scrollbar-track,
   .work-grid::-webkit-scrollbar-thumb {
     background: transparent;
   }
@@ -1174,6 +837,7 @@
     background: #f8f8f6;
     text-decoration: none;
     isolation: isolate;
+    transform: none;
     transition:
       background 0.45s ease,
       transform 0.45s ease;
@@ -1243,6 +907,10 @@
   .work-grid:hover .work-card:hover,
   .work-grid:hover .work-card.active {
     background: #fbfaf7;
+  }
+
+  .work-card:hover {
+    transform: translateY(-3px);
   }
 
   .work-grid:hover .work-card:hover::before,
@@ -1320,47 +988,10 @@
     font-weight: 900;
   }
 
-  @media (min-width: 1025px) {
-    .work-card:nth-child(4n + 1) {
-      transform: translateY(0);
-    }
-
-    .work-card:nth-child(4n + 2) {
-      transform: translateY(34px);
-    }
-
-    .work-card:nth-child(4n + 3) {
-      transform: translateY(8px);
-    }
-
-    .work-card:nth-child(4n + 4) {
-      transform: translateY(42px);
-    }
-
-    .work-card:nth-child(4n + 1):hover,
-    .work-card:nth-child(4n + 1).active {
-      transform: translateY(-3px);
-    }
-
-    .work-card:nth-child(4n + 2):hover,
-    .work-card:nth-child(4n + 2).active {
-      transform: translateY(31px);
-    }
-
-    .work-card:nth-child(4n + 3):hover,
-    .work-card:nth-child(4n + 3).active {
-      transform: translateY(5px);
-    }
-
-    .work-card:nth-child(4n + 4):hover,
-    .work-card:nth-child(4n + 4).active {
-      transform: translateY(39px);
-    }
-  }
-
   @media (min-width: 1440px) {
     .work-page {
-      --desktop-card-height: clamp(455px, 27vw, 510px);
+      --desktop-card-height: clamp(440px, 25vw, 500px);
+      --desktop-card-gap: clamp(20px, 1.3vw, 26px);
 
       padding-right: 28px;
     }
@@ -1373,7 +1004,8 @@
 
   @media (min-width: 1680px) {
     .work-page {
-      --desktop-card-height: 510px;
+      --desktop-card-height: 500px;
+      --desktop-card-gap: 26px;
 
       padding-right: 28px;
     }
@@ -1392,9 +1024,10 @@
     }
   }
 
-  @media (max-width: 1280px) {
+  @media (max-width: 1280px) and (min-width: 1025px) {
     .work-page {
-      --desktop-card-height: 455px;
+      --desktop-card-height: 420px;
+      --desktop-card-gap: 20px;
 
       padding: 96px 28px 90px;
     }
@@ -1410,81 +1043,12 @@
     }
 
     .work-grid {
-      column-gap: 22px;
-      row-gap: 32px;
+      column-gap: var(--desktop-card-gap);
+      row-gap: var(--desktop-card-gap);
     }
   }
 
   @media (max-width: 1024px) {
-    @media (max-width: 1024px) {
-      .announcement-hero {
-        padding: 94px 24px 128px;
-      }
-
-      .hero-bottom-type {
-        bottom: 118px;
-      }
-
-      .hero-scroll-indicator {
-        bottom: 64px;
-      }
-    }
-
-    .hero-side-link {
-      color: #ffffff;
-      font-size: clamp(11px, 2vw, 18px);
-      line-height: 0.95;
-      text-decoration-color: #ffffff;
-    }
-
-    .hero-side-link-left {
-      left: 24px;
-    }
-
-    .hero-side-link-right {
-      right: 24px;
-    }
-
-    .hero-side-link:hover {
-      color: #ffffff;
-      text-decoration-color: #ffffff;
-    }
-
-    .hero-center {
-      width: min(460px, 68vw);
-      padding: 12px 14px;
-      transform: translateY(-38px);
-    }
-
-    .hero-center h1 {
-      font-size: clamp(42px, 8.2vw, 84px);
-    }
-
-    .hero-details,
-    .hero-list {
-      font-size: clamp(13px, 2vw, 17px);
-    }
-
-    .hero-bottom-type {
-      left: 24px;
-      right: 24px;
-      bottom: 138px;
-      padding: 6px 8px;
-      font-size: clamp(23px, 4.5vw, 46px);
-    }
-
-    .hero-bottom-item {
-      gap: 6px;
-    }
-
-    .hero-bottom-label {
-      font-size: clamp(8px, 1.1vw, 10px);
-    }
-
-    .hero-scroll-indicator {
-      bottom: 26px;
-    }
-
     .work-page {
       height: auto;
       min-height: 100svh;
@@ -1617,7 +1181,8 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
-      gap: 18px 12px;
+      column-gap: 12px;
+      row-gap: 18px;
       padding: 16px 0 calc(110px + env(safe-area-inset-bottom));
       scrollbar-width: none;
       scrollbar-color: transparent transparent;
@@ -1633,20 +1198,12 @@
       background: transparent;
     }
 
-    .work-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
+    .work-grid::-webkit-scrollbar-track,
     .work-grid::-webkit-scrollbar-thumb {
       background: transparent;
     }
 
-    .work-card,
-    .work-card:nth-child(even),
-    .work-card:nth-child(4n + 1),
-    .work-card:nth-child(4n + 2),
-    .work-card:nth-child(4n + 3),
-    .work-card:nth-child(4n + 4) {
+    .work-card {
       height: 440px;
       min-height: 0;
       overflow: hidden;
@@ -1654,14 +1211,8 @@
       transform: none;
     }
 
-    .work-card:nth-child(4n + 1):hover,
-    .work-card:nth-child(4n + 1).active,
-    .work-card:nth-child(4n + 2):hover,
-    .work-card:nth-child(4n + 2).active,
-    .work-card:nth-child(4n + 3):hover,
-    .work-card:nth-child(4n + 3).active,
-    .work-card:nth-child(4n + 4):hover,
-    .work-card:nth-child(4n + 4).active {
+    .work-card:hover,
+    .work-card.active {
       transform: none;
     }
 
@@ -1677,11 +1228,7 @@
       overflow: hidden;
     }
 
-    .work-card img,
-    .work-card:nth-child(4n + 1) img,
-    .work-card:nth-child(4n + 2) img,
-    .work-card:nth-child(4n + 3) img,
-    .work-card:nth-child(4n + 4) img {
+    .work-card img {
       width: 100%;
       height: 100%;
       min-height: 0;
@@ -1735,89 +1282,6 @@
   }
 
   @media (max-width: 700px) {
-    @media (max-width: 700px) {
-      .announcement-hero {
-        padding: 90px 20px 124px;
-      }
-
-      .hero-bottom-type {
-        bottom: 112px;
-      }
-
-      .hero-scroll-indicator {
-        bottom: 60px;
-      }
-    }
-
-    .announcement-hero::before {
-      background: rgba(255, 255, 255, 0.16);
-    }
-
-    .hero-side-link {
-      font-size: clamp(9px, 3.2vw, 14px);
-      line-height: 0.95;
-      text-underline-offset: 4px;
-    }
-
-    .hero-side-link-left {
-      left: 20px;
-    }
-
-    .hero-side-link-right {
-      right: 20px;
-    }
-
-    .hero-center {
-      width: min(320px, 66vw);
-      padding: 10px 10px;
-      transform: translateY(-34px);
-    }
-
-    .hero-kicker {
-      margin-bottom: 10px;
-      font-size: 10px;
-    }
-
-    .hero-center h1 {
-      margin-bottom: 14px;
-      font-size: clamp(37px, 14vw, 66px);
-      line-height: 0.88;
-    }
-
-    .hero-details,
-    .hero-list {
-      font-size: 12px;
-      line-height: 1.08;
-    }
-
-    .hero-list {
-      margin-top: 22px;
-    }
-
-    .hero-bottom-type {
-      left: 20px;
-      right: 20px;
-      bottom: 132px;
-      padding: 6px 7px;
-    }
-
-    .hero-bottom-item {
-      gap: 5px;
-    }
-
-    .hero-bottom-label {
-      font-size: clamp(7px, 2vw, 9px);
-      line-height: 1.05;
-    }
-
-    .hero-scroll-indicator {
-      bottom: 24px;
-    }
-
-    .hero-scroll-indicator span {
-      font-size: 12px;
-    }
-
     .work-page {
       height: auto;
       min-height: 100svh;
@@ -1890,21 +1354,18 @@
       height: auto;
       overflow: visible;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px 10px;
+      column-gap: 10px;
+      row-gap: 18px;
       padding: 16px 0 calc(100px + env(safe-area-inset-bottom));
       overscroll-behavior: auto;
     }
 
-    .work-card,
-    .work-card:nth-child(even),
-    .work-card:nth-child(4n + 1),
-    .work-card:nth-child(4n + 2),
-    .work-card:nth-child(4n + 3),
-    .work-card:nth-child(4n + 4) {
+    .work-card {
       height: auto;
       min-height: auto;
       overflow: visible;
       background: transparent;
+      transform: none;
     }
 
     .work-card figure {
@@ -1952,40 +1413,6 @@
   }
 
   @media (max-width: 420px) {
-    .hero-center {
-      width: min(280px, 64vw);
-    }
-
-    @media (max-width: 420px) {
-      .announcement-hero {
-        padding-bottom: 128px;
-      }
-
-      .hero-bottom-type {
-        bottom: 114px;
-      }
-
-      .hero-scroll-indicator {
-        bottom: 58px;
-      }
-    }
-
-    .hero-center {
-      transform: translateY(-28px);
-    }
-
-    .hero-bottom-type {
-      bottom: 128px;
-    }
-
-    .hero-bottom-type {
-      font-size: clamp(17px, 7vw, 28px);
-    }
-
-    .hero-bottom-label {
-      max-width: 120px;
-    }
-
     .left-column {
       padding-bottom: 20px;
     }

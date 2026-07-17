@@ -1,10 +1,192 @@
 <script>
   let { data } = $props();
 
-  function formatDate(dateString) {
-    if (!dateString) return "";
+  const archiveSections = [
+    {
+      title: "Artist in Residence & Stipendien",
+      items: [
+        {
+          year: "2025",
+          text: "Ankauf durch dieKunstsammlung des Landes Oberösterreich",
+        },
+        {
+          year: "2022",
+          text: "Artist in Residence in Český Krumlov, Land Oberösterreich",
+        },
+        {
+          year: "2021",
+          text: "Atelierstipendium Westbahnstraße des BMKOES",
+        },
+        {
+          year: "2020",
+          text: "Artist in Residence in Český Krumlov, Land Oberösterreich",
+        },
+        {
+          year: "2019",
+          text: "Ankauf durch dieKunstsammlung des Landes Oberösterreich",
+        },
+        {
+          year: "2019",
+          text: "Arbeitsaufenthalt in Kopenhagen, Dänemark",
+        },
+        {
+          year: "2014",
+          text: "Aquarellhappening in Tux, Tirol",
+        },
+        {
+          year: "2013",
+          text: "Sommerakademie Traunkirchen – Klasse Leo Kandl",
+        },
+      ],
+    },
+    {
+      title: "Einzelausstellungen / Solo Shows",
+      items: [
+        {
+          year: "2020",
+          text: "Als ich über Bäume sprang – Edition:, Linz",
+        },
+        {
+          year: "2019",
+          text: "Top Shelf / Bottom Drawer – Sonntagszimmer, Wien",
+        },
+        {
+          year: "2016",
+          text: "the importance of destruction in an environment of harmony – Paradigma, Linz",
+        },
+        {
+          year: "2014",
+          text: "rocket scientists remember how it feels to fly – Kunst im Bad, Linz",
+        },
+      ],
+    },
+    {
+      title: "Gruppenausstellungen und Messebeteiligungen (Auswahl)",
+      items: [
+        {
+          year: "2026",
+          text: "Neue Zugänge – dieKunstsammlung, Linz",
+        },
+        {
+          year: "2026",
+          text: "RELATIONS – Galerie Dia:log, Kufstein",
+        },
+        {
+          year: "2026",
+          text: "Soft Tensions – Kunsttankstelle Ottakring & MASC Foundations, Wien",
+        },
+        {
+          year: "2026",
+          text: "Das Jahr der Pferde – splace, Linz",
+        },
+        {
+          year: "2025",
+          text: "Parallel Art Fair (repr. by KaH) – Otto Wagner Areal, Wien",
+        },
+        {
+          year: "2025",
+          text: "Where The Wild Things Are – AK Linz",
+        },
+        {
+          year: "2023",
+          text: "Parallel Art Fair Project Statement – Otto Wagner Areal, Wien",
+        },
+        {
+          year: "2023",
+          text: "Apollo packte das schlechte Gewissen – Apollo Garage (KÖR), Wien",
+        },
+        {
+          year: "2023",
+          text: "be water my friend – KünstlerInnenvereinigung MAERZ, Linz",
+        },
+        {
+          year: "2022",
+          text: "constantly producing the past – Plateau, Wien",
+        },
+        {
+          year: "2022",
+          text: "aufwärts fallen – OÖ Kunstverein, Linz",
+        },
+        {
+          year: "2021",
+          text: "Art Austria Highlights – Wiener Eislaufverein, Wien",
+        },
+        {
+          year: "2021",
+          text: "4 Mal Solo 1 Mal im Duo – Galerie Jonathan Seiffert, Wien",
+        },
+        {
+          year: "2021",
+          text: "Wo ist das schöne Leben hin? – RCS Karlsplatz, Wien",
+        },
+        {
+          year: "2020",
+          text: "In the Deep Lightness – Kluckyland, Wien",
+        },
+        {
+          year: "2020",
+          text: "Parallel Art Fair (repr. by KaH) – Rudolf Sallinger Platz 1, Wien",
+        },
+        {
+          year: "2020",
+          text: "Kultur braucht Kunst – Schlossmuseum Linz, Linz",
+        },
+        {
+          year: "2019",
+          text: "FROZEN FINGERS – Kunsthalle Linz, Linz",
+        },
+        {
+          year: "2019",
+          text: "dissolution as solution Part II – Die Schöne, Wien",
+        },
+        {
+          year: "2019",
+          text: "dissolution as solution – Galeri Riga, Kopenhagen, Dänemark",
+        },
+        {
+          year: "2019",
+          text: "Parallel Art Fair (represented by KaH) – Lassallestraße 5, Wien",
+        },
+        {
+          year: "2018",
+          text: "Viel Spaß noch – Raumschiff, Linz",
+        },
+        {
+          year: "2018",
+          text: "schade, aber schön – kaeshmaesh, Wien",
+        },
+        {
+          year: "2018",
+          text: "Open Call Exhibition – Delphian Gallery, London, UK",
+        },
+      ],
+    },
+  ];
 
-    const date = new Date(dateString);
+  function parseDate(dateString) {
+    if (!dateString) return null;
+
+    const value = String(dateString).trim();
+
+    const normalizedDate = /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? `${value}T00:00:00`
+      : value;
+
+    const date = new Date(normalizedDate);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  }
+
+  function formatDate(dateString) {
+    const date = parseDate(dateString);
+
+    if (!date) {
+      return dateString || "";
+    }
 
     return date.toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -12,103 +194,142 @@
       year: "numeric",
     });
   }
+
+  function getEventYear(dateString) {
+    const date = parseDate(dateString);
+
+    if (!date) return "";
+
+    return date.getFullYear();
+  }
+
+  function getEventDateLabel(event) {
+    if (!event?.date) return "Event";
+
+    return getEventYear(event.date) || formatDate(event.date);
+  }
+
+  function getEventLocation(event) {
+    return [event.location, event.address].filter(Boolean).join(", ");
+  }
 </script>
 
 <svelte:head>
   <title>Events | Eva Eichinger</title>
   <meta
     name="description"
-    content="Selected events, art fairs and public presentations by Eva Eichinger."
+    content="Upcoming events, exhibitions, residencies and selected presentations by Eva Eichinger."
   />
 </svelte:head>
 
 <section class="event-page">
-  <div class="event-feature">
-    <aside class="event-intro-column">
-      <div class="event-heading">
-        <p class="event-label">Events</p>
-        <h1>Upcoming</h1>
-      </div>
+  <div class="event-inner">
+    <header class="event-header">
+      <p class="event-label">Exhibitions and Updates</p>
+      <h1>Upcoming</h1>
 
       <p class="event-intro">
         Selected events, art fairs and public presentations.
       </p>
-    </aside>
+    </header>
 
-    <div class="event-list-column">
+    <section class="upcoming-section" aria-labelledby="upcoming-events-title">
+      <h2 id="upcoming-events-title" class="section-title">Upcoming Events</h2>
+
       {#if data.events?.length > 0}
-        <div class="event-grid">
-          {#each data.events as event, index}
-            <article class="event-card">
-              <div class="event-content">
-                <div>
-                  <span class="event-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+        <div class="event-list">
+          {#each data.events as event}
+            <article class="event-item">
+              <div class="event-line">
+                <span class="list-marker" aria-hidden="true">///</span>
 
-                  <div class="event-meta-row">
-                    <span class="event-meta-label">Event Date</span>
-                    <span class="event-meta-value">
-                      {#if event.date}
-                        {formatDate(event.date)}
-                      {:else}
-                        Event
-                      {/if}
+                <div class="event-content">
+                  <div class="event-title-line">
+                    <span class="event-date">
+                      {getEventDateLabel(event)}:
                     </span>
+
+                    {#if event.website}
+                      <a
+                        class="event-title"
+                        href={event.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {event.title}
+                      </a>
+                    {:else}
+                      <h3 class="event-title">{event.title}</h3>
+                    {/if}
                   </div>
 
-                  <h2>{event.title}</h2>
+                  {#if getEventLocation(event)}
+                    <p class="event-location">
+                      {getEventLocation(event)}
+                    </p>
+                  {/if}
 
                   {#if event.startTime || event.endTime}
-                    <div class="event-meta-row">
-                      <span class="event-meta-label">Event Time</span>
-                      <span class="event-meta-value">
+                    <p class="event-time">
+                      {#if event.startTime}
                         {event.startTime}
-                        {#if event.endTime}
-                          – {event.endTime}
-                        {/if}
-                      </span>
-                    </div>
-                  {/if}
+                      {/if}
 
-                  {#if event.location}
-                    <div class="event-meta-row">
-                      <span class="event-meta-label">Location</span>
-                      <span class="event-meta-value">{event.location}</span>
-                    </div>
-                  {/if}
+                      {#if event.startTime && event.endTime}
+                        –
+                      {/if}
 
-                  {#if event.address}
-                    <div class="event-meta-row">
-                      <span class="event-meta-label">Address</span>
-                      <span class="event-meta-value">{event.address}</span>
-                    </div>
+                      {#if event.endTime}
+                        {event.endTime}
+                      {/if}
+                    </p>
                   {/if}
 
                   {#if event.content}
-                    <div class="event-text">
+                    <div class="event-description">
                       {@html event.content}
                     </div>
                   {/if}
-                </div>
 
-                {#if event.website}
-                  <a
-                    class="event-link"
-                    href={event.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Visit event website ↗
-                  </a>
-                {/if}
+                  {#if event.website}
+                    <a
+                      class="event-link"
+                      href={event.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Visit event website ↗
+                    </a>
+                  {/if}
+                </div>
               </div>
             </article>
           {/each}
         </div>
       {:else}
-        <p class="empty-message">No events found.</p>
+        <p class="empty-message">No upcoming events at the moment.</p>
       {/if}
+    </section>
+
+    <div class="archive-sections">
+      {#each archiveSections as section}
+        <section class="archive-section">
+          <h2 class="section-title">{section.title}</h2>
+
+          <div class="archive-list">
+            {#each section.items as item}
+              <div class="archive-item">
+                <span class="list-marker" aria-hidden="true">///</span>
+
+                <p class="archive-text">
+                  <strong>{item.year}:</strong>
+                  {item.text}
+                </p>
+              </div>
+            {/each}
+          </div>
+        </section>
+      {/each}
     </div>
   </div>
 </section>
@@ -138,158 +359,201 @@
   .event-page {
     width: 100%;
     min-height: 100vh;
-    padding: 116px 72px 110px 28px;
+    padding: 116px 72px 90px 28px;
     background: #ffffff;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    overflow-x: hidden;
+    color: #000000;
+  }
+
+  .event-inner {
+    width: 100%;
+    max-width: 1500px;
+  }
+
+  .event-header {
+    width: 100%;
+    max-width: 760px;
+    margin-bottom: 52px;
     text-transform: uppercase;
   }
 
-  .event-feature {
-    width: 100%;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: clamp(210px, 15vw, 265px) minmax(0, 1fr);
-    gap: 16px;
-    align-items: start;
-  }
-
-  .event-intro-column {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .event-heading {
-    margin: 0 0 42px;
-  }
-
   .event-label {
-    margin: 0 0 9px;
-    color: #000000;
-    font-size: clamp(12px, 0.72vw, 13px);
+    margin: 0 0 8px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.012em;
   }
 
-  .event-heading h1 {
-    max-width: 280px;
+  .event-header h1 {
     margin: 0;
-    color: #000000;
-    font-size: clamp(18px, calc(0.78vw + 6px), 20px);
+    font-size: 18px;
     font-weight: 700;
-    line-height: 1.04;
-    letter-spacing: 0.005em;
+    line-height: 1;
+    letter-spacing: -0.02em;
     animation: eventTitleIn 0.46s ease both;
   }
 
   .event-intro {
-    max-width: 265px;
-    margin: 0;
-    color: #000000;
-    font-size: clamp(11px, 0.66vw, 12px);
+    max-width: 470px;
+    margin: 14px 0 0;
+    font-size: 12px;
     font-weight: 500;
-    line-height: 1.16;
-    letter-spacing: 0.006em;
-  }
-
-  .event-list-column {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .event-grid {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(36px, 5vw, 74px) clamp(22px, 2.6vw, 42px);
-    align-items: stretch;
-    animation: eventReveal 0.7s ease both;
-  }
-
-  .event-card {
-    min-width: 0;
-    height: 100%;
-    background: transparent;
-    border-bottom: 1px solid #000000;
-  }
-
-  .event-content {
-    min-width: 0;
-    height: 100%;
-    min-height: 360px;
-    padding-bottom: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .event-number {
-    display: block;
-    margin: 0 0 14px;
-    color: #000000;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.05em;
-    opacity: 0.42;
-  }
-
-  .event-meta-row {
-    margin: 0 0 8px;
-  }
-
-  .event-meta-label {
-    display: block;
-    margin: 0 0 3px;
-    color: #000000;
-    font-size: 9px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: 0.06em;
-    opacity: 0.46;
-  }
-
-  .event-meta-value {
-    display: block;
-    color: #000000;
-    font-size: clamp(10px, 0.62vw, 11px);
-    font-weight: 700;
-    line-height: 1.18;
-    letter-spacing: 0.04em;
-    opacity: 0.72;
-  }
-
-  .event-content h2 {
-    margin: 18px 0 18px;
-    color: #000000;
-    font-size: clamp(16px, 1.25vw, 24px);
-    font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: -0.01em;
-  }
-
-  .event-text {
-    margin-top: 20px;
-    color: #000000;
-    font-size: clamp(11px, 0.72vw, 13px);
-    font-weight: 500;
-    line-height: 1.42;
+    line-height: 1.35;
     letter-spacing: 0.006em;
     text-transform: none;
   }
 
-  .event-text :global(p) {
-    margin: 0 0 13px;
+  .upcoming-section,
+  .archive-section {
+    width: 100%;
+    max-width: 1200px;
   }
 
-  .event-text :global(p:last-child) {
+  .upcoming-section {
+    margin-bottom: 64px;
+  }
+
+  .archive-sections {
+    width: 100%;
+  }
+
+  .archive-section {
+    margin-bottom: 58px;
+  }
+
+  .archive-section:last-child {
     margin-bottom: 0;
   }
 
-  .event-text :global(a) {
+  .section-title {
+    max-width: 850px;
+    margin: 0 0 28px;
+    color: #000000;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.018em;
+    text-transform: uppercase;
+  }
+
+  .event-list,
+  .archive-list {
+    width: 100%;
+    animation: eventReveal 0.7s ease both;
+  }
+
+  .event-item {
+    width: 100%;
+    margin: 0;
+    padding: 0 0 30px;
+  }
+
+  .event-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .event-line,
+  .archive-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .list-marker {
+    display: inline-block;
+    padding-top: 1px;
+    color: #000000;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+  }
+
+  .event-content {
+    min-width: 0;
+  }
+
+  .event-title-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.35em;
+  }
+
+  .event-date,
+  .event-title {
+    color: #000000;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+  }
+
+  .event-date {
+    flex: 0 0 auto;
+  }
+
+  .event-title {
+    display: inline;
+    margin: 0;
+    text-decoration: none;
+    text-transform: none;
+    transition: opacity 0.25s ease;
+  }
+
+  a.event-title:hover,
+  a.event-title:focus {
+    opacity: 0.5;
+  }
+
+  .event-location {
+    margin: 8px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+
+  .event-time {
+    margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.48;
+  }
+
+  .event-description {
+    max-width: 760px;
+    margin-top: 14px;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.003em;
+    text-transform: none;
+  }
+
+  .event-description :global(p) {
+    margin: 0 0 10px;
+  }
+
+  .event-description :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .event-description :global(ul),
+  .event-description :global(ol) {
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+
+  .event-description :global(a) {
     color: inherit;
     text-decoration: underline;
     text-decoration-thickness: 1px;
@@ -297,35 +561,57 @@
   }
 
   .event-link {
-    width: fit-content;
     display: inline-block;
-    margin-top: 12px;
+    width: fit-content;
+    margin-top: 14px;
     color: #000000;
-    text-decoration: none;
-    font-size: clamp(10px, 0.66vw, 12px);
+    font-size: 11px;
     font-weight: 900;
     line-height: 1;
     letter-spacing: 0.012em;
+    text-decoration: none;
     text-transform: uppercase;
     transition:
-      opacity 0.28s ease,
-      transform 0.28s ease;
+      opacity 0.25s ease,
+      transform 0.25s ease;
   }
 
   .event-link:hover,
   .event-link:focus {
-    opacity: 0.58;
+    opacity: 0.5;
     transform: translateX(4px);
+  }
+
+  .archive-item {
+    margin-bottom: 18px;
+  }
+
+  .archive-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .archive-text {
+    max-width: 1050px;
+    margin: 0;
+    color: #000000;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.008em;
+    text-transform: none;
+  }
+
+  .archive-text strong {
+    font-weight: 700;
   }
 
   .empty-message {
     margin: 0;
-    padding: 120px 0;
-    color: #000000;
-    font-size: 15px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: 0.01em;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: uppercase;
   }
 
   @keyframes eventReveal {
@@ -352,50 +638,18 @@
     }
   }
 
-  @media (min-width: 1440px) {
-    .event-page {
-      padding-right: 72px;
-    }
-
-    .event-feature {
-      grid-template-columns: clamp(210px, 14vw, 255px) minmax(0, 1fr);
-      gap: 14px;
-    }
-  }
-
   @media (min-width: 1680px) {
     .event-page {
       padding-right: 76px;
     }
 
-    .event-feature {
-      grid-template-columns: 250px minmax(0, 1fr);
-      gap: 14px;
+    .event-inner {
+      max-width: 1650px;
     }
 
-    .event-intro {
-      max-width: 260px;
-    }
-  }
-
-  @media (max-width: 1280px) {
-    .event-page {
-      padding: 116px 72px 110px 28px;
-    }
-
-    .event-feature {
-      grid-template-columns: clamp(210px, 18vw, 250px) minmax(0, 1fr);
-      gap: 18px;
-    }
-
-    .event-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 46px 28px;
-    }
-
-    .event-heading h1 {
-      max-width: 280px;
-      font-size: clamp(19px, calc(0.95vw + 6px), 21px);
+    .upcoming-section,
+    .archive-section {
+      max-width: 1280px;
     }
   }
 
@@ -403,83 +657,70 @@
     .event-page {
       min-height: 100vh;
       min-height: 100dvh;
-      padding: 118px 24px 96px;
-      align-items: flex-start;
-      overflow: visible;
+      padding: 118px 24px 82px;
     }
 
-    .event-feature {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 44px;
+    .event-header {
+      margin-bottom: 44px;
     }
 
-    .event-intro-column {
-      width: 100%;
-      max-width: none;
-    }
-
-    .event-heading {
-      margin: 0 0 10px;
-    }
-
-    .event-label {
-      font-size: 14px;
-      line-height: 1;
-    }
-
-    .event-heading h1 {
-      max-width: 520px;
-      font-size: 16px;
-      line-height: 1;
+    .event-header h1 {
+      font-size: 18px;
     }
 
     .event-intro {
-      max-width: 420px;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1.16;
-    }
-
-    .event-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 42px 18px;
-    }
-
-    .event-content {
-      min-height: 330px;
-      padding-bottom: 22px;
-    }
-
-    .event-number {
-      margin-bottom: 12px;
-    }
-
-    .event-content h2 {
-      margin: 16px 0 14px;
-      font-size: 18px;
-      line-height: 1.04;
-    }
-
-    .event-meta-label {
-      font-size: 9px;
-    }
-
-    .event-meta-value {
-      font-size: 11px;
-      line-height: 1.18;
-    }
-
-    .event-text {
-      margin-top: 17px;
+      margin-top: 12px;
       font-size: 12px;
-      line-height: 1.34;
     }
 
-    .event-link {
-      margin-top: 10px;
+    .upcoming-section {
+      margin-bottom: 52px;
+    }
+
+    .archive-section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      margin-bottom: 24px;
+      font-size: 17px;
+    }
+
+    .event-item {
+      padding-bottom: 26px;
+    }
+
+    .event-line,
+    .archive-item {
+      gap: 10px;
+    }
+
+    .event-date,
+    .event-title {
+      font-size: 17px;
+    }
+
+    .event-location {
       font-size: 11px;
+    }
+
+    .event-time {
+      font-size: 10px;
+    }
+
+    .event-description {
+      max-width: 680px;
+      font-size: 13px;
+      line-height: 1.46;
+    }
+
+    .archive-item {
+      margin-bottom: 16px;
+    }
+
+    .archive-text {
+      font-size: 14px;
+      line-height: 1.32;
     }
   }
 
@@ -487,88 +728,128 @@
     .event-page {
       min-height: 100vh;
       min-height: 100dvh;
-      padding: 108px 16px 88px;
+      padding: 108px 16px 72px;
     }
 
-    .event-feature {
-      gap: 34px;
-    }
-
-    .event-heading {
-      margin-bottom: 8px;
+    .event-header {
+      margin-bottom: 38px;
     }
 
     .event-label {
-      font-size: 12px;
+      margin-bottom: 7px;
+      font-size: 11px;
     }
 
-    .event-heading h1 {
-      font-size: 14px;
+    .event-header h1 {
+      font-size: 18px;
     }
 
     .event-intro {
-      max-width: 320px;
+      max-width: 330px;
+      margin-top: 10px;
       font-size: 12px;
-      line-height: 1.14;
+      line-height: 1.35;
     }
 
-    .event-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 34px 12px;
+    .upcoming-section {
+      margin-bottom: 46px;
     }
 
-    .event-content {
-      min-height: 300px;
-      padding-bottom: 18px;
+    .archive-section {
+      margin-bottom: 42px;
     }
 
-    .event-number {
-      font-size: 10px;
-      margin-bottom: 10px;
+    .section-title {
+      margin-bottom: 21px;
+      font-size: 16px;
+      line-height: 1.1;
     }
 
-    .event-meta-label {
-      font-size: 8px;
+    .event-item {
+      padding-bottom: 24px;
     }
 
-    .event-meta-value {
-      font-size: 10px;
-      line-height: 1.16;
+    .event-line,
+    .archive-item {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px;
     }
 
-    .event-content h2 {
-      margin: 14px 0 12px;
+    .list-marker {
+      padding-top: 1px;
+      font-size: 12px;
+    }
+
+    .event-title-line {
+      display: block;
+    }
+
+    .event-date,
+    .event-title {
       font-size: 15px;
-      line-height: 1.04;
+      line-height: 1.22;
+      letter-spacing: -0.014em;
     }
 
-    .event-text {
-      margin-top: 15px;
-      font-size: 11px;
-      line-height: 1.32;
+    .event-date {
+      display: inline;
+      margin-right: 0.22em;
+    }
+
+    .event-title {
+      display: inline;
+    }
+
+    .event-location {
+      margin-top: 7px;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+
+    .event-time {
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+    .event-description {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.43;
     }
 
     .event-link {
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 10px;
+    }
+
+    .archive-item {
+      margin-bottom: 15px;
+    }
+
+    .archive-text {
+      font-size: 14px;
+      line-height: 1.32;
+      letter-spacing: -0.006em;
     }
   }
 
   @media (max-width: 420px) {
-    .event-grid {
-      gap: 32px 10px;
+    .event-line,
+    .archive-item {
+      gap: 7px;
     }
 
-    .event-content {
-      min-height: 285px;
+    .section-title {
+      font-size: 15px;
     }
 
-    .event-content h2 {
+    .event-date,
+    .event-title {
       font-size: 14px;
     }
 
-    .event-text {
-      font-size: 10px;
+    .archive-text {
+      font-size: 14px;
     }
   }
 </style>

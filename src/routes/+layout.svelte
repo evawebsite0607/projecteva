@@ -40,7 +40,7 @@
       href: "/performances",
       children: performanceItems,
     },
-    { label: "Events", href: "/event", children: eventItems },
+    { label: "Exhibitions & Updates", href: "/event", children: eventItems },
     { label: "Contact", href: "/contact", children: [] },
     { label: "Archive", href: "/archive", children: [] },
   ]);
