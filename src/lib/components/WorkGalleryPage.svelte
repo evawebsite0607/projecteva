@@ -932,7 +932,6 @@
 
   .painting-description p {
     margin: 0;
-    text-transform: uppercase;
   }
 
   .info-toggle {
