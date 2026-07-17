@@ -911,7 +911,7 @@
   .preview-info p {
     margin: 0;
     color: #000000;
-    font-size: clamp(18px, 1vw, 18px);
+    font-size: clamp(16px, 1vw, 16px);
     font-weight: 500;
     line-height: 1.19;
     letter-spacing: 0.009em;
@@ -1827,11 +1827,11 @@
     }
 
     .preview-info strong {
-      font-size: 12px;
+      font-size: 14px;
     }
 
     .preview-info p {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 500;
       line-height: 1.12;
     }
