@@ -20,7 +20,7 @@
       id: "studio",
       title: "Studio",
       text: [
-        "Studio text will be added here later. This is placeholder content for now.",
+        "STUDIO ADDRESS Westbahnstraße 27-29, 1070 Vienna. Studio visits by appointment Monday – Friday: 09:00 – 17:00 Saturday – Sunday: closed",
       ],
     },
     {
@@ -38,9 +38,7 @@
     {
       id: "contact",
       title: "Contact",
-      text: [
-        "Contact details will be added here later. This is placeholder content for now.",
-      ],
+      text: ["EMAIL: info@evaeichinger.com"],
     },
   ];
 
