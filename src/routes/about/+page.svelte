@@ -17,13 +17,6 @@
 
   const dummySections = [
     {
-      id: "studio",
-      title: "Studio",
-      text: [
-        "STUDIO ADDRESS Westbahnstraße 27-29, 1070 Vienna. Studio visits by appointment Monday – Friday: 09:00 – 17:00 Saturday – Sunday: closed",
-      ],
-    },
-    {
       id: "press",
       title: "Artist in Residence",
       text: [
@@ -34,11 +27,6 @@
         "/// 2019: Atelieraufenthalt in Kopenhagen, Dänemark",
         "/// 2014: Aquarellhappening in Tux, Tirol",
       ],
-    },
-    {
-      id: "contact",
-      title: "Contact",
-      text: ["EMAIL: info@evaeichinger.com"],
     },
   ];
 
@@ -205,7 +193,6 @@
     padding: 96px 72px 90px 28px;
     overflow: hidden;
     background: #ffffff;
-    text-transform: uppercase;
   }
 
   .about-page p {
@@ -355,7 +342,7 @@
     font-weight: 700;
     line-height: 1.04;
     letter-spacing: 0.005em;
-    text-transform: uppercase;
+    text-transform: none;
     animation: previewTitleIn 0.46s ease both;
   }
 
@@ -386,7 +373,7 @@
     font-weight: 500;
     line-height: 1.42;
     letter-spacing: 0.008em;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   :global(.about-section-text a) {
@@ -417,10 +404,10 @@
     background: #ffffff;
 
     /*
-      The video is 1280 x 720, but it contains black empty areas.
-      This zoom crops those black areas away inside the visible frame.
+      The video itself contains black bars at the top and bottom.
+      The increased scale crops those bars out of the visible frame.
     */
-    --about-video-scale: 1.34;
+    --about-video-scale: 1.58;
     --about-video-thumbnail-scale: 1.18;
     --about-video-focus-x: 50%;
     --about-video-focus-y: 50%;
@@ -454,8 +441,10 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center center;
-    transform: none;
+    object-position: var(--about-video-thumbnail-focus-x)
+      var(--about-video-thumbnail-focus-y);
+    transform: scale(var(--about-video-thumbnail-scale));
+    transform-origin: center center;
   }
 
   @media (min-width: 1025px) and (max-width: 1280px) {
@@ -474,7 +463,7 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.38;
+      --about-video-scale: 1.62;
       --about-video-thumbnail-scale: 1.2;
       --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
@@ -511,7 +500,7 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.32;
+      --about-video-scale: 1.56;
       --about-video-thumbnail-scale: 1.18;
     }
 
@@ -536,7 +525,7 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.3;
+      --about-video-scale: 1.55;
       --about-video-thumbnail-scale: 1.16;
     }
 
@@ -594,7 +583,7 @@
       margin: 0;
       background: #ffffff;
       overflow: hidden;
-      --about-video-scale: 1.55;
+      --about-video-scale: 1.85;
       --about-video-thumbnail-scale: 1.28;
       --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
@@ -728,6 +717,7 @@
       line-height: 1;
       letter-spacing: 0.005em;
       text-align: left;
+      text-transform: none;
     }
 
     .about-section-text {
@@ -742,6 +732,7 @@
       font-weight: 500;
       line-height: 1.34;
       letter-spacing: 0.006em;
+      text-transform: none;
     }
 
     :global(.about-section-text a) {
@@ -768,7 +759,7 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.75;
+      --about-video-scale: 2;
       --about-video-thumbnail-scale: 1.32;
       --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
@@ -805,12 +796,14 @@
       font-size: 14px;
       line-height: 1;
       text-align: left;
+      text-transform: none;
     }
 
     .about-section-text p {
       font-size: 12px;
       font-weight: 500;
       line-height: 1.34;
+      text-transform: none;
     }
   }
 
@@ -828,7 +821,7 @@
     }
 
     .about-video-frame {
-      --about-video-scale: 1.9;
+      --about-video-scale: 2.15;
       --about-video-thumbnail-scale: 1.38;
       --about-video-focus-x: 50%;
       --about-video-focus-y: 50%;
@@ -851,6 +844,7 @@
 
     .about-text-block h1 {
       font-size: 14px;
+      text-transform: none;
     }
   }
 </style>
