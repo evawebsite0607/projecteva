@@ -83,9 +83,14 @@
   function handleAboutVideoEnded() {
     if (!aboutVideo) return;
 
-    aboutVideo.pause();
-    aboutVideo.currentTime = 0;
     showVideoThumbnail = true;
+    aboutVideo.pause();
+
+    requestAnimationFrame(() => {
+      if (aboutVideo) {
+        aboutVideo.currentTime = 0;
+      }
+    });
   }
 
   function selectSection(sectionId) {
@@ -151,6 +156,7 @@
 
         <video
           bind:this={aboutVideo}
+          class:video-hidden={showVideoThumbnail}
           muted
           playsinline
           preload="auto"
@@ -369,7 +375,7 @@
     max-width: 100%;
     margin: 0 0 13px;
     color: #242424;
-    font-size: clamp(11px, 0.68vw, 13px);
+    font-size: clamp(14px, 0.78vw, 16px);
     font-weight: 500;
     line-height: 1.42;
     letter-spacing: 0.008em;
@@ -432,6 +438,10 @@
     transform: scale(var(--about-video-scale));
     transform-origin: center center;
     will-change: transform;
+  }
+
+  .about-video-frame video.video-hidden {
+    opacity: 0;
   }
 
   .about-video-thumbnail {
@@ -800,7 +810,7 @@
     }
 
     .about-section-text p {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 500;
       line-height: 1.34;
       text-transform: none;

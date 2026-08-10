@@ -736,7 +736,7 @@
   .desktop-menu-address {
     margin-top: 18px;
     color: rgba(255, 255, 255, 0.72);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 400;
     line-height: 1.4;
     letter-spacing: -0.02em;
