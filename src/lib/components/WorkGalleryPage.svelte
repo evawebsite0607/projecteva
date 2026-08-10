@@ -306,15 +306,13 @@
   function updatePostUrl(postSlug = "") {
     if (!browser) return;
 
-    const url = new URL(window.location.href);
+    const section = window.location.pathname.split("/").filter(Boolean)[0];
 
-    if (postSlug) {
-      url.searchParams.set("post", postSlug);
-    } else {
-      url.searchParams.delete("post");
-    }
+    if (!section) return;
 
-    pushState(`${url.pathname}${url.search}`, {});
+    const newPath = postSlug ? `/${section}/${postSlug}` : `/${section}`;
+
+    pushState(newPath, {});
   }
 
   function selectAllItems() {
