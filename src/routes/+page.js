@@ -41,23 +41,25 @@ function getMainCategory(post, categoriesMap) {
 }
 
 function getFrontendLink(post, category) {
-  if (!category) {
-    return `/works?post=${post.id}`;
+  const postSlug = post.slug || '';
+
+  if (!postSlug) {
+    return '#';
   }
 
-  if (category.slug === 'exhibitions') {
-    return `/exhibitions?post=${post.id}`;
+  if (category?.slug === 'exhibitions') {
+    return `/exhibitions/${postSlug}`;
   }
 
-  if (category.slug === 'paintings') {
-    return `/painting?post=${post.id}`;
+  if (category?.slug === 'paintings') {
+    return `/painting/${postSlug}`;
   }
 
-  if (category.slug === 'performances') {
-    return `/performances?post=${post.id}`;
+  if (category?.slug === 'performances') {
+    return `/performances/${postSlug}`;
   }
 
-  return `/works?post=${post.id}`;
+  return '#';
 }
 
 export async function load({ fetch }) {
@@ -84,6 +86,7 @@ export async function load({ fetch }) {
 
     return {
       id: post.id,
+      postSlug: post.slug,
       title: decodeHtml(stripHtml(post.title.rendered)),
       group,
       categorySlug: mainCategory?.slug || 'home-page',

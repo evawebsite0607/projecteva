@@ -68,24 +68,25 @@
 
   function getWorkLink(work) {
     const categorySlug = normalizeCategorySlug(work);
+    const postSlug = work.postSlug || work.slug || "";
 
-    if (work.frontendLink && work.frontendLink !== "#") {
-      return work.frontendLink;
+    if (!postSlug) {
+      return "#";
     }
 
     if (categorySlug === "paintings") {
-      return `/painting?post=${work.id}`;
+      return `/painting/${postSlug}`;
     }
 
     if (categorySlug === "performances") {
-      return `/performances?post=${work.id}`;
+      return `/performances/${postSlug}`;
     }
 
     if (categorySlug === "exhibitions") {
-      return `/exhibitions?post=${work.id}`;
+      return `/exhibitions/${postSlug}`;
     }
 
-    return `/works?post=${work.id}`;
+    return "#";
   }
 
   function getRawCategories(work) {
