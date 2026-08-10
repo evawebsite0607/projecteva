@@ -226,16 +226,14 @@
   <div class="event-inner">
     <header class="event-header">
       <p class="event-label">Exhibitions and Updates</p>
-      <h1>Upcoming</h1>
+      <h1>Upcoming Events</h1>
 
       <p class="event-intro">
         Selected events, art fairs and public presentations.
       </p>
     </header>
 
-    <section class="upcoming-section" aria-labelledby="upcoming-events-title">
-      <h2 id="upcoming-events-title" class="section-title">Upcoming Events</h2>
-
+    <section class="upcoming-section" aria-label="Upcoming Events">
       {#if data.events?.length > 0}
         <div class="event-list">
           {#each data.events as event}
@@ -372,7 +370,7 @@
   .event-header {
     width: 100%;
     max-width: 760px;
-    margin-bottom: 52px;
+    margin-bottom: 36px;
     text-transform: uppercase;
   }
 
@@ -661,7 +659,7 @@
     }
 
     .event-header {
-      margin-bottom: 44px;
+      margin-bottom: 32px;
     }
 
     .event-header h1 {
@@ -732,7 +730,7 @@
     }
 
     .event-header {
-      margin-bottom: 38px;
+      margin-bottom: 28px;
     }
 
     .event-label {
