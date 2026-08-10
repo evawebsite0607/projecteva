@@ -123,17 +123,10 @@
       </div>
 
       <div class="contact-preview">
-        <h1>STUDIO</h1>
+        <h1>.</h1>
 
         <div class="preview-bottom">
-          <div class="preview-info">
-            <strong>Studio visits by appointment</strong>
-
-            <p>
-              Monday – Friday: 09:00 – 17:00<br />
-              Saturday – Sunday: closed
-            </p>
-          </div>
+          <div class="preview-info"></div>
         </div>
       </div>
     </aside>
