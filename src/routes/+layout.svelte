@@ -1178,6 +1178,11 @@
       background: #ffffff;
     }
 
+    .top-header-background.is-visible {
+      opacity: 1;
+      background: #ffffff;
+    }
+
     .logo {
       top: 20px;
       left: 24px;
@@ -1583,7 +1588,7 @@
     }
 
     .main-nav {
-      padding: 76px 20px 22px;
+      padding: 82px 20px 22px;
       gap: 20px;
     }
 
