@@ -1,10 +1,11 @@
 <script>
   import { onDestroy, onMount } from "svelte";
   import { browser } from "$app/environment";
+  import { pushState } from "$app/navigation";
 
   let {
     items = [],
-    requestedPostId = null,
+    requestedPostSlug = "",
     allLabel = "ALL WORKS",
     itemLabel = "Work",
     itemLabelPlural = "Works",
@@ -43,14 +44,14 @@
   });
 
   let initialItem = $derived(
-    normalizedItems?.find((item) => item.id === requestedPostId) ??
+    normalizedItems?.find((item) => item.postSlug === requestedPostSlug) ??
       normalizedItems?.[0],
   );
 
   $effect(() => {
     if (!selectedItemSlug && normalizedItems?.length) {
       selectedItemSlug =
-        requestedPostId && initialItem ? initialItem.postSlug : allLabel;
+        requestedPostSlug && initialItem ? initialItem.postSlug : allLabel;
     }
   });
 
@@ -302,11 +303,26 @@
     }
   }
 
+  function updatePostUrl(postSlug = "") {
+    if (!browser) return;
+
+    const url = new URL(window.location.href);
+
+    if (postSlug) {
+      url.searchParams.set("post", postSlug);
+    } else {
+      url.searchParams.delete("post");
+    }
+
+    pushState(`${url.pathname}${url.search}`, {});
+  }
+
   function selectAllItems() {
     selectedItemSlug = allLabel;
     selectedImageIndex = null;
     hoveredImageIndex = null;
     infoExpanded = false;
+    updatePostUrl("");
     scrollGridToTop();
   }
 
@@ -315,6 +331,7 @@
     selectedImageIndex = null;
     hoveredImageIndex = null;
     infoExpanded = false;
+    updatePostUrl(item.postSlug);
     scrollGridToTop();
   }
 
@@ -329,6 +346,7 @@
     selectedImageIndex = null;
     hoveredImageIndex = null;
     infoExpanded = false;
+    updatePostUrl(item.postSlug);
     scrollGridToTop();
   }
 

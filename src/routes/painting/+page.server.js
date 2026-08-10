@@ -94,7 +94,7 @@ export async function load({ fetch, url }) {
   if (!paintingsCategory) {
     return {
       paintings: [],
-      requestedPostId: null
+      requestedPostSlug: null
     };
   }
 
@@ -124,6 +124,6 @@ export async function load({ fetch, url }) {
 
   return {
     paintings,
-    requestedPostId: Number(url.searchParams.get("post")) || null
+    requestedPostSlug: url.searchParams.get("post") || ""
   };
 }

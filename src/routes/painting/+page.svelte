@@ -6,7 +6,7 @@
 
 <WorkGalleryPage
   items={data.paintings}
-  requestedPostId={data.requestedPostId}
+  requestedPostSlug={data.requestedPostSlug}
   allLabel="ALL PAINTINGS"
   itemLabel="Painting"
   itemLabelPlural="Paintings"
