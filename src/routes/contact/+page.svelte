@@ -22,9 +22,11 @@
   });
 
   let contactEmail = $derived(String(contact.email || "").toLowerCase());
+
   let contactInstagram = $derived(
     String(contact.instagram || "").toLowerCase(),
   );
+
   let contactAddress = $derived(
     contact.address || "Westbahnstraße 27-29, 1070 Vienna",
   );
@@ -91,11 +93,11 @@
 </script>
 
 <svelte:head>
-  <title>Contact | Eva Eichinger</title>
+  <title>Contact Eva Eichinger | Artist in Vienna</title>
 
   <meta
     name="description"
-    content="Contact Eva Eichinger by email, Instagram or studio address in Vienna."
+    content="Contact Vienna-based artist Eva Eichinger by email or Instagram, find her studio address, and subscribe for exhibitions, projects and updates."
   />
 
   <script src="https://cdn.lordicon.com/lordicon.js"></script>

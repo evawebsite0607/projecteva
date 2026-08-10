@@ -375,14 +375,34 @@
 </script>
 
 <svelte:head>
-  <title>{artistName} | Contemporary Artist in Vienna</title>
+  <title>Eva Eichinger | Contemporary Artist & Painter in Vienna</title>
 
   <meta
     name="description"
-    content={`${artistName} presents selected contemporary artworks, exhibitions, visual projects and case studies in a minimalist artist portfolio.`}
+    content="Official website of Vienna-based contemporary artist Eva Eichinger. Explore selected paintings, exhibitions, performance installations and artistic projects."
   />
 
-  <meta name="robots" content="index, follow" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+
+  <meta name="author" content="Eva Eichinger" />
+  <meta name="publisher" content="Eva Eichinger" />
+
+  <link rel="canonical" href="https://www.evaeichinger.com/" />
+
+  <meta
+    property="og:title"
+    content="Eva Eichinger | Contemporary Artist & Painter in Vienna"
+  />
+
+  <meta
+    property="og:description"
+    content="Official website of Vienna-based contemporary artist Eva Eichinger. Explore selected paintings, exhibitions, performance installations and artistic projects."
+  />
+
+  <meta property="og:url" content="https://www.evaeichinger.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Eva Eichinger" />
 
   {#if activeWork?.featuredImage}
     <meta property="og:image" content={activeWork.featuredImage} />

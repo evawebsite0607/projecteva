@@ -212,14 +212,66 @@
   function getEventLocation(event) {
     return [event.location, event.address].filter(Boolean).join(", ");
   }
+
+  const seoTitle = "Exhibitions & Events | Eva Eichinger";
+
+  const seoDescription =
+    "Discover upcoming exhibitions, art fairs, residencies and selected presentations by Vienna-based artist Eva Eichinger, alongside highlights from her exhibition history.";
+
+  const canonicalUrl = "https://www.evaeichinger.com/event";
+
+  const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${canonicalUrl}#webpage`,
+    url: canonicalUrl,
+    name: seoTitle,
+    description: seoDescription,
+    inLanguage: "en",
+    about: {
+      "@type": "Person",
+      "@id": "https://www.evaeichinger.com/#eva-eichinger",
+      name: "Eva Eichinger",
+      url: "https://www.evaeichinger.com/",
+      jobTitle: "Artist",
+    },
+  });
 </script>
 
 <svelte:head>
-  <title>Events | Eva Eichinger</title>
+  <title>{seoTitle}</title>
+
+  <meta name="description" content={seoDescription} />
+
   <meta
-    name="description"
-    content="Upcoming events, exhibitions, residencies and selected presentations by Eva Eichinger."
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
   />
+
+  <meta name="author" content="Eva Eichinger" />
+  <meta name="publisher" content="Eva Eichinger" />
+
+  <link rel="canonical" href={canonicalUrl} />
+
+  <meta property="og:type" content="website" />
+
+  <meta property="og:site_name" content="Eva Eichinger" />
+
+  <meta property="og:title" content={seoTitle} />
+
+  <meta property="og:description" content={seoDescription} />
+
+  <meta property="og:url" content={canonicalUrl} />
+
+  <meta name="twitter:card" content="summary" />
+
+  <meta name="twitter:title" content={seoTitle} />
+
+  <meta name="twitter:description" content={seoDescription} />
+
+  <script type="application/ld+json">
+    {@html structuredData}
+  </script>
 </svelte:head>
 
 <section class="event-page">

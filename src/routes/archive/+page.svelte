@@ -4,6 +4,14 @@
   let posts = $derived(data.posts || []);
   let activePostId = $state(null);
 
+  const seoTitle =
+    "Art Archive, Paintings & Exhibitions in Vienna | Eva Eichinger";
+
+  const seoDescription =
+    "Explore the art archive of Eva Eichinger, featuring paintings, exhibitions, performances and selected works from her artistic practice.";
+
+  const canonicalUrl = "https://www.evaeichinger.com/archive";
+
   const desktopPositions = [
     { top: "8vh", left: "41vw" },
     { top: "8vh", left: "73vw" },
@@ -23,6 +31,47 @@
 
   let archiveCenterTitle = $derived(
     activePost ? cleanText(activePost?.title) : "ARCHIVE OF ALL MY WORKS",
+  );
+
+  let socialImage = $derived(
+    posts.find((post) => post.featuredImage)?.featuredImage || "",
+  );
+
+  let structuredData = $derived.by(() =>
+    JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": "https://www.evaeichinger.com/#eva-eichinger",
+          name: "Eva Eichinger",
+          url: "https://www.evaeichinger.com/",
+          jobTitle: "Artist",
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": `${canonicalUrl}#webpage`,
+          url: canonicalUrl,
+          name: seoTitle,
+          description: seoDescription,
+          inLanguage: "en",
+          about: {
+            "@id": "https://www.evaeichinger.com/#eva-eichinger",
+          },
+          mainEntity: {
+            "@type": "ItemList",
+            name: "Eva Eichinger Art Archive",
+            numberOfItems: posts.length,
+            itemListElement: posts.map((post, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: cleanText(post.title),
+              url: `https://www.evaeichinger.com${getArchivePostLink(post)}`,
+            })),
+          },
+        },
+      ],
+    }),
   );
 
   function cleanText(value) {
@@ -52,10 +101,16 @@
     const slug = slugify(raw);
 
     if (slug === "painting" || slug === "paintings") return "painting";
-    if (slug === "exhibition" || slug === "exhibitions") return "exhibitions";
+
+    if (slug === "exhibition" || slug === "exhibitions") {
+      return "exhibitions";
+    }
+
     if (slug === "event" || slug === "events") return "event";
-    if (slug === "performance" || slug === "performances")
+
+    if (slug === "performance" || slug === "performances") {
       return "performances";
+    }
 
     return slug;
   }
@@ -125,19 +180,59 @@
 </script>
 
 <svelte:head>
-  <title>Archive | Eva Eichinger</title>
+  <title>{seoTitle}</title>
+
+  <meta name="description" content={seoDescription} />
 
   <meta
-    name="description"
-    content="Archive of selected posts and works by Eva Eichinger."
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
   />
+
+  <meta name="author" content="Eva Eichinger" />
+  <meta name="publisher" content="Eva Eichinger" />
+
+  <link rel="canonical" href={canonicalUrl} />
+
+  <meta property="og:type" content="website" />
+
+  <meta property="og:site_name" content="Eva Eichinger" />
+
+  <meta property="og:title" content={seoTitle} />
+
+  <meta property="og:description" content={seoDescription} />
+
+  <meta property="og:url" content={canonicalUrl} />
+
+  {#if socialImage}
+    <meta property="og:image" content={socialImage} />
+
+    <meta property="og:image:alt" content="Selected artwork by Eva Eichinger" />
+  {/if}
+
+  <meta
+    name="twitter:card"
+    content={socialImage ? "summary_large_image" : "summary"}
+  />
+
+  <meta name="twitter:title" content={seoTitle} />
+
+  <meta name="twitter:description" content={seoDescription} />
+
+  {#if socialImage}
+    <meta name="twitter:image" content={socialImage} />
+  {/if}
+
+  <script type="application/ld+json">
+    {@html structuredData}
+  </script>
 </svelte:head>
 
 <main class="archive-page">
-  <section class="archive-hero" aria-label="Archive">
+  <section class="archive-hero" aria-label="Archive of Eva Eichinger works">
     <div class="archive-fixed-top">
       <div class="archive-center-title">
-        <strong>{archiveCenterTitle}</strong>
+        <h1>{archiveCenterTitle}</h1>
       </div>
 
       {#if activePost?.featuredImage}
@@ -163,8 +258,12 @@
             onmouseleave={clearPost}
             onblur={clearPost}
           >
-            <span>{post.number || String(index + 1).padStart(2, "0")}</span>
+            <span>
+              {post.number || String(index + 1).padStart(2, "0")}
+            </span>
+
             <strong>{cleanText(post.title)}</strong>
+
             <p>{cleanText(post.excerpt || post.content)}</p>
           </a>
         {/each}
@@ -232,8 +331,9 @@
     pointer-events: none;
   }
 
-  .archive-center-title strong {
+  .archive-center-title h1 {
     display: block;
+    margin: 0;
     color: #ffffff;
     font-family: Georgia, "Times New Roman", serif;
     font-size: 30px;
@@ -371,7 +471,8 @@
       transform: none;
     }
 
-    .archive-center-title strong {
+    .archive-center-title h1 {
+      margin: 0;
       color: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
       font-size: clamp(18px, 3.2vw, 25px);
@@ -462,7 +563,7 @@
       width: calc(100% - 32px);
     }
 
-    .archive-center-title strong {
+    .archive-center-title h1 {
       font-size: clamp(14px, 4.2vw, 18px);
     }
 

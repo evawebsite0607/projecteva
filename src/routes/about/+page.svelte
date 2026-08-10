@@ -9,11 +9,51 @@
   let showVideoThumbnail = $state(true);
   let videoStartTimer;
 
+  const canonicalUrl = "https://www.evaeichinger.com/about";
+
+  const seoTitle = "About Eva Eichinger | Contemporary Artist in Vienna";
+
+  const seoDescription =
+    "Learn more about Eva Eichinger, a contemporary artist based in Vienna, her artistic practice, selected residencies and current work.";
+
   const aboutVideoSrc =
     "https://testing.zorawebdesign.com/wp-content/uploads/2026/07/B78154AD-F779-4A4B-A00E-E9FA050FE9E1.mp4";
 
   const aboutVideoThumbnail =
     "https://testing.zorawebdesign.com/wp-content/uploads/2026/06/atelierportrait.webp";
+
+  const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://www.evaeichinger.com/#eva-eichinger",
+        name: "Eva Eichinger",
+        url: "https://www.evaeichinger.com/",
+        image: aboutVideoThumbnail,
+        jobTitle: "Artist",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Vienna",
+          addressCountry: "AT",
+        },
+      },
+      {
+        "@type": "AboutPage",
+        "@id": `${canonicalUrl}#webpage`,
+        url: canonicalUrl,
+        name: seoTitle,
+        description: seoDescription,
+        inLanguage: "en",
+        about: {
+          "@id": "https://www.evaeichinger.com/#eva-eichinger",
+        },
+        mainEntity: {
+          "@id": "https://www.evaeichinger.com/#eva-eichinger",
+        },
+      },
+    ],
+  });
 
   const dummySections = [
     {
@@ -106,10 +146,41 @@
 </script>
 
 <svelte:head>
-  <title>{data.pageTitle || "About"} | Eva Eichinger</title>
+  <title>{seoTitle}</title>
+
+  <meta name="description" content={seoDescription} />
+
+  <meta
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+  />
+
+  <meta name="author" content="Eva Eichinger" />
+  <meta name="publisher" content="Eva Eichinger" />
+
+  <link rel="canonical" href={canonicalUrl} />
+
+  <meta property="og:type" content="profile" />
+  <meta property="og:site_name" content="Eva Eichinger" />
+  <meta property="og:title" content={seoTitle} />
+  <meta property="og:description" content={seoDescription} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={aboutVideoThumbnail} />
+  <meta property="og:image:alt" content="Eva Eichinger in her studio" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={seoTitle} />
+  <meta name="twitter:description" content={seoDescription} />
+  <meta name="twitter:image" content={aboutVideoThumbnail} />
+
+  <script type="application/ld+json">
+    {@html structuredData}
+  </script>
 </svelte:head>
 
 <main class="about-page">
+  <h1 class="seo-page-title">About Eva Eichinger</h1>
+
   <section class="about-layout" aria-label="About Eva Eichinger">
     <aside class="about-left">
       <div class="about-links">
@@ -133,7 +204,7 @@
 
       <div class="about-text-block" bind:this={aboutTextBlockElement}>
         {#if activeSection}
-          <h1>{@html activeSection.title}</h1>
+          <h2>{@html activeSection.title}</h2>
 
           <div class="about-section-text">
             {#each activeSection.text as paragraph}
@@ -144,13 +215,13 @@
       </div>
     </aside>
 
-    <section class="about-right" aria-label="About video">
+    <section class="about-right" aria-label="About Eva Eichinger video">
       <div class="about-video-frame">
         {#if showVideoThumbnail}
           <img
             class="about-video-thumbnail"
             src={aboutVideoThumbnail}
-            alt="Eva Eichinger video preview"
+            alt="Eva Eichinger in her studio"
           />
         {/if}
 
@@ -161,6 +232,7 @@
           playsinline
           preload="auto"
           poster={aboutVideoThumbnail}
+          aria-label="Video portrait of Eva Eichinger"
           onended={handleAboutVideoEnded}
         >
           <source src={aboutVideoSrc} type="video/mp4" />
@@ -199,6 +271,23 @@
     padding: 96px 72px 90px 28px;
     overflow: hidden;
     background: #ffffff;
+  }
+
+  /*
+   * Permanent page-level H1 for SEO and document structure.
+   * It remains available to search engines and assistive technology
+   * without changing the existing visual layout.
+   */
+  .seo-page-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .about-page p {
@@ -339,7 +428,7 @@
     height: 0;
   }
 
-  .about-text-block h1 {
+  .about-text-block h2 {
     width: 100%;
     max-width: 100%;
     margin: 0 0 clamp(22px, 3.5vh, 42px);
@@ -409,10 +498,6 @@
     overflow: hidden;
     background: #ffffff;
 
-    /*
-      The video itself contains black bars at the top and bottom.
-      The increased scale crops those bars out of the visible frame.
-    */
     --about-video-scale: 1.58;
     --about-video-thumbnail-scale: 1.18;
     --about-video-focus-x: 50%;
@@ -486,14 +571,14 @@
     }
 
     .about-text-block,
-    .about-text-block h1,
+    .about-text-block h2,
     .about-section-text,
     .about-section-text p {
       width: 100%;
       max-width: 100%;
     }
 
-    .about-text-block h1 {
+    .about-text-block h2 {
       font-size: clamp(13px, 0.95vw, 15px);
     }
   }
@@ -515,7 +600,7 @@
     }
 
     .about-text-block,
-    .about-text-block h1,
+    .about-text-block h2,
     .about-section-text,
     .about-section-text p {
       width: 100%;
@@ -544,7 +629,7 @@
     }
 
     .about-text-block,
-    .about-text-block h1,
+    .about-text-block h2,
     .about-section-text,
     .about-section-text p {
       width: 100%;
@@ -718,7 +803,7 @@
       height: 0;
     }
 
-    .about-text-block h1 {
+    .about-text-block h2 {
       width: 100%;
       max-width: 100%;
       margin: 0 0 8px;
@@ -801,7 +886,7 @@
       padding-bottom: calc(90px + env(safe-area-inset-bottom));
     }
 
-    .about-text-block h1 {
+    .about-text-block h2 {
       margin: 0 0 8px;
       font-size: 14px;
       line-height: 1;
@@ -852,7 +937,7 @@
       line-height: 1.08;
     }
 
-    .about-text-block h1 {
+    .about-text-block h2 {
       font-size: 14px;
       text-transform: none;
     }
