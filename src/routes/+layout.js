@@ -165,23 +165,23 @@ export async function load({ fetch }) {
         "performances",
       );
 
-      let href = "#";
+     let href = "#";
 
-      if (isPaintingPost) {
-        href = `/painting?post=${post.id}`;
-      }
+if (isPaintingPost) {
+  href = `/painting/${post.slug}`;
+}
 
-      if (isPerformancePost) {
-        href = `/performances?post=${post.id}`;
-      }
+if (isPerformancePost) {
+  href = `/performances/${post.slug}`;
+}
 
-      if (isExhibitionPost) {
-        href = "/exhibitions";
-      }
+if (isExhibitionPost) {
+  href = `/exhibitions/${post.slug}`;
+}
 
       return {
         id: post.id,
-        postSlug: String(post.id),
+        postSlug: post.slug,
         label: title,
         title,
         year: yearSlug,

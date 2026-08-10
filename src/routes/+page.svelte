@@ -357,10 +357,6 @@
     hoveredWorkId = work.id;
   }
 
-  function scrollBackToTop() {
-    scrollGridToTop();
-  }
-
   onMount(() => {
     unlockPageLocks();
 
@@ -511,10 +507,6 @@
               </div>
             </a>
           {/each}
-
-          <button type="button" class="back-to-top" onclick={scrollBackToTop}>
-            BACK TO TOP
-          </button>
         </section>
       {:else}
         <p class="empty-message">No works found.</p>
@@ -967,21 +959,6 @@
     transform: translateY(0);
   }
 
-  .back-to-top {
-    display: none;
-    grid-column: 1 / -1;
-    justify-self: center;
-    margin: 48px 0 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1;
-    cursor: pointer;
-  }
-
   .empty-message {
     margin: 0;
     padding: 120px 0;
@@ -1184,7 +1161,7 @@
       align-content: start;
       column-gap: 12px;
       row-gap: 18px;
-      padding: 16px 0 calc(110px + env(safe-area-inset-bottom));
+      padding: 16px 0 calc(70px + env(safe-area-inset-bottom));
       scrollbar-width: none;
       scrollbar-color: transparent transparent;
       -ms-overflow-style: none;
@@ -1273,13 +1250,6 @@
       font-weight: 700;
       line-height: 1.08;
     }
-
-    .back-to-top {
-      display: block;
-      margin: 44px 0 0;
-      padding-bottom: calc(64px + env(safe-area-inset-bottom));
-      font-size: 14px;
-    }
   }
 
   @media (max-width: 700px) {
@@ -1357,7 +1327,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 10px;
       row-gap: 18px;
-      padding: 16px 0 calc(100px + env(safe-area-inset-bottom));
+      padding: 16px 0 calc(70px + env(safe-area-inset-bottom));
       overscroll-behavior: auto;
     }
 
@@ -1403,13 +1373,6 @@
       font-size: 10px;
       font-weight: 700;
       line-height: 1.08;
-    }
-
-    .back-to-top {
-      display: block;
-      margin-top: 38px;
-      padding-bottom: calc(64px + env(safe-area-inset-bottom));
-      font-size: 12px;
     }
   }
 
