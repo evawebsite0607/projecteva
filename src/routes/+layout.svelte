@@ -29,9 +29,21 @@
   );
 
   let menuItems = $derived.by(() => [
-    { label: "Home", href: "/", children: [] },
-    { label: "About", href: "/about", children: aboutItems },
-    { label: "Paintings", href: "/painting", children: paintingItems },
+    {
+      label: "Home",
+      href: "/",
+      children: [],
+    },
+    {
+      label: "About",
+      href: "/about",
+      children: aboutItems,
+    },
+    {
+      label: "Paintings",
+      href: "/painting",
+      children: paintingItems,
+    },
     {
       label: "Exhibition views",
       href: "/exhibitions",
@@ -47,8 +59,16 @@
       href: "/event",
       children: eventItems,
     },
-    { label: "Contact", href: "/contact", children: [] },
-    { label: "Archive", href: "/archive", children: [] },
+    {
+      label: "Contact",
+      href: "/contact",
+      children: [],
+    },
+    {
+      label: "Archive",
+      href: "/archive",
+      children: [],
+    },
   ]);
 
   let menuImages = $derived.by(() => {
@@ -157,6 +177,7 @@
 
   function toggleMobileSubmenu(item) {
     const key = getMobileSubmenuKey(item);
+
     openMobileSubmenus[key] = !openMobileSubmenus[key];
   }
 
@@ -165,15 +186,18 @@
 
     if (shouldLock) {
       document.documentElement.classList.add("menu-open-lock");
+
       document.body.classList.add("menu-open-lock");
     } else {
       document.documentElement.classList.remove("menu-open-lock");
+
       document.body.classList.remove("menu-open-lock");
     }
   }
 
   function updateHeaderScrolled() {
     if (!browser) return;
+
     headerScrolled = window.scrollY > 8;
   }
 
@@ -218,7 +242,9 @@
 
     if (browser) {
       document.documentElement.classList.remove("menu-open-lock");
+
       document.body.classList.remove("menu-open-lock");
+
       updateHeaderScrolled();
     }
   });
@@ -228,26 +254,117 @@
   });
 </script>
 
-<div class="site-shell" class:announcement-visible={showHomeAnnouncement}>
+<div
+  class="site-shell"
+  class:announcement-visible={showHomeAnnouncement}
+  class:is-home={isHomePage}
+>
   {#if showHomeAnnouncement}
     <div
       class="home-announcement"
       role="region"
       aria-label="Upcoming event announcement"
     >
-      <a
-        href="https://www.forumpresents.com/ausstellungen/eva-eichinger-2"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span class="announcement-prefix"> UPCOMING EVENT </span>
+      <div class="announcement-marquee">
+        <div class="announcement-marquee-track">
+          <a href="/event" class="announcement-marquee-item">
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
 
-        <span class="announcement-separator"> — </span>
+            <span class="announcement-separator"> — </span>
 
-        <span class="announcement-title">
-          {announcementText}
-        </span>
-      </a>
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+
+          <a
+            href="/event"
+            class="announcement-marquee-item"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
+
+            <span class="announcement-separator"> — </span>
+
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+
+          <a
+            href="/event"
+            class="announcement-marquee-item"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
+
+            <span class="announcement-separator"> — </span>
+
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+
+          <a
+            href="/event"
+            class="announcement-marquee-item"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
+
+            <span class="announcement-separator"> — </span>
+
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+
+          <a
+            href="/event"
+            class="announcement-marquee-item"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
+
+            <span class="announcement-separator"> — </span>
+
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+
+          <a
+            href="/event"
+            class="announcement-marquee-item"
+            aria-hidden="true"
+            tabindex="-1"
+          >
+            <span class="announcement-prefix"> UPCOMING EVENT </span>
+
+            <span class="announcement-separator"> — </span>
+
+            <span class="announcement-title">
+              {announcementText}
+            </span>
+          </a>
+
+          <span class="announcement-divider" aria-hidden="true"> • </span>
+        </div>
+      </div>
 
       <button
         type="button"
@@ -569,6 +686,27 @@
     --announcement-height: 44px;
   }
 
+  /*
+   * HOMEPAGE ONLY
+   *
+   * The announcement occupies space above the homepage.
+   * Therefore the homepage viewport section loses exactly
+   * the same amount of height.
+   *
+   * This preserves the original bottom distance between
+   * the homepage content and the fixed footer.
+   *
+   * When the announcement closes, the variable becomes
+   * 0px and the homepage automatically returns to its
+   * original 100vh / 100dvh height.
+   */
+  .site-shell.is-home.announcement-visible :global(.home-page .work-page) {
+    height: calc(100vh - var(--announcement-height));
+    height: calc(100dvh - var(--announcement-height));
+    min-height: calc(100vh - var(--announcement-height));
+    min-height: calc(100dvh - var(--announcement-height));
+  }
+
   .site-header,
   .site-header *,
   .main-nav,
@@ -580,6 +718,9 @@
     font-family: var(--site-font-family);
   }
 
+  /*
+   * ANNOUNCEMENT
+   */
   .home-announcement {
     position: fixed;
     top: 0;
@@ -589,32 +730,53 @@
     height: 44px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0 60px;
+    overflow: hidden;
     box-sizing: border-box;
     background: #000000;
     color: #ffffff;
   }
 
-  .home-announcement a {
-    display: inline;
-    max-width: calc(100% - 80px);
+  .announcement-marquee {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .announcement-marquee-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: max-content;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 34px;
+    padding-right: 100px;
+    white-space: nowrap;
+    will-change: transform;
+    animation: announcement-marquee-right 24s linear infinite;
+  }
+
+  .announcement-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
     color: #ffffff;
     font-size: 12px;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1;
     letter-spacing: 0.04em;
-    text-align: center;
     text-transform: uppercase;
-    white-space: normal;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     transition: opacity 0.2s ease;
   }
 
-  .home-announcement a:hover,
-  .home-announcement a:focus-visible {
+  .announcement-marquee-item:hover,
+  .announcement-marquee-item:focus-visible {
     opacity: 0.65;
     outline: none;
   }
@@ -623,13 +785,35 @@
   .announcement-separator,
   .announcement-title {
     display: inline;
-    white-space: normal;
+  }
+
+  .announcement-divider {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  @keyframes announcement-marquee-right {
+    from {
+      transform: translate3d(-50%, 0, 0);
+    }
+
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .announcement-marquee:hover .announcement-marquee-track,
+  .announcement-marquee:focus-within .announcement-marquee-track {
+    animation-play-state: paused;
   }
 
   .home-announcement-close {
     position: absolute;
     top: 50%;
-    right: 28px;
+    right: 18px;
+    z-index: 5;
     width: 28px;
     height: 28px;
     display: flex;
@@ -637,7 +821,7 @@
     justify-content: center;
     padding: 0;
     border: 0;
-    background: transparent;
+    background: #000000;
     color: #ffffff;
     font-family: inherit;
     font-size: 20px;
@@ -648,12 +832,26 @@
     transition: opacity 0.2s ease;
   }
 
+  .home-announcement-close::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: -18px;
+    bottom: -8px;
+    left: -20px;
+    z-index: -1;
+    background: #000000;
+  }
+
   .home-announcement-close:hover,
   .home-announcement-close:focus-visible {
     opacity: 0.6;
     outline: none;
   }
 
+  /*
+   * HEADER
+   */
   .site-header {
     position: fixed;
     inset: 0 0 auto;
@@ -818,6 +1016,9 @@
     display: none;
   }
 
+  /*
+   * FULLSCREEN MENU
+   */
   .main-nav {
     position: fixed;
     top: var(--announcement-height);
@@ -1187,6 +1388,9 @@
     display: none;
   }
 
+  /*
+   * FOOTER
+   */
   .site-footer {
     position: fixed;
     left: 0;
@@ -1253,6 +1457,9 @@
     text-align: right;
   }
 
+  /*
+   * DESKTOP PERFORMANCE LINK
+   */
   .main-menu-link span {
     display: block;
   }
@@ -1276,9 +1483,25 @@
     border-left-color: #ab9bf2;
   }
 
+  /*
+   * TABLET
+   */
   @media (max-width: 1024px) {
     .site-shell.announcement-visible {
-      --announcement-height: 54px;
+      --announcement-height: 50px;
+    }
+
+    /*
+     * Homepage stays auto-height on tablet,
+     * but its minimum viewport height loses the
+     * announcement height.
+     *
+     * This is homepage-only and preserves the
+     * same bottom/footer breathing room.
+     */
+    .site-shell.is-home.announcement-visible :global(.home-page .work-page) {
+      height: auto;
+      min-height: calc(100svh - var(--announcement-height));
     }
 
     :global(body) {
@@ -1287,38 +1510,28 @@
     }
 
     .home-announcement {
-      height: 54px;
-      padding: 0 58px 0 24px;
-      justify-content: center;
+      height: 50px;
     }
 
-    .home-announcement a {
-      display: inline;
-      max-width: 100%;
-      color: #ffffff;
+    .announcement-marquee-track {
+      gap: 28px;
+      animation-duration: 22s;
+    }
+
+    .announcement-marquee-item {
       font-size: 11px;
-      font-weight: 700;
-      line-height: 1.6;
+      line-height: 1;
       letter-spacing: 0.04em;
-      text-align: center;
-      text-transform: uppercase;
-      white-space: normal;
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
+      text-align: left;
       text-underline-offset: 4px;
     }
 
-    .announcement-prefix,
-    .announcement-separator,
-    .announcement-title {
-      display: inline;
-      white-space: normal;
-      overflow: visible;
-      text-overflow: clip;
+    .announcement-divider {
+      font-size: 10px;
     }
 
     .home-announcement-close {
-      right: 20px;
+      right: 18px;
     }
 
     .top-header-background {
@@ -1710,49 +1923,55 @@
     }
   }
 
+  /*
+   * MOBILE
+   */
   @media (max-width: 600px) {
     .site-shell.announcement-visible {
-      --announcement-height: 64px;
+      --announcement-height: 48px;
+    }
+
+    /*
+     * Same homepage-only correction for mobile.
+     */
+    .site-shell.is-home.announcement-visible :global(.home-page .work-page) {
+      height: auto;
+      min-height: calc(100svh - var(--announcement-height));
     }
 
     .home-announcement {
-      height: 64px;
-      justify-content: center;
-      padding: 0 48px 0 20px;
+      height: 48px;
     }
 
-    .home-announcement a {
-      display: inline;
-      width: 100%;
-      max-width: 100%;
-      overflow: visible;
-      color: #ffffff;
+    .announcement-marquee-track {
+      gap: 24px;
+      animation-duration: 20s;
+    }
+
+    .announcement-marquee-item {
+      gap: 5px;
       font-size: 10px;
-      font-weight: 500;
-      line-height: 1.5;
+      font-weight: 700;
+      line-height: 1;
       letter-spacing: 0.035em;
       text-align: left;
-      text-transform: uppercase;
-      white-space: normal;
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
       text-underline-offset: 4px;
     }
 
-    .announcement-prefix,
-    .announcement-separator,
-    .announcement-title {
-      display: inline;
-      overflow: visible;
-      white-space: normal;
-      text-overflow: clip;
+    .announcement-divider {
+      font-size: 9px;
     }
 
     .home-announcement-close {
-      right: 14px;
+      right: 12px;
       width: 26px;
       height: 26px;
       font-size: 19px;
+    }
+
+    .home-announcement-close::before {
+      right: -12px;
+      left: -18px;
     }
 
     .top-header-background {
@@ -2008,6 +2227,13 @@
     .footer-item-archive {
       justify-self: end;
       text-align: right;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .announcement-marquee-track {
+      animation: none;
+      transform: none;
     }
   }
 </style>
