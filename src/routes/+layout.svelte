@@ -9,22 +9,24 @@
   let menuOpen = $state(false);
   let headerScrolled = $state(false);
   let openMobileSubmenus = $state({});
+  let announcementOpen = $state(true);
 
   let aboutItems = $derived(data?.aboutMenuItems || []);
   let paintingItems = $derived(data?.paintingMenuItems || []);
   let exhibitionItems = $derived(data?.exhibitionMenuItems || []);
   let performanceItems = $derived(data?.performanceMenuItems || []);
   let eventItems = $derived(data?.eventMenuItems || []);
+
+  let announcementText = $derived(
+    String(page.data?.announcementText || "").trim(),
+  );
+
   let pathname = $derived(page.url.pathname);
   let isHomePage = $derived(pathname === "/");
 
-  const desktopSubmenuLabels = ["paintings", "exhibitions", "performances"];
-
-  const submenuAccentColors = {
-    paintings: "#ff5c01",
-    exhibitions: "#24d480",
-    performances: "#ab9bf2",
-  };
+  let showHomeAnnouncement = $derived(
+    isHomePage && announcementOpen && announcementText.length > 0,
+  );
 
   let menuItems = $derived.by(() => [
     { label: "Home", href: "/", children: [] },
@@ -40,7 +42,11 @@
       href: "/performances",
       children: performanceItems,
     },
-    { label: "Exhibitions & Updates", href: "/event", children: eventItems },
+    {
+      label: "Exhibitions & Updates",
+      href: "/event",
+      children: eventItems,
+    },
     { label: "Contact", href: "/contact", children: [] },
     { label: "Archive", href: "/archive", children: [] },
   ]);
@@ -78,6 +84,7 @@
       .replace(/&#8217;/g, "'")
       .replace(/&#8220;/g, '"')
       .replace(/&#8221;/g, '"')
+      .replace(/&nbsp;/g, " ")
       .replace(/&amp;/g, "&");
   }
 
@@ -94,17 +101,6 @@
       "Untitled";
 
     return decodeHtml(stripHtml(raw));
-  }
-
-  function getPostId(item) {
-    return (
-      item?.id ||
-      item?.postId ||
-      item?.postID ||
-      item?.wpId ||
-      item?.postSlug ||
-      null
-    );
   }
 
   function getSubmenuHref(parentItem, child) {
@@ -161,7 +157,6 @@
 
   function toggleMobileSubmenu(item) {
     const key = getMobileSubmenuKey(item);
-
     openMobileSubmenus[key] = !openMobileSubmenus[key];
   }
 
@@ -179,7 +174,6 @@
 
   function updateHeaderScrolled() {
     if (!browser) return;
-
     headerScrolled = window.scrollY > 8;
   }
 
@@ -194,6 +188,10 @@
   function closeMenu() {
     menuOpen = false;
     openMobileSubmenus = {};
+  }
+
+  function closeAnnouncement() {
+    announcementOpen = false;
   }
 
   $effect(() => {
@@ -230,202 +228,223 @@
   });
 </script>
 
-<header
-  class="site-header"
-  class:menu-is-open={menuOpen}
-  class:is-archive-page={isArchivePage}
->
-  <div
-    class="top-header-background"
-    class:is-visible={headerScrolled && !menuOpen}
-  ></div>
+<div class="site-shell" class:announcement-visible={showHomeAnnouncement}>
+  {#if showHomeAnnouncement}
+    <div
+      class="home-announcement"
+      role="region"
+      aria-label="Upcoming event announcement"
+    >
+      <a
+        href="https://www.forumpresents.com/ausstellungen/eva-eichinger-2"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span class="announcement-prefix"> UPCOMING EVENT </span>
 
-  <a
-    href="/"
-    class="logo"
-    class:top-is-scrolled={headerScrolled && !menuOpen}
-    onclick={closeMenu}
+        <span class="announcement-separator"> — </span>
+
+        <span class="announcement-title">
+          {announcementText}
+        </span>
+      </a>
+
+      <button
+        type="button"
+        class="home-announcement-close"
+        aria-label="Close upcoming event announcement"
+        onclick={closeAnnouncement}
+      >
+        ×
+      </button>
+    </div>
+  {/if}
+
+  <header
+    class="site-header"
+    class:menu-is-open={menuOpen}
+    class:is-archive-page={isArchivePage}
   >
-    Eva Eichinger
-  </a>
+    <div
+      class="top-header-background"
+      class:is-visible={headerScrolled && !menuOpen}
+    ></div>
 
-  <button
-    class="desktop-menu-control"
-    class:top-is-scrolled={headerScrolled && !menuOpen}
-    type="button"
-    aria-label={menuOpen ? "Close menu" : "Open menu"}
-    aria-expanded={menuOpen}
-    onclick={toggleMenu}
-  >
-    <span class="desktop-menu-control-text">
-      {menuOpen ? "Close" : "Menu"}
-    </span>
+    <a
+      href="/"
+      class="logo"
+      class:top-is-scrolled={headerScrolled && !menuOpen}
+      onclick={closeMenu}
+    >
+      Eva Eichinger
+    </a>
 
-    <span class="desktop-menu-control-icon" aria-hidden="true">
+    <button
+      class="desktop-menu-control"
+      class:top-is-scrolled={headerScrolled && !menuOpen}
+      type="button"
+      aria-label={menuOpen ? "Close menu" : "Open menu"}
+      aria-expanded={menuOpen}
+      onclick={toggleMenu}
+    >
+      <span class="desktop-menu-control-text">
+        {menuOpen ? "Close" : "Menu"}
+      </span>
+
+      <span class="desktop-menu-control-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+
+    <button
+      class="menu-toggle"
+      class:top-is-scrolled={headerScrolled && !menuOpen}
+      type="button"
+      aria-label={menuOpen ? "Close menu" : "Open menu"}
+      aria-expanded={menuOpen}
+      onclick={toggleMenu}
+    >
       <span></span>
       <span></span>
-    </span>
-  </button>
+    </button>
 
-  <button
-    class="menu-toggle"
-    class:top-is-scrolled={headerScrolled && !menuOpen}
-    type="button"
-    aria-label={menuOpen ? "Close menu" : "Open menu"}
-    aria-expanded={menuOpen}
-    onclick={toggleMenu}
-  >
-    <span></span>
-    <span></span>
-  </button>
+    <nav class:open={menuOpen} class="main-nav" aria-label="Main navigation">
+      <div class="desktop-menu-brand-block">
+        <div class="desktop-menu-brand">Eva Eichinger</div>
 
-  <nav class:open={menuOpen} class="main-nav" aria-label="Main navigation">
-    <div class="desktop-menu-brand-block">
-      <div class="desktop-menu-brand">Eva Eichinger</div>
+        <div class="desktop-menu-address">
+          <address>
+            Westbahnstraße 27-29<br />
+            1070 Vienna
+          </address>
 
-      <div class="desktop-menu-address">
-        <address>
-          Westbahnstraße 27-29<br />
-          1070 Vienna
-        </address>
-
-        <a href="mailto:info@evaeichinger.com">
-          Email: info@evaeichinger.com
-        </a>
+          <a href="mailto:info@evaeichinger.com">
+            Email: info@evaeichinger.com
+          </a>
+        </div>
       </div>
-    </div>
 
-    <div class="desktop-menu-images" aria-hidden="true">
-      {#if menuImages.length > 0}
-        {#each menuImages as image}
-          <div class="desktop-menu-image">
-            <img src={image} alt="" loading="lazy" />
-          </div>
-        {/each}
-      {/if}
-    </div>
+      <div class="desktop-menu-images" aria-hidden="true">
+        {#if menuImages.length > 0}
+          {#each menuImages as image}
+            <div class="desktop-menu-image">
+              <img src={image} alt="" loading="lazy" />
+            </div>
+          {/each}
+        {/if}
+      </div>
 
-    <div class="menu-links-area">
-      <div class="menu-grid">
-        {#each menuItems as item}
-          <div
-            class="menu-grid-item"
-            class:has-desktop-submenu={hasDesktopSubmenu(item)}
-            style={`--submenu-accent-color: ${getSubmenuAccentColor(item)};`}
-          >
-            <div class="menu-link-row">
-              <a
-                href={item.href}
-                class="main-menu-link"
-                class:has-arrow={hasDesktopSubmenu(item)}
-                onclick={closeMenu}
-              >
-                <span>{@html item.label}</span>
+      <div class="menu-links-area">
+        <div class="menu-grid">
+          {#each menuItems as item}
+            <div
+              class="menu-grid-item"
+              class:has-desktop-submenu={hasDesktopSubmenu(item)}
+              style={`--submenu-accent-color: ${getSubmenuAccentColor(item)};`}
+            >
+              <div class="menu-link-row">
+                <a
+                  href={item.href}
+                  class="main-menu-link"
+                  class:has-arrow={hasDesktopSubmenu(item)}
+                  onclick={closeMenu}
+                >
+                  <span>{@html item.label}</span>
+
+                  {#if hasDesktopSubmenu(item)}
+                    <span class="desktop-menu-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  {/if}
+                </a>
 
                 {#if hasDesktopSubmenu(item)}
-                  <span class="desktop-menu-arrow" aria-hidden="true">→</span>
+                  <button
+                    type="button"
+                    class="mobile-submenu-toggle"
+                    class:is-open={isMobileSubmenuOpen(item)}
+                    aria-label={`${isMobileSubmenuOpen(item) ? "Close" : "Open"} ${item.label} submenu`}
+                    aria-expanded={isMobileSubmenuOpen(item)}
+                    onclick={() => toggleMobileSubmenu(item)}
+                  >
+                    <span aria-hidden="true">
+                      {isMobileSubmenuOpen(item) ? "−" : "+"}
+                    </span>
+                  </button>
                 {/if}
-              </a>
+              </div>
 
               {#if hasDesktopSubmenu(item)}
-                <button
-                  type="button"
-                  class="mobile-submenu-toggle"
-                  class:is-open={isMobileSubmenuOpen(item)}
-                  aria-label={`${isMobileSubmenuOpen(item) ? "Close" : "Open"} ${item.label} submenu`}
-                  aria-expanded={isMobileSubmenuOpen(item)}
-                  onclick={() => toggleMobileSubmenu(item)}
+                <div
+                  class="desktop-submenu-panel"
+                  aria-label={`${item.label} submenu`}
                 >
-                  <span aria-hidden="true">
-                    {isMobileSubmenuOpen(item) ? "−" : "+"}
-                  </span>
-                </button>
-              {/if}
-            </div>
+                  <div class="desktop-submenu-inner">
+                    <div class="desktop-submenu-kicker">
+                      {item.label}
+                    </div>
 
-            {#if hasDesktopSubmenu(item)}
-              <div
-                class="desktop-submenu-panel"
-                aria-label={`${item.label} submenu`}
-              >
-                <div class="desktop-submenu-inner">
-                  <div class="desktop-submenu-kicker">
-                    {item.label}
-                  </div>
-
-                  <div class="desktop-submenu-list">
-                    {#each item.children as child, childIndex}
-                      <a
-                        href={getSubmenuHref(item, child)}
-                        class="desktop-submenu-link"
-                        onclick={closeMenu}
-                      >
-                        <span class="desktop-submenu-number">
-                          {String(childIndex + 1).padStart(2, "0")}
-                        </span>
-
-                        <span class="desktop-submenu-title">
-                          {getItemLabel(child)}
-                        </span>
-
-                        {#if child.featuredImage}
-                          <span class="desktop-submenu-image">
-                            <img
-                              src={child.featuredImage}
-                              alt=""
-                              loading="lazy"
-                            />
+                    <div class="desktop-submenu-list">
+                      {#each item.children as child, childIndex}
+                        <a
+                          href={getSubmenuHref(item, child)}
+                          class="desktop-submenu-link"
+                          onclick={closeMenu}
+                        >
+                          <span class="desktop-submenu-number">
+                            {String(childIndex + 1).padStart(2, "0")}
                           </span>
-                        {/if}
-                      </a>
-                    {/each}
+
+                          <span class="desktop-submenu-title">
+                            {getItemLabel(child)}
+                          </span>
+
+                          {#if child.featuredImage}
+                            <span class="desktop-submenu-image">
+                              <img
+                                src={child.featuredImage}
+                                alt=""
+                                loading="lazy"
+                              />
+                            </span>
+                          {/if}
+                        </a>
+                      {/each}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div
-                class="mobile-submenu"
-                class:open={isMobileSubmenuOpen(item)}
-                aria-label={`${item.label} submenu`}
-              >
-                {#each item.children as child, childIndex}
-                  <a
-                    href={getSubmenuHref(item, child)}
-                    class="mobile-submenu-link"
-                    onclick={closeMenu}
-                  >
-                    <span class="mobile-submenu-number">
-                      {String(childIndex + 1).padStart(2, "0")}
-                    </span>
+                <div
+                  class="mobile-submenu"
+                  class:open={isMobileSubmenuOpen(item)}
+                  aria-label={`${item.label} submenu`}
+                >
+                  {#each item.children as child, childIndex}
+                    <a
+                      href={getSubmenuHref(item, child)}
+                      class="mobile-submenu-link"
+                      onclick={closeMenu}
+                    >
+                      <span class="mobile-submenu-number">
+                        {String(childIndex + 1).padStart(2, "0")}
+                      </span>
 
-                    <span class="mobile-submenu-title">
-                      {getItemLabel(child)}
-                    </span>
-                  </a>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/each}
+                      <span class="mobile-submenu-title">
+                        {getItemLabel(child)}
+                      </span>
+                    </a>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
       </div>
-    </div>
 
-    <div class="desktop-menu-credit">Designed by Zora WebDesign</div>
+      <div class="desktop-menu-credit">Designed by Zora WebDesign</div>
 
-    <div class="desktop-social-links">
-      <a
-        href="https://www.instagram.com/eva_eichinger_/"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Instagram
-      </a>
-    </div>
-
-    <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
-
-    <div class="mobile-menu-extra">
-      <div class="mobile-social-icons">
+      <div class="desktop-social-links">
         <a
           href="https://www.instagram.com/eva_eichinger_/"
           target="_blank"
@@ -435,64 +454,78 @@
         </a>
       </div>
 
-      <div class="mobile-contact-info">
-        <p>Contact</p>
+      <div class="desktop-menu-rights">All rights reserved ©Eva Eichinger</div>
 
-        <a href="mailto:info@evaeichinger.com">
-          Email: info@evaeichinger.com
-        </a>
+      <div class="mobile-menu-extra">
+        <div class="mobile-social-icons">
+          <a
+            href="https://www.instagram.com/eva_eichinger_/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Instagram
+          </a>
+        </div>
 
-        <address>
-          Westbahnstraße 27-29<br />
-          1070 Vienna
-        </address>
+        <div class="mobile-contact-info">
+          <p>Contact</p>
+
+          <a href="mailto:info@evaeichinger.com">
+            Email: info@evaeichinger.com
+          </a>
+
+          <address>
+            Westbahnstraße 27-29<br />
+            1070 Vienna
+          </address>
+        </div>
       </div>
-    </div>
 
-    <div class="mobile-design-credit">Designed by zoraDesign</div>
-  </nav>
-</header>
+      <div class="mobile-design-credit">Designed by zoraDesign</div>
+    </nav>
+  </header>
 
-{@render children()}
+  {@render children()}
 
-<footer
-  class="site-footer"
-  class:is-visible={!isHomePage || headerScrolled}
-  aria-label="Footer navigation"
->
-  <a
-    href="https://zorawebdesign.com/"
-    class="footer-item footer-item-developer"
-    target="_blank"
-    rel="noreferrer"
+  <footer
+    class="site-footer"
+    class:is-visible={!isHomePage || headerScrolled}
+    aria-label="Footer navigation"
   >
-    <span>DEVELOPED BY ZORAWEBDesign</span>
-  </a>
+    <a
+      href="https://zorawebdesign.com/"
+      class="footer-item footer-item-developer"
+      target="_blank"
+      rel="noreferrer"
+    >
+      <span>DEVELOPED BY ZORAWEBDesign</span>
+    </a>
 
-  <a
-    href="/contact"
-    class="footer-item footer-item-contact"
-    onclick={closeMenu}
-  >
-    <span>CONTACT</span>
-  </a>
+    <a
+      href="/contact"
+      class="footer-item footer-item-contact"
+      onclick={closeMenu}
+    >
+      <span>CONTACT</span>
+    </a>
 
-  <a
-    href="/privacy"
-    class="footer-item footer-item-privacy"
-    onclick={closeMenu}
-  >
-    <span>PRIVACY</span>
-  </a>
+    <a
+      href="/privacy"
+      class="footer-item footer-item-privacy"
+      onclick={closeMenu}
+    >
+      <span>PRIVACY</span>
+    </a>
 
-  <a
-    href="/archive"
-    class="footer-item footer-item-archive"
-    onclick={closeMenu}
-  >
-    <span>ARCHIVE</span>
-  </a>
-</footer>
+    <a
+      href="/archive"
+      class="footer-item footer-item-archive"
+      onclick={closeMenu}
+    >
+      <span>ARCHIVE</span>
+    </a>
+  </footer>
+</div>
 
 <style>
   :global(:root) {
@@ -511,6 +544,7 @@
   }
 
   :global(body) {
+    box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -521,13 +555,103 @@
     touch-action: none;
   }
 
+  .site-shell {
+    --announcement-height: 0px;
+
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    padding-top: var(--announcement-height);
+    box-sizing: border-box;
+  }
+
+  .site-shell.announcement-visible {
+    --announcement-height: 44px;
+  }
+
   .site-header,
   .site-header *,
   .main-nav,
   .main-nav *,
   .site-footer,
-  .site-footer * {
+  .site-footer *,
+  .home-announcement,
+  .home-announcement * {
     font-family: var(--site-font-family);
+  }
+
+  .home-announcement {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 120;
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 60px;
+    box-sizing: border-box;
+    background: #000000;
+    color: #ffffff;
+  }
+
+  .home-announcement a {
+    display: inline;
+    max-width: calc(100% - 80px);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: normal;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: opacity 0.2s ease;
+  }
+
+  .home-announcement a:hover,
+  .home-announcement a:focus-visible {
+    opacity: 0.65;
+    outline: none;
+  }
+
+  .announcement-prefix,
+  .announcement-separator,
+  .announcement-title {
+    display: inline;
+    white-space: normal;
+  }
+
+  .home-announcement-close {
+    position: absolute;
+    top: 50%;
+    right: 28px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: opacity 0.2s ease;
+  }
+
+  .home-announcement-close:hover,
+  .home-announcement-close:focus-visible {
+    opacity: 0.6;
+    outline: none;
   }
 
   .site-header {
@@ -540,7 +664,7 @@
 
   .top-header-background {
     position: fixed;
-    top: 0;
+    top: var(--announcement-height);
     left: 0;
     z-index: 101;
     width: 100%;
@@ -557,7 +681,7 @@
 
   .logo {
     position: fixed;
-    top: 32px;
+    top: calc(32px + var(--announcement-height));
     left: 28px;
     z-index: 105;
     color: #2f2d2b;
@@ -585,7 +709,7 @@
 
   .desktop-menu-control {
     position: fixed;
-    top: 18px;
+    top: calc(18px + var(--announcement-height));
     right: 28px;
     z-index: 105;
     display: inline-flex;
@@ -696,11 +820,14 @@
 
   .main-nav {
     position: fixed;
-    inset: 0;
+    top: var(--announcement-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 103;
     width: 100%;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - var(--announcement-height));
+    height: calc(100dvh - var(--announcement-height));
     overflow: hidden;
     background: #000000;
     color: #ffffff;
@@ -757,8 +884,7 @@
     top: 0;
     left: 30vw;
     width: 160px;
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: none;
@@ -804,6 +930,7 @@
 
   .menu-grid-item {
     --submenu-accent-color: #ffffff;
+
     position: relative;
     width: fit-content;
     margin: 0;
@@ -831,10 +958,6 @@
     text-decoration: none;
   }
 
-  /*
-   * ORIGINAL DESKTOP PARENT MENU TYPOGRAPHY.
-   * DO NOT CHANGE.
-   */
   .main-menu-link {
     display: inline-flex;
     align-items: center;
@@ -1064,10 +1187,6 @@
     display: none;
   }
 
-  /*
-   * FOOTER — DESKTOP
-   * Four columns.
-   */
   .site-footer {
     position: fixed;
     left: 0;
@@ -1134,8 +1253,6 @@
     text-align: right;
   }
 
-  /* Desktop only - Performance Views */
-
   .main-menu-link span {
     display: block;
   }
@@ -1160,20 +1277,52 @@
   }
 
   @media (max-width: 1024px) {
-    /*
-     * Leaves real space below page content for the fixed footer.
-     */
+    .site-shell.announcement-visible {
+      --announcement-height: 54px;
+    }
+
     :global(body) {
       padding-bottom: 58px;
       box-sizing: border-box;
     }
 
-    /*
-     * Slight overlap above the viewport prevents the tiny
-     * page-colour sliver when scrolling on mobile/tablet.
-     */
+    .home-announcement {
+      height: 54px;
+      padding: 0 58px 0 24px;
+      justify-content: center;
+    }
+
+    .home-announcement a {
+      display: inline;
+      max-width: 100%;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.6;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: normal;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .announcement-prefix,
+    .announcement-separator,
+    .announcement-title {
+      display: inline;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .home-announcement-close {
+      right: 20px;
+    }
+
     .top-header-background {
-      top: -2px;
+      top: calc(-2px + var(--announcement-height));
       height: 72px;
       background: #ffffff;
     }
@@ -1184,7 +1333,7 @@
     }
 
     .logo {
-      top: 20px;
+      top: calc(20px + var(--announcement-height));
       left: 24px;
       color: #2f2d2b;
       font-size: 1.45rem;
@@ -1224,7 +1373,7 @@
 
     .menu-toggle {
       position: fixed;
-      top: 24px;
+      top: calc(24px + var(--announcement-height));
       right: 24px;
       z-index: 105;
       display: flex;
@@ -1273,12 +1422,15 @@
 
     .main-nav {
       position: fixed;
-      inset: 0;
+      top: var(--announcement-height);
+      left: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      max-height: 100vh;
-      max-height: 100dvh;
+      height: calc(100vh - var(--announcement-height));
+      height: calc(100dvh - var(--announcement-height));
+      max-height: calc(100vh - var(--announcement-height));
+      max-height: calc(100dvh - var(--announcement-height));
       padding: 82px 24px 26px;
       box-sizing: border-box;
       display: flex;
@@ -1327,10 +1479,6 @@
       color: #ffffff;
     }
 
-    /*
-     * ORIGINAL TABLET/MOBILE MENU PARENT TYPOGRAPHY.
-     * UNCHANGED.
-     */
     .main-menu-link {
       width: fit-content;
       color: #ffffff;
@@ -1503,10 +1651,6 @@
       flex-shrink: 0;
     }
 
-    /*
-     * FOOTER — TABLET
-     * Always white so content cannot show through.
-     */
     .site-footer {
       position: fixed;
       left: 0;
@@ -1567,14 +1711,58 @@
   }
 
   @media (max-width: 600px) {
+    .site-shell.announcement-visible {
+      --announcement-height: 64px;
+    }
+
+    .home-announcement {
+      height: 64px;
+      justify-content: center;
+      padding: 0 48px 0 20px;
+    }
+
+    .home-announcement a {
+      display: inline;
+      width: 100%;
+      max-width: 100%;
+      overflow: visible;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1.5;
+      letter-spacing: 0.035em;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: normal;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    .announcement-prefix,
+    .announcement-separator,
+    .announcement-title {
+      display: inline;
+      overflow: visible;
+      white-space: normal;
+      text-overflow: clip;
+    }
+
+    .home-announcement-close {
+      right: 14px;
+      width: 26px;
+      height: 26px;
+      font-size: 19px;
+    }
+
     .top-header-background {
-      top: -2px;
+      top: calc(-2px + var(--announcement-height));
       height: 68px;
       background: #ffffff;
     }
 
     .logo {
-      top: 18px;
+      top: calc(18px + var(--announcement-height));
       left: 20px;
       font-size: 1.25rem;
       font-weight: 600;
@@ -1582,12 +1770,17 @@
     }
 
     .menu-toggle {
-      top: 22px;
+      top: calc(22px + var(--announcement-height));
       right: 20px;
       width: 34px;
     }
 
     .main-nav {
+      top: var(--announcement-height);
+      height: calc(100vh - var(--announcement-height));
+      height: calc(100dvh - var(--announcement-height));
+      max-height: calc(100vh - var(--announcement-height));
+      max-height: calc(100dvh - var(--announcement-height));
       padding: 82px 20px 22px;
       gap: 20px;
     }
@@ -1596,10 +1789,6 @@
       gap: 15px;
     }
 
-    /*
-     * ORIGINAL MOBILE MENU PARENT TYPOGRAPHY.
-     * UNCHANGED.
-     */
     .main-menu-link {
       font-size: 16px;
       font-weight: 600;
@@ -1653,9 +1842,6 @@
       font-size: 10px;
     }
 
-    /*
-     * FOOTER — MOBILE
-     */
     .site-footer {
       position: fixed;
       left: 0;
@@ -1726,10 +1912,6 @@
       gap: 12px;
     }
 
-    /*
-     * ORIGINAL SHORT-SCREEN MENU SIZE.
-     * UNCHANGED.
-     */
     .main-menu-link {
       font-size: 15px;
       font-weight: 600;
