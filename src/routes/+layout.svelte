@@ -17,16 +17,10 @@
   let performanceItems = $derived(data?.performanceMenuItems || []);
   let eventItems = $derived(data?.eventMenuItems || []);
 
-  let announcementText = $derived(
-    String(page.data?.announcementText || "").trim(),
-  );
-
   let pathname = $derived(page.url.pathname);
   let isHomePage = $derived(pathname === "/");
 
-  let showHomeAnnouncement = $derived(
-    isHomePage && announcementOpen && announcementText.length > 0,
-  );
+  let showHomeAnnouncement = $derived(isHomePage && announcementOpen);
 
   let menuItems = $derived.by(() => [
     {
@@ -263,18 +257,12 @@
     <div
       class="home-announcement"
       role="region"
-      aria-label="Upcoming event announcement"
+      aria-label="Upcoming shows announcement"
     >
       <div class="announcement-marquee">
         <div class="announcement-marquee-track">
           <a href="/event" class="announcement-marquee-item">
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -285,13 +273,7 @@
             aria-hidden="true"
             tabindex="-1"
           >
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -302,13 +284,7 @@
             aria-hidden="true"
             tabindex="-1"
           >
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -319,13 +295,7 @@
             aria-hidden="true"
             tabindex="-1"
           >
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -336,13 +306,7 @@
             aria-hidden="true"
             tabindex="-1"
           >
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -353,13 +317,7 @@
             aria-hidden="true"
             tabindex="-1"
           >
-            <span class="announcement-prefix"> UPCOMING EVENT </span>
-
-            <span class="announcement-separator"> — </span>
-
-            <span class="announcement-title">
-              {announcementText}
-            </span>
+            CHECKOUT UPCOMING SHOWS
           </a>
 
           <span class="announcement-divider" aria-hidden="true"> • </span>
@@ -369,7 +327,7 @@
       <button
         type="button"
         class="home-announcement-close"
-        aria-label="Close upcoming event announcement"
+        aria-label="Close upcoming shows announcement"
         onclick={closeAnnouncement}
       >
         ×
@@ -467,7 +425,9 @@
                   class:has-arrow={hasDesktopSubmenu(item)}
                   onclick={closeMenu}
                 >
-                  <span>{@html item.label}</span>
+                  <span>
+                    {@html item.label}
+                  </span>
 
                   {#if hasDesktopSubmenu(item)}
                     <span class="desktop-menu-arrow" aria-hidden="true">
@@ -615,7 +575,7 @@
       target="_blank"
       rel="noreferrer"
     >
-      <span>DEVELOPED BY ZORAWEBDesign</span>
+      <span> DEVELOPED BY ZORAWEBDesign </span>
     </a>
 
     <a
@@ -779,12 +739,6 @@
   .announcement-marquee-item:focus-visible {
     opacity: 0.65;
     outline: none;
-  }
-
-  .announcement-prefix,
-  .announcement-separator,
-  .announcement-title {
-    display: inline;
   }
 
   .announcement-divider {
